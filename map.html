@@ -8,6 +8,7 @@
       margin: 0;
       padding: 0;
       color: #666;
+      box-sizing: border-box;
     }
     h1 {
       position: absolute;
@@ -23,8 +24,23 @@
       height: 100%;
       width: 100%;
     }
+    .reason {
+      max-width: 250px;
+      padding: 1rem;
+      text-align: center;
+      border: 5px solid #CCC;
+      border-radius: 8px;
+      background-color: #FFF;
+    }
     .reason:hover {
-      opacity: 0.5;
+      box-shadow: 0 0 5px 2px rgba(0,0,0,0.15);
+      cursor: move;
+    }
+    .droppable {
+       box-shadow: 0 0 5px 5px rgba(0,200,0,0.25);     
+    }
+    .current {
+       box-shadow: 0 0 5px 5px rgba(0,0,200,0.25);           
     }
   </style>
 </head>
