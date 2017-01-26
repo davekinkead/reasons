@@ -1,9 +1,11 @@
 # Reasons
 
-Web based argument mapping tools
+*Reasons* is a web-based argument mapping tool designed to work in all modern (HTML5) browsers.  Once you add *Reasons* to any web page, you will be able to generate a HTML5 argument map from premises and conclusions highlighted in the page text.
 
 
 ## Mapper UX
+
+*Reasons* is currently in early prototyping and not yet ready for prime time :(
 
 ### Version 1
 
@@ -12,8 +14,8 @@ Web based argument mapping tools
   - [x] auto size based on text
   - [x] reason:hover indication
   - [] click reason to edit it
-  - [] drag reason to create relation
-  - [] relation:hover indication
+  - [x] drag reason to create relation
+  - [x] relation:hover indication
   - [] automatically reposition reasons
   - [] accept reasons in POST data
 
