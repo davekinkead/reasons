@@ -40,7 +40,7 @@ The basic functionality can be broken down into three key parts
 
 ### Scaffolder
 
-  - [] add navigation to generate essay outline
+  - [] add navigation to generate essay outline 
   - [] generate essay outline based on reasons
 
 ### Other
