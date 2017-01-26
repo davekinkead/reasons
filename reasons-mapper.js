@@ -48,7 +48,6 @@ function Reason(content, x, y) {
   })
 
   reason.addEventListener('drag', (event) => {
-    // console.log(event) //.clientX+','+event.clientY)
   }, false)
 
   reason.addEventListener('dragend', (event) => {
@@ -141,10 +140,31 @@ function build(type, options, attributes) {
 //  Actions on page load -- get reasons from session storage
 //    and reset the session data afterwards
 postData = JSON.parse(sessionStorage.getItem('reasons'))
+
+//  Replace this with some kind of force displayment between reasons
+let maxElementsPerLine = Math.floor(screenWidth/300)
+const reasonWidth = 250
+
 if (postData !== null) {
-  postData.forEach((reason, index) => {
-    new Reason(reason, 20+index*275, 250)
+  let layoutMatrix = []
+  let layoutLine = 0
+  let lineHeight = 250
+  while (postData.length > 0) {
+    if (postData.length > maxElementsPerLine) {
+      layoutMatrix.push(postData.splice(0,maxElementsPerLine))
+    } else {
+      layoutMatrix.push(postData.splice(0))
+    }    
+  }
+
+  layoutMatrix.forEach((line, lineIndex) => {
+    let lineBuffer = (screenWidth - (reasonWidth * line.length+1)) / (line.length+1)
+    line.forEach((reason, index) => {
+      new Reason(reason, lineBuffer + (lineBuffer+reasonWidth)*index , lineHeight)
+    })
+    lineHeight += 250
   })
+
 }
 
 

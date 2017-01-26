@@ -15,15 +15,16 @@ See the [example](example) *Reasons* in action
   - [x] default text
   - [x] auto size based on text
   - [x] reason:hover indication
-  - [] click reason to edit it
+  - [] click a reason to edit it
   - [x] drag reason to create relation
   - [x] relation:hover indication
+  - [x] give reasons default position
   - [] automatically reposition reasons
   - [x] accept reasons in session data
   - [x] remove tool tip from highligher once clicked
 
 ### Version 2
 
-  - [] types of relations
+  - [] specify types of relations
   - [] generate essay outline
   - [] extract styles into separate CSS
