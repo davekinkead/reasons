@@ -2,6 +2,8 @@
 
 *Reasons* is a web-based argument mapping tool designed to work in all modern (HTML5) browsers.  Once you add *Reasons* to any web page, you will be able to generate a HTML5 argument map from premises and conclusions highlighted in the page text.
 
+See the [example](example) *Reasons* in action
+
 
 ## Mapper UX
 
