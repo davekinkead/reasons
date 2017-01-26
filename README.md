@@ -9,22 +9,41 @@ See the [example](example) *Reasons* in action
 
 *Reasons* is currently in early prototyping and not yet ready for prime time :(
 
-### Version 1
+The basic functionality can be broken down into three key parts
 
-  - [x] double click canvas to create a reason
-  - [x] default text
-  - [x] auto size based on text
-  - [x] reason:hover indication
-  - [] click a reason to edit it
-  - [x] drag reason to create relation
-  - [x] relation:hover indication
-  - [x] give reasons default position
-  - [] automatically reposition reasons
-  - [x] accept reasons in session data
+### Highlighter
+
+  - [x] embed as a library in any web page
+  - [x] highlight text on the page
+  - [x] create tool tip menu on highlight
+  - [] decide which icon-actions should be available
+  - [x] add text to session storage on icon click 
   - [x] remove tool tip from highligher once clicked
+  - [x] option to generate argument map then appears
 
-### Version 2
+### Mapper
 
-  - [] specify types of relations
-  - [] generate essay outline
+  - [x] create reasons from session data
+  - [x] provide map & session reset button
+  - [x] dynamically size reason based on text length
+  - [x] allocate reasons to default position
+  - [x] double click canvas to create a reason
+  - [] right click to create a reason
+  - [] click a reason to edit it
+  - [] right click a reason edit it
+  - [x] reason:hover indication
+  - [x] drag reason to create relation
+  - [] decide on what types of relations should be included
+  - [] click a relation to edit it
+  - [] relation:hover indication
+  - [] automatically reposition reasons after event
+
+### Scaffolder
+
+  - [] add navigation to generate essay outline
+  - [] generate essay outline based on reasons
+
+### Other
+
   - [] extract styles into separate CSS
+  - [] add tests once concept is stable
