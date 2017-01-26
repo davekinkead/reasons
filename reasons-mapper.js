@@ -14,6 +14,10 @@ const boxWidth = (width) => {
 }
 const reasons = []
 const relations = []
+const lessons = {
+  'click-a-reason': 'Clicking on a reason should let you edit it',
+  'drag-a-reason': 'We need to decide what types of relations between reasons should exist'
+}
 
 let clicks = 1    // this is a temp id marker
 let currentReason
@@ -77,6 +81,13 @@ function Reason(content, x, y) {
       relations.push(new Relation(currentReason, 'supports', event.target))
   }, false)
 
+  reason.addEventListener('click', (event) => {
+    if (lessons['click-a-reason']) {
+      alert(lessons['click-a-reason'])
+      lessons['click-a-reason'] = null
+    }
+  })
+
   document.querySelector('#canvas').appendChild(reason)
   return reason
 }
@@ -93,6 +104,11 @@ function Relation(element, type, target) {
     'stroke-width': 5,
     d: 'M'+ec.x+' '+ec.y+' L '+tc.x+' '+tc.y
   })
+
+  if (lessons['drag-a-reason']) {
+    alert(lessons['drag-a-reason'])
+    lessons['drag-a-reason'] = null
+  }
 
   svg.appendChild(path)
 
