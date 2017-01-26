@@ -22,7 +22,7 @@ let svg = buildNS('svg', {}, {height: screenHeight,  version: '1.1', width: scre
 document.querySelector('#canvas').appendChild(svg)
 
 document.querySelector('#canvas').addEventListener('dblclick', (event) => {
-  let reason = new Reason('Lorem ipsum dolor sit amet, ut mattis risus suspendisse natoque, pede ipsum massa quam nam nec parturient.', event.clientX, event.clientY)
+  let reason = new Reason('When I get around to it, you will be able to edit me!', event.clientX, event.clientY)
 })
 
 
@@ -136,3 +136,30 @@ function build(type, options, attributes) {
   }
   return node
 }
+
+
+//  Actions on page load -- get reasons from session storage
+//    and reset the session data afterwards
+postData = JSON.parse(sessionStorage.getItem('reasons'))
+if (postData !== null) {
+  postData.forEach((reason, index) => {
+    new Reason(reason, 20+index*275, 250)
+  })
+}
+
+
+//  Action menu
+let button = build('input', {id: 'create-map-button'}, {
+  name: 'clear-map-button',
+  type: 'submit',
+  value: 'Clear Map'
+})
+
+button.setAttribute('style', 'position:fixed;bottom:2rem;right:2rem;padding:1rem;border:1px solid #CCC;border-radius:3px;display:block')  
+
+button.addEventListener('click', () => {
+  sessionStorage.setItem('reasons', null)
+  location.reload()
+})
+
+document.body.appendChild(button)

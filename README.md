@@ -12,16 +12,18 @@ See the [example](example) *Reasons* in action
 ### Version 1
 
   - [x] double click canvas to create a reason
-  - [] default text
+  - [x] default text
   - [x] auto size based on text
   - [x] reason:hover indication
   - [] click reason to edit it
   - [x] drag reason to create relation
   - [x] relation:hover indication
   - [] automatically reposition reasons
-  - [] accept reasons in POST data
+  - [x] accept reasons in session data
+  - [x] remove tool tip from highligher once clicked
 
 ### Version 2
 
   - [] types of relations
   - [] generate essay outline
+  - [] extract styles into separate CSS
