@@ -7,10 +7,10 @@ Web based argument mapping tools
 
 ### Version 1
 
-  - [] double click canvas to create a reason
+  - [x] double click canvas to create a reason
   - [] default text
   - [] auto size based on text
-  - [] reason:hover indication
+  - [x] reason:hover indication
   - [] click reason to edit it
   - [] drag reason to create relation
   - [] relation:hover indication
