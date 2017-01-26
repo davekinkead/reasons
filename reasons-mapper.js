@@ -88,7 +88,6 @@ function Relation(element, type, target) {
 
   let ec = getCenter(element)
   let tc = getCenter(target)
-
   let path = buildNS('path', {id: element.id+ '-' +target.id}, {
     stroke: '#CCC',
     'stroke-width': 5,
@@ -105,7 +104,7 @@ function Relation(element, type, target) {
 
 function getCenter(element) {
   let box = element.getBoundingClientRect()
-  return {x: box.x + (box.right-box.left)/2, y: box.y + (box.bottom-box.top)/2}
+  return {x: element.offsetLeft + (box.right-box.left)/2, y: element.offsetTop + (box.bottom-box.top)/2}
 }
 
 function overlaps(a, b) {
