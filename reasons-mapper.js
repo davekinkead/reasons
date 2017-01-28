@@ -29,6 +29,16 @@ document.querySelector('#canvas').addEventListener('dblclick', (event) => {
   let reason = new Reason('When I get around to it, you will be able to edit me!', event.clientX, event.clientY)
 })
 
+let overlay = build('div', {id: 'overlay'}, {})
+overlay.addEventListener('click', (event) => {
+  overlay.classList.remove('display')
+  document.querySelectorAll('.reason').forEach((reason) => {
+    reason.classList.remove('front')
+    reason.setAttribute('contentEditable', false)
+  })
+})
+document.body.appendChild(overlay)
+
 
 //  Object Constructors
 
@@ -82,10 +92,9 @@ function Reason(content, x, y) {
   }, false)
 
   reason.addEventListener('click', (event) => {
-    if (lessons['click-a-reason']) {
-      alert(lessons['click-a-reason'])
-      lessons['click-a-reason'] = null
-    }
+    document.querySelector('#overlay').classList.add('display')
+    reason.classList.add('front')
+    reason.setAttribute('contentEditable', true)
   })
 
   document.querySelector('#canvas').appendChild(reason)
@@ -106,7 +115,7 @@ function Relation(element, type, target) {
   })
 
   if (lessons['drag-a-reason']) {
-    alert(lessons['drag-a-reason'])
+    // alert(lessons['drag-a-reason'])
     lessons['drag-a-reason'] = null
   }
 

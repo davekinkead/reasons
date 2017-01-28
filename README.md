@@ -29,8 +29,9 @@ The basic functionality can be broken down into three key parts
   - [x] allocate reasons to default position
   - [x] double click canvas to create a reason
   - [] right click to create a reason
-  - [] click a reason to edit it
   - [] right click a reason edit it
+  - [x] click a reason to edit it
+  - [] delete reason
   - [x] reason:hover indication
   - [x] drag reason to create relation
   - [] decide on what types of relations should be included
@@ -47,3 +48,4 @@ The basic functionality can be broken down into three key parts
 
   - [] extract styles into separate CSS
   - [] add tests once concept is stable
+  - [] add touch/iOS controls

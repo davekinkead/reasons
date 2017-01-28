@@ -33,13 +33,28 @@
     }
     .reason:hover {
       box-shadow: 0 0 5px 2px rgba(0,0,0,0.15);
-      cursor: move;
+      cursor: grab;
     }
     .droppable {
        box-shadow: 0 0 5px 5px rgba(0,200,0,0.25);     
     }
     .current {
        box-shadow: 0 0 5px 5px rgba(0,0,200,0.25);           
+    }
+    .front {
+      z-index: 1000;
+    }
+    .reason.front {
+      cursor: text;
+    }
+    #overlay.display { 
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #666;
+      opacity: 0.8;
     }
   </style>
 </head>
