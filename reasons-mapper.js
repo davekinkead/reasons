@@ -123,6 +123,8 @@ function Reason(content, x, y) {
     reason.setAttribute('contentEditable', true)
   })
 
+  reason.addEventListener('blur', reposition)
+
   document.querySelector('#canvas').appendChild(reason)
   return reason
 }
@@ -312,7 +314,6 @@ function reposition() {
   let layout = new Layout(ids, relations)
 
   //  position reasons based on layout
-  let maxElementsPerLine = Math.floor(screenWidth / 300)
   let lineHeight = screenHeight / (layout.length+1)
 
   layout.forEach((line, index) => {
@@ -323,9 +324,10 @@ function reposition() {
       let reason = reasons.find((r) => {
         return r.id == id
       })
+      let bb = reason.getBoundingClientRect()
       let translation = {
-        x: (screenWidth - elementWidth * (i+1))-reason.offsetLeft-125,
-        y: (screenHeight - lineY)-reason.offsetTop-75
+        x: (screenWidth - elementWidth * (i+1)) - reason.offsetLeft - bb.width/2,
+        y: (screenHeight - lineY) - reason.offsetTop - bb.height
       }
       reason.style.transform = 'translate('+translation.x+'px, '+translation.y +'px)'
     })
