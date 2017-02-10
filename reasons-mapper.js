@@ -15,6 +15,7 @@ const boxWidth = (width) => {
 }
 const reasons = []
 const relations = []
+
 const reasonWidth = 250
 
 
@@ -26,59 +27,13 @@ let svg = createSVG()
 let overlay = createOverlay()
 let button = createButton()
 
-
-function createSVG() {
-  let svg = buildNS('svg', {}, {height: screenHeight,  version: '1.1', width: screenWidth, xmlns: "http://www.w3.org/2000/svg", 'xmlns:xlink':"http://www.w3.org/1999/xlink"})
-  document.querySelector('#canvas').appendChild(svg)
-
-  document.querySelector('#canvas').addEventListener('dblclick', (event) => {
-    let reason = new Reason('When I get around to it, you will be able to edit me!', event.clientX, event.clientY)
-    reasons.push(reason)
-    reposition()
-  })
-
-  return svg
-}
-
-function createOverlay() {
-  let overlay = build('div', {id: 'overlay'}, {})
-  overlay.addEventListener('click', (event) => {
-    overlay.classList.remove('display')
-    document.querySelectorAll('.reason').forEach((reason) => {
-      reason.classList.remove('front')
-      reason.setAttribute('contentEditable', false)
-    })
-  })
-  document.body.appendChild(overlay)
-
-  return overlay
-}
-
-function createButton() {
-  let button = build('input', {id: 'create-map-button'}, {
-    name: 'clear-map-button',
-    type: 'submit',
-    value: 'Clear Map'
-  })
-
-  button.setAttribute('style', 'position:fixed;bottom:2rem;right:2rem;padding:1rem;border:1px solid #CCC;border-radius:3px;display:block')  
-
-  button.addEventListener('click', () => {
-    sessionStorage.setItem('reasons', null)
-    location.reload()
-  })
-
-  document.body.appendChild(button)  
-
-  return button
-}
-
+document.addEventListener('reposition', reposition)
+reposition()
 
 
 //  Object Constructors
 
 function Reason(content, x, y) {
-
   let reason = build('div', {id: clicks++}, {
     class:'reason',
     style: 'position: absolute; top: '+y+'px; left: '+x+'px;',
@@ -137,25 +92,154 @@ function Reason(content, x, y) {
 }
 
 function Relation(element, type, target) {
-  this.element = element
+  this.reasons = [element.id]
   this.type = type
-  this.target = target
+  this.target = target.id
+  drawEdge(element.id, target.id)
+  return this
+}
 
-  let ec = getCenter(element)
+function find(id, arr) {
+  return arr.find((reason) => {
+    return reason.id == id
+  })
+}
+
+function drawEdge(from, to) {
+  let reason = find(from, reasons)
+  let target = find(to, reasons)
+  let ec = getCenter(reason)
   let tc = getCenter(target)
-  let path = buildNS('path', {id: element.id+ '-' +target.id}, {
+
+  let path = buildNS('path', {id: reason.id+ '-' +target.id}, {
+    class: 'edge',
     stroke: '#CCC',
     'stroke-width': 5,
     d: 'M'+ec.x+' '+ec.y+' L '+tc.x+' '+tc.y
   })
 
   svg.appendChild(path)
+}
 
-  return this
+function Layout(reasons, relations) {
+  let layers = []
+
+  //  1. clone reasons and find the conclusion
+  let orphans = reasons.slice(0)
+  let related = []
+  relations.forEach((relation) => {
+    related = related.concat(remove(orphans, relation.target))
+    related = related.concat(remove(orphans, relation.reasons))
+  })
+
+  //  2. add conclusions to layout
+  let conclusions = related.filter((reason) => {
+    let children = [].concat.apply([], relations.map((relation) => {
+        return relation.reasons
+      })
+    )
+    return !(children.indexOf(reason) > -1)
+  })
+
+  //  3. from the conclusion, add children to the layers
+  layers = addLevel(conclusions, layers)  
+
+  //  4. finally add the orphans
+  if (orphans.length > 0)
+    layers.push(orphans)
+
+  return layers
+  
+  function addLevel(current, layout) {
+    if (current.length > 0) {
+      layout.push(current)
+      let children = collectChildren(current)
+      if (children.length > 0) {
+        addLevel(children, layout)
+      }
+    }
+    return layout
+  }
+
+  function collectChildren(arr) {
+    let list = arr.map((id) => {
+      return childrenOf(id)
+    })
+    return [].concat.apply([], list)
+  }
+
+  //  return the children ids of a reason
+  function childrenOf(id) {
+    let kids = relations.filter((relation) => {
+      return relation.target == id
+    }).map((relation) => {
+      return relation.reasons
+    })
+    return [].concat.apply([],kids)
+  }
+
+  function remove(arr, item) {
+    let results = []
+    if (typeof item !== 'object')
+      item = [item]
+    item.forEach((i) => {
+      let index = arr.indexOf(i)
+      if (index > -1) {
+        results = results.concat(arr.splice(index, 1))
+      }
+    })
+    return results
+  }
 }
 
 
 //  Helper Functions
+
+function createSVG() {
+  let svg = buildNS('svg', {}, {height: screenHeight,  version: '1.1', width: screenWidth, xmlns: "http://www.w3.org/2000/svg", 'xmlns:xlink':"http://www.w3.org/1999/xlink"})
+  document.querySelector('#canvas').appendChild(svg)
+
+  document.querySelector('#canvas').addEventListener('dblclick', (event) => {
+    let reason = new Reason('When I get around to it, you will be able to edit me!', event.clientX, event.clientY)
+    reasons.push(reason)
+    reposition()
+  })
+
+  return svg
+}
+
+function createOverlay() {
+  let overlay = build('div', {id: 'overlay'}, {})
+  overlay.addEventListener('click', (event) => {
+    overlay.classList.remove('display')
+    document.querySelectorAll('.reason').forEach((reason) => {
+      reason.classList.remove('front')
+      reason.setAttribute('contentEditable', false)
+    })
+  })
+  document.body.appendChild(overlay)
+
+  return overlay
+}
+
+function createButton() {
+  let button = build('input', {id: 'create-map-button'}, {
+    name: 'clear-map-button',
+    type: 'submit',
+    value: 'Clear Map'
+  })
+
+  button.setAttribute('style', 'position:fixed;bottom:2rem;right:2rem;padding:1rem;border:1px solid #CCC;border-radius:3px;display:block')  
+
+  button.addEventListener('click', () => {
+    sessionStorage.setItem('reasons', null)
+    location.reload()
+  })
+
+  document.body.appendChild(button)  
+
+  return button
+}
 
 function getCenter(element) {
   let box = element.getBoundingClientRect()
@@ -184,87 +268,165 @@ function build(type, options, attributes) {
   }
   return node
 }
-  let vectors = []
-
-
-
-
-document.addEventListener('reposition', reposition)
 
 function reposition() {
-  const gravity = (distance) => {
-    return Math.min(distance, 10)
-  }
-  const displacement = (distance) => {
-    return (distance > 150) ? 0 : 150-distance
-  }
+  //  get the layout of ids
+  let ids = reasons.map((r) => {
+    return r.id
+  })
+  let layout = new Layout(ids, relations)
+  console.log(layout)
 
-  let repositioning = 50
+  //  position reasons based on layout
+  let maxElementsPerLine = Math.floor(screenWidth/300)
+  let lineHeight = screenHeight/(layout.length+1)
 
-  while (repositioning-- > 0) {
-    reasons.forEach((reason, index) => {
-      //  we start with either the existing vector or a blank
-      let vc = vectors[index] || {x: 0, y: 0}
-      let sc = getVector(addVectors(getOffset(reason), vc), screenCenter, gravity)
-      vc = addVectors(vc, sc)
-
-      // reasons.forEach((other) => {
-      //   if (other.id !== reason.id) {
-
-      //     //  displace reasons from each other
-      //     let dc = getVector(vc, getCenter(other), displacement)
-      //     vc.x -= dc.x
-      //     vc.y -= dc.y
-      //   }
-      // })
-
-      vectors[index] = vc
+  layout.forEach((layer, index) => {
+    let layerY = screenHeight - (lineHeight*(index+1))
+    layer.forEach((id) => {
+      let reason = reasons.find((r) => {
+        return r.id == id
+      })
+      let translation = {
+        x: 0, 
+        y: (screenHeight - layerY)-reason.offsetTop-75
+      }
+      reason.style.transform = 'translate('+0+'px, '+translation.y +'px)'
     })
-  }
-
-  reasons.forEach((reason, index) => {
-    reason.style.transform = 'translate('+(vectors[index].x)+'px, '+(vectors[index].y)+'px)'
   })
-}
 
-function getAngleBetween(a, b) {
-  return Math.atan2(b.y-a.y, b.x-a.x)
-}
-
-function getDistanceBetween(a, b) {
-  return Math.sqrt( Math.pow(b.x-a.x, 2) + Math.pow(b.y-a.y, 2) )
-}
-
-function getVector(current, other, fn) {
-  let direction = getAngleBetween(current, other)
-  let distance = getDistanceBetween(current, other)
-  return {
-    x: Math.cos(direction) * fn(distance), 
-    y: Math.sin(direction) * fn(distance)
-  }
-}
-
-function getOffset(reason) {
-  let box = reason.getBoundingClientRect()
-  return {
-    x: (reason.offsetLeft + box.width/2),
-    y: (reason.offsetTop + box.height/2)
-  }
-}
-
-function addVectors(a, b) {
-  return {x: a.x + b.x, y: a.y + b.y}
-}
-
-function find(id, array) {
-  let match
-  array.forEach((reason) => {
-    if (reason.id == id.toString()) {
-      match = reason     
-    }
+  //  re-position relations
+  let paths = document.querySelectorAll('.edge')
+  paths.forEach((path) => {
+    path.id.split('-')
+    path.remove()
+    let from = find(path.id.split('-')[0], reasons)
+    let to = find(path.id.split('-')[1], reasons)
+    console.log(from)
+    drawEdge(from.id, to.id)
+    // let ec = getCenter(from)
+    // let tc = getCenter(to)
+    // path.setAttribute('d', 'M'+ec.x+' '+ec.y+' L '+tc.x+' '+tc.y)
   })
-  return match
+
 }
+
+// if (postData !== null) {
+//   let layoutMatrix = []
+//   let layoutLine = 0
+//   let lineHeight = 250
+//   while (postData.length > 0) {
+//     if (postData.length > maxElementsPerLine) {
+//       layoutMatrix.push(postData.splice(0,maxElementsPerLine))
+//     } else {
+//       layoutMatrix.push(postData.splice(0))
+//     }    
+//   }
+
+//   layoutMatrix.forEach((line, lineIndex) => {
+//     let lineBuffer = (screenWidth - (reasonWidth * line.length+1)) / (line.length+1)
+//     line.forEach((reason, index) => {
+//       new Reason(reason, lineBuffer + (lineBuffer+reasonWidth)*index , lineHeight)
+//     })
+//     lineHeight += 250
+//   })
+// }
+
+// function reposition() {
+//   const gravity = (distance) => {
+//     return Math.min(distance, 10)
+//   }
+//   const displacement = (distance) => {
+//     if (distance > 100) {
+//       return 0
+//     } else {
+//       return 50
+//     }
+//   }
+
+//   let repositioning = 50
+
+//   while (repositioning-- > 0) {
+//     reasons.forEach((reason, index) => {
+//       //  we start with either the existing vector or a blank
+//       let vc = vectors[index] || {x: 0, y: 0}
+
+//       //  pull reasons to the screen center
+//       let sc = getVector(addVectors(getOffset(reason), vc), screenCenter, gravity)
+//       vc = addVectors(vc, sc)
+
+//       //  displace off other reasons
+//       reasons.forEach((other) => {
+//         if (other.id !== reason.id) {
+//           if (overlaps(reason, other)) {
+//             console.log(reason.id + ' overlaps ' + other.id)
+//           }
+//         }
+//       })
+
+//       vectors[index] = vc
+//     })
+//   }
+
+//   reasons.forEach((reason, index) => {
+//     reason.style.transform = 'translate('+(vectors[index].x)+'px, '+(vectors[index].y)+'px)'
+//   })
+
+// //  nasty hack...
+// function overlaps(a, b) {
+//   if (Math.abs(getCenter(a).x - getCenter(b).x) < 200) {
+//     return true
+//   } else {
+//     return false
+//   }
+
+// }
+
+// function getAngleBetween(a, b) {
+//   return Math.atan2(b.y-a.y, b.x-a.x)
+// }
+
+// function getDistanceBetween(a, b) {
+//   return Math.sqrt( Math.pow(b.x-a.x, 2) + Math.pow(b.y-a.y, 2) )
+// }
+
+// function getVector(current, other, fn) {
+//   let direction = getAngleBetween(current, other)
+//   let distance = getDistanceBetween(current, other)
+//   return {
+//     x: Math.cos(direction) * fn(distance), 
+//     y: Math.sin(direction) * fn(distance)
+//   }
+// }
+
+// function getOffset(reason) {
+//   let box = reason.getBoundingClientRect()
+//   return {
+//     x: (reason.offsetLeft + box.width/2),
+//     y: (reason.offsetTop + box.height/2)
+//   }
+// }
+
+// function addVectors(a, b) {
+//   return {x: a.x + b.x, y: a.y + b.y}
+// }
+
+// function subVectors(a, b) {
+//   return {x: a.x - b.x, y: a.y - b.y}
+// }
+
+// function find(id, array) {
+//   let match
+//   array.forEach((reason) => {
+//     if (reason.id == id.toString()) {
+//       match = reason     
+//     }
+//   })
+//   return match
+// }
+
+
+
 
 //  Actions on page load -- get reasons from session storage
 //    and reset the session data afterwards
@@ -293,5 +455,3 @@ function find(id, array) {
 //     lineHeight += 250
 //   })
 // }
-
-reposition()
