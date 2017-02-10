@@ -3,6 +3,39 @@
 // Available under the MIT license
 
 
+/*  we have state [reasons, relations, counter for reason IDs] and a view
+
+I want to add reasons to the state
+
+I want to add relations between reasons to the state
+
+I want the state to render correctly and update
+
+So I need 2 functions: update(state) & render(state)
+  - update(state) will add & remove reasons and relations.
+  - render(state) will draw & update the UI
+*/
+
+// let Reasons = {
+  
+//   state: {
+//     reasons: [],
+//     relations: [],
+//     tree: {}
+//   },
+
+//   init: () => {},
+
+//   // reasons + relations -> tree
+//   update: (reasons, relations) => {},
+
+//   // updates the dom based on the tree
+//   render: (tree) => {}
+// }
+
+
+
+
 const screenWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth
 const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
 const screenCenter = {x: screenWidth/2, y: screenHeight/2}
@@ -31,7 +64,10 @@ document.addEventListener('reposition', reposition)
 reposition()
 
 
+//-------------------------------
 //  Object Constructors
+//-------------------------------
+
 
 function Reason(content, x, y) {
   let reason = build('div', {id: clicks++}, {
@@ -99,28 +135,13 @@ function Relation(element, type, target) {
   return this
 }
 
-function find(id, arr) {
-  return arr.find((reason) => {
-    return reason.id == id
-  })
-}
 
-function drawEdge(from, to) {
-  let reason = find(from, reasons)
-  let target = find(to, reasons)
-  let ec = getCenter(reason)
-  let tc = getCenter(target)
+//----------------------------------
+//  GUI functions
+//----------------------------------
 
-  let path = buildNS('path', {id: reason.id+ '-' +target.id}, {
-    class: 'edge',
-    stroke: '#CCC',
-    'stroke-width': 5,
-    d: 'M'+ec.x+' '+ec.y+' L '+tc.x+' '+tc.y
-  })
 
-  svg.appendChild(path)
-}
-
+//  A layout is the container for reasons and their relations
 function Layout(reasons, relations) {
   let layers = []
 
@@ -193,7 +214,21 @@ function Layout(reasons, relations) {
 }
 
 
-//  Helper Functions
+function drawEdge(from, to) {
+  let reason = find(from, reasons)
+  let target = find(to, reasons)
+  let ec = getCenter(reason)
+  let tc = getCenter(target)
+
+  let path = buildNS('path', {id: reason.id+ '-' +target.id}, {
+    class: 'edge',
+    stroke: '#CCC',
+    'stroke-width': 5,
+    d: 'M'+ec.x+' '+ec.y+' L '+tc.x+' '+tc.y
+  })
+
+  svg.appendChild(path)
+}
 
 function createSVG() {
   let svg = buildNS('svg', {}, {height: screenHeight,  version: '1.1', width: screenWidth, xmlns: "http://www.w3.org/2000/svg", 'xmlns:xlink':"http://www.w3.org/1999/xlink"})
@@ -275,40 +310,54 @@ function reposition() {
     return r.id
   })
   let layout = new Layout(ids, relations)
-  console.log(layout)
 
   //  position reasons based on layout
-  let maxElementsPerLine = Math.floor(screenWidth/300)
-  let lineHeight = screenHeight/(layout.length+1)
+  let maxElementsPerLine = Math.floor(screenWidth / 300)
+  let lineHeight = screenHeight / (layout.length+1)
 
-  layout.forEach((layer, index) => {
-    let layerY = screenHeight - (lineHeight*(index+1))
-    layer.forEach((id) => {
+  layout.forEach((line, index) => {
+    let lineY = screenHeight - (lineHeight*(index+1))
+    let elementWidth = screenWidth / (line.length+1)
+
+    line.forEach((id, i) => {
       let reason = reasons.find((r) => {
         return r.id == id
       })
       let translation = {
-        x: 0, 
-        y: (screenHeight - layerY)-reason.offsetTop-75
+        x: (screenWidth - elementWidth * (i+1))-reason.offsetLeft-125,
+        y: (screenHeight - lineY)-reason.offsetTop-75
       }
-      reason.style.transform = 'translate('+0+'px, '+translation.y +'px)'
+      reason.style.transform = 'translate('+translation.x+'px, '+translation.y +'px)'
     })
   })
 
-  //  re-position relations
+  //  re-position relations with delay
+  setTimeout(repositionRelations, 500)
+
+}
+
+function repositionRelations() {
   let paths = document.querySelectorAll('.edge')
   paths.forEach((path) => {
     path.id.split('-')
     path.remove()
     let from = find(path.id.split('-')[0], reasons)
     let to = find(path.id.split('-')[1], reasons)
-    console.log(from)
     drawEdge(from.id, to.id)
     // let ec = getCenter(from)
     // let tc = getCenter(to)
     // path.setAttribute('d', 'M'+ec.x+' '+ec.y+' L '+tc.x+' '+tc.y)
-  })
+  }) 
+}
 
+//----------------------------------
+//  Helper functions
+//----------------------------------
+
+function find(id, arr) {
+  return arr.find((reason) => {
+    return reason.id == id
+  })
 }
 
 // if (postData !== null) {
