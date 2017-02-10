@@ -15,10 +15,10 @@ document.addEventListener('mouseup', (event) => {
   let tooltip = document.querySelector('#tooltip')
   
   if (selection.focusOffset - selection.anchorOffset > 0) {
-    let offset = document.documentElement.scrollTop
+    let offset = window.scrollY
     let rect = selection.getRangeAt(0).getBoundingClientRect()
     tooltip.setAttribute('style', 'position:absolute;')
-    tooltip.setAttribute('style', 'position:absolute;display:block;top:'+(rect.top+offset-40)+'px;left:'+(rect.x+rect.width/2-tooltip.offsetWidth/2)+'px;')
+    tooltip.setAttribute('style', 'position:absolute;display:block;top:'+(rect.top+offset-40)+'px;left:'+(rect.left+rect.width/2-tooltip.offsetWidth/2)+'px;')
   } else {
     tooltip.setAttribute('style', 'display:none;')
   }
