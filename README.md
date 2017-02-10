@@ -36,8 +36,10 @@ The basic functionality can be broken down into three key parts
   - [x] drag reason to create relation
   - [] decide on what types of relations should be included
   - [] click a relation to edit it
-  - [] relation:hover indication
-  - [] automatically reposition reasons after event
+  - [x] relation:hover indication
+  - [x] automatically reposition reasons after event
+  - [] scroll to zoom
+
 
 ### Scaffolder
 
@@ -49,3 +51,5 @@ The basic functionality can be broken down into three key parts
   - [] extract styles into separate CSS
   - [] add tests once concept is stable
   - [] add touch/iOS controls
+  - [] save maps
+  - [] slide menu

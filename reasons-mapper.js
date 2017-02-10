@@ -3,42 +3,6 @@
 // Available under the MIT license
 
 
-/*  we have state [reasons, relations, counter for reason IDs] and a view
-
-I want to add reasons to the state
-
-I want to add relations between reasons to the state
-
-I want the state to render correctly and update
-
-So I need 2 functions: update(state) & render(state)
-  - update(state) will add & remove reasons and relations.
-  - render(state) will draw & update the UI
-*/
-
-// let Reasons = {
-  
-//   state: {
-//     reasons: [],
-//     relations: [],
-//     tree: {}
-//   },
-
-//   init: () => {},
-
-//   // reasons + relations -> tree
-//   update: (reasons, relations) => {},
-
-//   // updates the dom based on the tree
-//   render: (tree) => {}
-// }
-
-
-
-
-const screenWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth
-const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
-const screenCenter = {x: screenWidth/2, y: screenHeight/2}
 const fontSize = 14
 const boxPaddingFactor = 1
 const boxHeightInLines = 3
@@ -48,10 +12,11 @@ const boxWidth = (width) => {
 }
 const reasons = []
 const relations = []
-
 const reasonWidth = 250
 
-
+let screenWidth = screen().width
+let screenHeight = screen().height
+let screenCenter = {x: screenWidth/2, y: screenHeight/2}
 let clicks = 1    // this is a temp id marker
 let currentReason
 
@@ -62,6 +27,12 @@ let button = createButton()
 
 document.addEventListener('reposition', reposition)
 reposition()
+
+document.addEventListener('resize', () => {
+  console.log(screen())
+  screenWidth = screen().width
+  screenHeight = screen().height
+})
 
 
 //-------------------------------
@@ -215,18 +186,17 @@ function Layout(reasons, relations) {
   }
 }
 
-
 function drawEdge(from, to) {
   let reason = find(from, reasons)
   let target = find(to, reasons)
-  let ec = getCenter(reason)
+  let fc = getCenter(reason)
   let tc = getCenter(target)
 
   let path = buildNS('path', {id: reason.id+ '-' +target.id}, {
-    class: 'edge',
+    class: 'edge relation supports',
     stroke: '#CCC',
     'stroke-width': 5,
-    d: 'M'+ec.x+' '+ec.y+' L '+tc.x+' '+tc.y
+    d: 'M'+fc.x+' '+fc.y+' L '+tc.x+' '+tc.y
   })
 
   svg.appendChild(path)
@@ -237,7 +207,7 @@ function createSVG() {
   document.querySelector('#canvas').appendChild(svg)
 
   document.querySelector('#canvas').addEventListener('dblclick', (event) => {
-    let reason = new Reason('When I get around to it, you will be able to edit me!', event.clientX, event.clientY)
+    let reason = new Reason('Click to edit...', event.clientX, event.clientY)
     reasons.push(reason)
     reposition()
   })
@@ -346,9 +316,6 @@ function repositionRelations() {
     let from = find(path.id.split('-')[0], reasons)
     let to = find(path.id.split('-')[1], reasons)
     drawEdge(from.id, to.id)
-    // let ec = getCenter(from)
-    // let tc = getCenter(to)
-    // path.setAttribute('d', 'M'+ec.x+' '+ec.y+' L '+tc.x+' '+tc.y)
   }) 
 }
 
@@ -362,128 +329,22 @@ function find(id, arr) {
   })
 }
 
-// if (postData !== null) {
-//   let layoutMatrix = []
-//   let layoutLine = 0
-//   let lineHeight = 250
-//   while (postData.length > 0) {
-//     if (postData.length > maxElementsPerLine) {
-//       layoutMatrix.push(postData.splice(0,maxElementsPerLine))
-//     } else {
-//       layoutMatrix.push(postData.splice(0))
-//     }    
-//   }
+function screen() {
+  return {
+    width: window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth,
+    height: window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
+  }
+}
 
-//   layoutMatrix.forEach((line, lineIndex) => {
-//     let lineBuffer = (screenWidth - (reasonWidth * line.length+1)) / (line.length+1)
-//     line.forEach((reason, index) => {
-//       new Reason(reason, lineBuffer + (lineBuffer+reasonWidth)*index , lineHeight)
-//     })
-//     lineHeight += 250
-//   })
-// }
+ // Actions on page load -- get reasons from session storage
+ //   and reset the session data afterwards
+JSON.parse(sessionStorage.getItem('reasons')).map((text) => {
+  reasons.push(new Reason(text, 0, 0))
+})
 
-// function reposition() {
-//   const gravity = (distance) => {
-//     return Math.min(distance, 10)
-//   }
-//   const displacement = (distance) => {
-//     if (distance > 100) {
-//       return 0
-//     } else {
-//       return 50
-//     }
-//   }
+reposition()
 
-//   let repositioning = 50
-
-//   while (repositioning-- > 0) {
-//     reasons.forEach((reason, index) => {
-//       //  we start with either the existing vector or a blank
-//       let vc = vectors[index] || {x: 0, y: 0}
-
-//       //  pull reasons to the screen center
-//       let sc = getVector(addVectors(getOffset(reason), vc), screenCenter, gravity)
-//       vc = addVectors(vc, sc)
-
-//       //  displace off other reasons
-//       reasons.forEach((other) => {
-//         if (other.id !== reason.id) {
-//           if (overlaps(reason, other)) {
-//             console.log(reason.id + ' overlaps ' + other.id)
-//           }
-//         }
-//       })
-
-//       vectors[index] = vc
-//     })
-//   }
-
-//   reasons.forEach((reason, index) => {
-//     reason.style.transform = 'translate('+(vectors[index].x)+'px, '+(vectors[index].y)+'px)'
-//   })
-
-// //  nasty hack...
-// function overlaps(a, b) {
-//   if (Math.abs(getCenter(a).x - getCenter(b).x) < 200) {
-//     return true
-//   } else {
-//     return false
-//   }
-
-// }
-
-// function getAngleBetween(a, b) {
-//   return Math.atan2(b.y-a.y, b.x-a.x)
-// }
-
-// function getDistanceBetween(a, b) {
-//   return Math.sqrt( Math.pow(b.x-a.x, 2) + Math.pow(b.y-a.y, 2) )
-// }
-
-// function getVector(current, other, fn) {
-//   let direction = getAngleBetween(current, other)
-//   let distance = getDistanceBetween(current, other)
-//   return {
-//     x: Math.cos(direction) * fn(distance), 
-//     y: Math.sin(direction) * fn(distance)
-//   }
-// }
-
-// function getOffset(reason) {
-//   let box = reason.getBoundingClientRect()
-//   return {
-//     x: (reason.offsetLeft + box.width/2),
-//     y: (reason.offsetTop + box.height/2)
-//   }
-// }
-
-// function addVectors(a, b) {
-//   return {x: a.x + b.x, y: a.y + b.y}
-// }
-
-// function subVectors(a, b) {
-//   return {x: a.x - b.x, y: a.y - b.y}
-// }
-
-// function find(id, array) {
-//   let match
-//   array.forEach((reason) => {
-//     if (reason.id == id.toString()) {
-//       match = reason     
-//     }
-//   })
-//   return match
-// }
-
-
-
-
-//  Actions on page load -- get reasons from session storage
-//    and reset the session data afterwards
-// postData = JSON.parse(sessionStorage.getItem('reasons'))
-
-// //  Replace this with some kind of force displayment between reasons
+//  Replace this with some kind of force displayment between reasons
 // let maxElementsPerLine = Math.floor(screenWidth/300)
 
 // if (postData !== null) {
