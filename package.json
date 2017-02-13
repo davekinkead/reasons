@@ -1,0 +1,32 @@
+{
+  "name": "reasons",
+  "version": "0.0.1",
+  "description": "Argument Mapping in your browser",
+  "main": "reasons.js",
+  "dependencies": {},
+  "devDependencies": {
+    "array-difference": "0.0.1",
+    "array-flatten": "^2.1.1",
+    "array-unique": "^0.3.2",
+    "mocha": "^3.2.0",
+    "should": "^11.2.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davekinkead/reasons.git"
+  },
+  "keywords": [
+    "argument mapping",
+    "logic",
+    "philosophy"
+  ],
+  "author": "Dave Kinkead",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/davekinkead/reasons/issues"
+  },
+  "homepage": "https://github.com/davekinkead/reasons#readme"
+}
