@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf8">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      padding: 0;
+      margin: 0;
+    }
+    header {
+      color: #999;
+      width: 100%;
+      top: 0;
+      left: 0;
+      padding: 1.5em 0;
+    }
+    .column {
+      max-width: 960px;
+      position: relative;
+      display: block;
+      margin: 0 auto;
+      padding: 0 10px;
+    }
+    .navigation {
+      float: right;
+    }
+    .avatar {
+      position: absolute;
+      top: 0;
+      right: 100%;
+      border-radius: 4px;
+    }
+    #canvas {
+      position: relative;
+      width: 75%;
+      height: 100vh;
+      float: right;
+    }
+    #my-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    #source {
+      position: relative;
+      width: 25%;
+      float: left;
+    }
+    #source textarea {   
+      width: 100%;
+      min-height: 50vh;
+      border: 1px solid #CCC;
+      border-radius: 5px;
+      padding: 1rem;
+      white-space: pre;
+    }
+    .error {
+      background: rgba(255,0,0,0.05);
+      border: 1px solid rgba(255,0,0,0.5);
+    }
+    .reason {
+      max-width: 250px;
+      padding: 1rem;
+      text-align: center;
+      border: 5px solid #CCC;
+      border-radius: 8px;
+      background-color: #FFF;
+      transition: transform 0.5s;
+    }
+    .reason:hover {
+      border: 5px solid rgba(0,0,0,0.5);
+      cursor: grab;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="column">
+      <div class="navigation">
+        <a href="/">Popular</a>
+        / <a href="/-/about">About</a>
+      </div>
+      <a class="user" href="/davekinkead"><img class="avatar" src="https://avatars.githubusercontent.com/u/611877?v=3&amp;s=60" width="30" height="30">Dave Kinkead</a>’s
+      Reason <a class="gist gist-id self" title="View Gist on GitHub." href="https://gist.github.com/davekinkead/01e68db2f004892ea09be7dbd9829a42">#123456</a>
+      <div class="date">Updated February 15, 2017</div>
+    </div>
+  </header>
+
+  <div id="canvas"></div>
+  <div id="source">
+    <textarea>
+
+    </textarea>
+  </div>
+  <script src="reasons.js"></script>
+  <script type="text/javascript" src="yaml.min.js"></script>
+  <script>
+    let source = document.querySelector('#source textarea')
+    let canvas = document.querySelector('#canvas')
+
+    document.addEventListener('keyup', (event) => {
+      if (event.target == source) render()
+    })
+
+    function render() {
+      try {
+        source.classList.remove('error')
+        let graph = YAML.parse(source.value)
+
+        while (canvas.hasChildNodes()) {
+          canvas.removeChild(canvas.lastChild);
+        }
+
+        Reasons.create(graph).render('#canvas')         
+      } catch (e) {
+        source.classList.add('error')
+      }     
+    }
+
+    render()
+  </script>
+</body>

@@ -13,6 +13,8 @@ The basic functionality can be broken down into three key parts
 
 ### Highlighter
 
+TODO 
+
   - [x] embed as a library in any web page
   - [x] highlight text on the page
   - [x] create tool tip menu on highlight
@@ -22,6 +24,18 @@ The basic functionality can be broken down into three key parts
   - [x] option to generate argument map then appears
 
 ### Mapper
+
+An argument map consists of an abstract graph and a rendering engine.  The graph is made up of a hash table for nodes and an array for edges.
+
+The rendering enging has options for static maps (for embeds) and dynamic ones (for creating argument maps)
+
+    Reasons.create(graph).render('#dom')
+
+    Reasons.add(Object)
+
+    Reasons.remove("id"|Object)
+
+TODO
 
   - [x] create reasons from session data
   - [x] provide map & session reset button
@@ -43,10 +57,14 @@ The basic functionality can be broken down into three key parts
 
 ### Scaffolder
 
+TODO
+
   - [] add navigation to generate essay outline 
   - [] generate essay outline based on reasons
 
 ### Other
+
+TODO
 
   - [] extract styles into separate CSS
   - [] add tests once concept is stable

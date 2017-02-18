@@ -2,7 +2,6 @@
 // Copyright (c) 2017 Dave Kinkead
 // Available under the MIT license
 
-
 const fontSize = 14
 const boxPaddingFactor = 1
 const boxHeightInLines = 3
@@ -21,8 +20,8 @@ let clicks = 1    // this is a temp id marker
 let currentReason
 
 
-let svg = createSVG()
-let overlay = createOverlay()
+// let svg = createSVG('#canvas')
+// let overlay = createOverlay()
 let button = createButton()
 
 document.addEventListener('reposition', reposition)
@@ -202,19 +201,6 @@ function drawEdge(from, to) {
   svg.appendChild(path)
 }
 
-function createSVG() {
-  let svg = buildNS('svg', {}, {height: screenHeight,  version: '1.1', width: screenWidth, xmlns: "http://www.w3.org/2000/svg", 'xmlns:xlink':"http://www.w3.org/1999/xlink"})
-  document.querySelector('#canvas').appendChild(svg)
-
-  document.querySelector('#canvas').addEventListener('dblclick', (event) => {
-    let reason = new Reason('Click to edit...', event.clientX, event.clientY)
-    reasons.push(reason)
-    reposition()
-  })
-
-  return svg
-}
-
 function createOverlay() {
   let overlay = build('div', {id: 'overlay'}, {})
   overlay.addEventListener('click', (event) => {
@@ -338,32 +324,39 @@ function screen() {
 
  // Actions on page load -- get reasons from session storage
  //   and reset the session data afterwards
-JSON.parse(sessionStorage.getItem('reasons')).map((text) => {
-  reasons.push(new Reason(text, 0, 0))
-})
+// JSON.parse(sessionStorage.getItem('reasons')).map((text) => {
+//   reasons.push(new Reason(text, 0, 0))
+// })
 
-reposition()
+// reposition()
 
-//  Replace this with some kind of force displayment between reasons
-// let maxElementsPerLine = Math.floor(screenWidth/300)
+function guid() {
+  
+}
 
-// if (postData !== null) {
-//   let layoutMatrix = []
-//   let layoutLine = 0
-//   let lineHeight = 250
-//   while (postData.length > 0) {
-//     if (postData.length > maxElementsPerLine) {
-//       layoutMatrix.push(postData.splice(0,maxElementsPerLine))
-//     } else {
-//       layoutMatrix.push(postData.splice(0))
-//     }    
-//   }
+function ArgumentMap(dom) {
+  this.nodes = {}
+  this.edges = []
+  this.svg = createSVG(dom)
 
-//   layoutMatrix.forEach((line, lineIndex) => {
-//     let lineBuffer = (screenWidth - (reasonWidth * line.length+1)) / (line.length+1)
-//     line.forEach((reason, index) => {
-//       new Reason(reason, lineBuffer + (lineBuffer+reasonWidth)*index , lineHeight)
-//     })
-//     lineHeight += 250
-//   })
-// }
+  //  build the svg on the specified element
+  function createSVG(dom) {
+    let target = document.querySelector(dom)
+    let svg = buildNS('svg', {}, {height: screenHeight,  version: '1.1', width: screenWidth, xmlns: "http://www.w3.org/2000/svg", 'xmlns:xlink':"http://www.w3.org/1999/xlink"})
+   
+    target.appendChild(svg)
+    target.addEventListener('dblclick', (event) => {
+      let reason = new Reason('Click to edit...', event.clientX, event.clientY)
+      reasons.push(reason)
+      reposition()
+    })
+
+    return svg
+  }
+
+  function addNode(reason) {
+
+  }
+}
+
+new ArgumentMap('#canvas')
