@@ -1,4 +1,108 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Reasons=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+const Reason = require('./reason')
+
+module.exports = {
+  render: (dom, graph) => {
+    return new Canvas(dom, graph)
+  }
+}
+
+function Canvas (dom, graph) {
+
+  let domBB = dom.getBoundingClientRect()
+  let last = {}
+  let mouseDown = false
+  let dirty = false  
+
+  this.width = domBB.width
+  this.height = domBB.height
+  this.elements = []
+
+  let canvas = build('canvas', {id: 'reasons-'+dom.id}, {width: domBB.width, height: domBB.height})
+  this.context = canvas.getContext('2d')
+
+  canvas.addEventListener('mousedown', (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    //  set last x & y
+    mouseDown = true
+    last.x = parseInt(event.x || event.clientX)
+    last.y = parseInt(event.y || event.clientY)
+
+    //  flag elements in hit zone
+    this.elements.forEach((el) => {
+      if (el.bounds(last)) {
+        el.draggable = true
+      }
+    })
+  })
+
+  canvas.addEventListener('mousemove', (event) => {
+    if (mouseDown) {
+      //  drag should only fire if mouse is pressed over an element
+      this.elements.forEach((el) => {
+        if (el.draggable) {
+          dirty = true
+          el.draw()
+          el.x1 += parseInt(event.x || event.clientX) - last.x
+          el.x2 = el.x1 + el.width
+          el.y1 += parseInt(event.y || event.clientY) - last.y
+          el.y2 = el.y1 + el.height
+          last.x = parseInt(event.x || event.clientX)
+          last.y = parseInt(event.y || event.clientY)
+        }
+      })
+
+      if (dirty) draw(this)
+    }
+  })
+
+  canvas.addEventListener('mouseup', (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+    mouseDown = false
+
+    //  remove draggable flag from elements
+    this.elements.forEach((el) => {
+      el.draggable = false
+    })
+  })
+
+  canvas.addEventListener('dblclick', (event) => {
+    // dblclick on raw canvas should create a new node
+    let reason = new Reason({canvas: canvas, x: last.x, y: last.y})
+    this.elements.push(reason)
+    draw(this)
+  })  
+
+  dom.appendChild(canvas)
+  this.canvas = canvas
+}
+
+function draw (canvas) {
+  clear(canvas)
+  canvas.elements.forEach((el) => {
+    el.draw()
+  })
+}
+
+function clear (canvas) {
+  canvas.context.clearRect(0, 0, canvas.width, canvas.height)
+}
+
+
+function build(type, options, attributes) {
+  let node = document.createElement(type)
+  for (var key in options) {
+    node[key] = options[key]
+  }
+  for (var key in attributes) {
+    node.setAttribute(key, attributes[key])
+  }
+  return node
+}
+},{"./reason":4}],2:[function(require,module,exports){
 const unique = require('array-unique')
 const flatten = require('array-flatten')
 const diff = require('array-difference')
@@ -6,18 +110,11 @@ const diff = require('array-difference')
 module.exports = Graph
 
 function Graph (graph) {
+  if (!graph) graph = {nodes: {}, edges: []}
   if (!(this instanceof Graph)) return new Graph(graph)
   this.nodes = graph.nodes || graph.vertices || graph.reasons
   this.edges = graph.edges || graph.arcs || graph.relations
 }
-
-Graph.prototype.addNode = function (id, object) {}
-
-Graph.prototype.removeNode = function (id) {}
-
-Graph.prototype.addEdge = function (object) {}
-
-Graph.prototype.removeEdge = function (object) {}
 
 Graph.prototype.children = function (id) {
   if (! this.edges) return []
@@ -51,52 +148,79 @@ Graph.prototype.ends = function () {
   })
 }
 
+Graph.prototype.addNode = function (id, object) {}
+
+Graph.prototype.removeNode = function (id) {}
+
+Graph.prototype.addEdge = function (object) {}
+
+Graph.prototype.removeEdge = function (object) {}
+
 Graph.prototype.root = function () {}
-},{"array-difference":6,"array-flatten":7,"array-unique":8}],2:[function(require,module,exports){
-module.exports = {
-
-  //  transforms a graph {nodes: {}, edges: []} into a 
-  //  hierarchically ordered array
-  hierarchical: (graph) => {
-
-    //  begin with the conclusion(s)
-    let levels = []
-    let current = graph.ends()
-
-    //  get parents of each level of reasons
-    while(current.length > 0) {
-      levels.push(current)
-      current = graph.parents(current)
-    }
-
-    //  finally add any orphans to the last layer
-    let orphans = graph.orphans()
-    if (orphans.length > 0) levels.push(orphans)
-
-    return levels
-  }
-}
-},{}],3:[function(require,module,exports){
-const Renderer = require('./renderer')
+},{"array-difference":6,"array-flatten":7,"array-unique":8}],3:[function(require,module,exports){
 const Graph = require('./graph')
+const Canvas = require('./canvas')
 
 module.exports = ArgumentMap
 
-function ArgumentMap (graph) {
-  if (!this instanceof ArgumentMap) return new ArgumentMap()
-  this.graph = new Graph(graph)
+function ArgumentMap (dom) {
+  if (!this instanceof ArgumentMap) return new ArgumentMap(dom)
+  this.dom = document.querySelector(dom)
 }
 
-ArgumentMap.prototype.render = function (dom, graph) {
+ArgumentMap.prototype.render = function (graph) {
   //  set graph if arg supplied
-  if (graph) this.graph = new Graph(graph)
+  this.graph = new Graph(graph || this.graph)
 
   //  display the layout
-  let canvas = document.querySelector(dom)
-  Renderer.ArgumentMap(canvas, this.graph)
-
+  Canvas.render(this.dom, this.graph)
 }
-},{"./graph":1,"./renderer":5}],4:[function(require,module,exports){
+},{"./canvas":1,"./graph":2}],4:[function(require,module,exports){
+module.exports = Reason
+
+function Reason(opts) {
+  if (!this instanceof Reason) return new Reason(opts)
+
+  // public state
+  this.canvas = opts.canvas
+  this.text = opts.text
+  this.width = 250
+  this.height = 100
+  this.x1 = opts.x
+  this.y1 = opts.y
+  this.x2 = opts.x + this.width
+  this.y2 = opts.y + this.height
+
+  return this
+}
+
+
+Reason.prototype.draw = function() {
+  let context = this.canvas.getContext('2d')
+  let cornerRadius = 6
+
+  //  draw a white rectangle for background
+  context.fillStyle = 'rgba(255,255,255,1)'
+  context.fillRect(this.x1, this.y1, this.width, this.height)  
+
+  //  draw a solid rounded border
+  context.lineJoin = "round"
+  context.lineWidth = cornerRadius
+  context.strokeStyle = 'rgba(0,0,0,0.5)'
+  context.strokeRect(this.x1+cornerRadius/2, this.y1+cornerRadius/2, this.width-cornerRadius, this.height-cornerRadius)
+
+  //  add the text content
+  context.fillStyle = 'rgba(0,0,0,0.8)'
+  context.font = '16px sans-serif'
+  context.textAlign = 'center'
+  context.fillText(this.text || 'Click to edit...', this.x1+this.width/2, this.y1+this.height/2)
+}
+
+
+Reason.prototype.bounds = function(point) {
+  return (point.x > this.x1 && point.x < this.x2 && point.y > this.y1 && point.y < this.y2) ? true : false
+} 
+},{}],5:[function(require,module,exports){
 //  Reasons.js
 //  Copyright (c) 2017 Dave Kinkead
 //  Available under the MIT license
@@ -106,102 +230,11 @@ ArgumentMap.prototype.render = function (dom, graph) {
 const ArgumentMap = require('./map')
 
 module.exports = {
-  create: function (graph) {
-    return new ArgumentMap(graph)
+  create: function (dom) {
+    return new ArgumentMap(dom)
   }
 }
-},{"./map":3}],5:[function(require,module,exports){
-const Layout = require('./layout')
-
-module.exports = {
-  ArgumentMap: (dom, graph) => {
-    // create an abstract layout
-    //  begin with the conclusion(s)
-    const reasons = {}
-    const levels = []
-    let current = graph.ends()
-
-    //  get parents of each level of reasons
-    while(current.length > 0) {
-      levels.unshift(current)
-      current = graph.parents(current)
-    }
-
-    //  finally add any orphans to the last layer
-    let orphans = graph.orphans()
-    if (orphans.length > 0) levels.unshift(orphans)
-
-    // -----> now draw the nodes
-    let area = dom.getBoundingClientRect()
-    let lineHeight = area.height / levels.length
-
-    levels.forEach((level, index) => {
-      let lineWidth = area.width / (level.length + 1)
-      level.forEach((id, i) => {
-        let reason = build('div', {id: 'node-'+id}, {
-          class:'reason',
-          style: 'position: absolute; top: '+index*lineHeight+'px; left: '+((i+1)*lineWidth-125)+'px;'
-        })
-        reason.innerHTML = graph.nodes[id]
-        reasons[id] = reason
-        dom.appendChild(reason)     
-      })
-    })
-
-    //  ------> now draw the edges
-    let svg = buildNS('svg', {id: 'my-svg'}, {height: area.height, width: area.width, version: '1.1', xmlns: "http://www.w3.org/2000/svg", 'xmlns:xlink':"http://www.w3.org/1999/xlink"})
-       
-    graph.edges.forEach((edge) => {
-      if (edge.from.constructor === Array) {
-
-
-// --------------------->
-      } else {
-        let fBox = reasons[edge.from].getBoundingClientRect()
-        let tBox = reasons[edge.to].getBoundingClientRect()
-        console.log(dom.offsetLeft)
-        let path = buildNS('path', {id: 'edge-'+edge.from+ '-' +edge.to}, {
-          class: 'edge relation',
-          stroke: '#CCC',
-          'stroke-width': 5,
-          d: 'M'+(fBox.left)+' '+(fBox.top)+' L '+(tBox.left-tBox.width/2)+' '+tBox.y
-        })
-        svg.appendChild(path)
-        console.log(svg.offsetTop)
-      }
-    })
-
-    dom.appendChild(svg)
-
-  },
-  Tree: (dom, graph) => {},
-  FlowChart: (dom, graph) => {}
-}
-
-//  element build helpers -- extract these later
-function buildNS(type, options, attributes) {
-  let node = document.createElementNS('http://www.w3.org/2000/svg', type)
-  for (var key in options) {
-    node[key] = options[key]
-  }
-  for (var key in attributes) {
-    node.setAttribute(key, attributes[key])
-  }
-  return node
-}
-
-function build(type, options, attributes) {
-  let node = document.createElement(type)
-  for (var key in options) {
-    node[key] = options[key]
-  }
-  for (var key in attributes) {
-    node.setAttribute(key, attributes[key])
-  }
-  return node
-}
-
-},{"./layout":2}],6:[function(require,module,exports){
+},{"./map":3}],6:[function(require,module,exports){
 (function(global) {
 
 	var indexOf = Array.prototype.indexOf || function(elem) {
@@ -404,5 +437,5 @@ module.exports.immutable = function uniqueImmutable(arr) {
   return module.exports(newArr);
 };
 
-},{}]},{},[4])(4)
+},{}]},{},[5])(5)
 });
