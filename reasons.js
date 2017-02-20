@@ -14,13 +14,14 @@ function Canvas (dom, graph) {
   let last = {}
   let elements = []
   let mouseDown = false
+  let dragged = false
+  let editing = false
   let dirty = false  
   let canvas = build('canvas', {id: 'reasons-'+dom.id}, {width: domBB.width, height: domBB.height})
   dom.appendChild(canvas)
 
   canvas.addEventListener('mousedown', (event) => {
     event.preventDefault()
-    event.stopPropagation()
 
     //  set last x & y
     mouseDown = true
@@ -58,6 +59,7 @@ function Canvas (dom, graph) {
 
     //  drag should only fire if mouse is pressed over an element
     if (mouseDown) {
+      dragged = true
       elements.forEach((el) => {
 
         //  draggable elements should be dragged
@@ -88,39 +90,61 @@ function Canvas (dom, graph) {
 
   canvas.addEventListener('mouseup', (event) => {
     event.preventDefault()
-    event.stopPropagation()
-    mouseDown = false
 
-    //  was there a successful drop?
-    let from = elements.filter((el) => {return el.draggable})[0]
-    let to = elements.filter((el) => {return el.droppable})[0]
-    if (from && to) {
-      elements.unshift(new Relation({canvas: canvas, from: from, to: to}))
-      draw(this)
+    //  was this a drag and release
+    if (dragged) {
+  
+      //  was there a successful drop?
+      let from = elements.filter((el) => {return el.draggable})[0]
+      let to = elements.filter((el) => {return el.droppable})[0]
+      if (from && to) {
+        elements.unshift(new Relation({canvas: canvas, from: from, to: to}))
+        draw(this)
+      }
+
+      elements.forEach((el) => {
+
+        //  remove draggable & droppable flags from elements
+        el.draggable = false
+        el.droppable = false
+      })
+
+    //  or was it a straight click
+    } else {
+
+      //  if so, flag clicked element as selected
+      elements.forEach((el) => {
+        if (el.collides(last)) {
+          dirty = true
+          el.selected = true
+        } else {
+          el.selected = false
+        }
+      })
     }
 
-    elements.forEach((el) => {
-      //  remove draggable & droppable flags from elements
-      el.draggable = false
-      el.droppable = false
-    })
+    mouseDown = false
+    dragged = false
+
+    if (dirty) draw(this)
   })
 
   canvas.addEventListener('dblclick', (event) => {
-    //  dblclick on element selects it
-    let selected = false
+console.log(elements)
+    //  dblclick on element to edit it
+    editing = false
 
     elements.forEach((el) => {
-      if (el.collides(last)) {
-        selected = true
-        el.selected = true
-      } else {
-        el.selected = false
-      }
+      el.selected = false
+
+      if (el instanceof Reason && el.collides(last)) {
+        editing = true
+        addOverlay(el)
+      } 
     })
 
     //  dblclick on raw canvas should create a new node
-    if (!selected) {
+    if (!editing) {
       let reason = new Reason({canvas: canvas, x: last.x, y: last.y})
       elements.push(reason)
     }
@@ -130,14 +154,21 @@ function Canvas (dom, graph) {
 
   window.addEventListener('keydown', (event) => {
 
-    //  delete a selected elements
-    if (event.keyCode == 8) {
+    //  update node text
+    if (editing && event.keyCode == 13) {
+      removeOverlay(elements)
+      dirty = true
+    }
+
+    //  delete a selected element
+    if (!editing && event.keyCode == 8) {
       event.preventDefault()
       let i = elements.findIndex((el) => { return el.selected})
       if (i > -1) {
         dirty = true
+
         if (elements[i] instanceof Reason) {
-          
+
           //  find associated edges first
           let edges = elements.filter((el) => { 
             return (el.from && el.to) && (el.from.id == elements[i].id || el.to.id == elements[i].id)
@@ -150,7 +181,6 @@ function Canvas (dom, graph) {
             let ei = elements.indexOf(edge)
             elements.splice(ei, 1)
           })
-
 
         } else {
           elements.splice(i, 1)
@@ -190,6 +220,26 @@ function build(type, options, attributes) {
     node.setAttribute(key, attributes[key])
   }
   return node
+}
+
+function addOverlay(el) {
+  let overlay = build('div', {id: 'reason-overlay'})
+  overlay.setAttribute('style', 'position:absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75);')
+
+  let input = build('input', {id: 'edit-reason-input'}, {value: el.text})
+  input.setAttribute('style', 'position:absolute; top: 45%; bottom: 50%; left: 25%; right: 50%; width:50%; padding: 1rem;')
+  input.setAttribute('data-element', el.id)
+
+  overlay.appendChild(input)
+  document.body.appendChild(overlay)
+}
+
+function removeOverlay(elements) {
+  let input = document.querySelector('#edit-reason-input')
+  let el = elements.find(el => el.id == input.getAttribute('data-element') )
+  console.log(el)
+  el.text = input.value
+  document.querySelector('#reason-overlay').remove()
 }
 },{"./reason":4,"./relation":6}],2:[function(require,module,exports){
 const unique = require('array-unique')
@@ -377,10 +427,14 @@ Relation.prototype.collides = function (el) {
   }
 }
 
+Relation.prototype.move = function () {
+  this.locate()
+}
+
 Relation.prototype.locate = function () {
   this.x1 = this.from.x1+(this.from.x2-this.from.x1)/2
-  this.x2 = this.to.x1+(this.to.x2-this.to.x1)/2
   this.y1 = this.from.y1+(this.from.y2-this.from.y1)/2
+  this.x2 = this.to.x1+(this.to.x2-this.to.x1)/2
   this.y2 = this.to.y1+(this.to.y2-this.to.y1)/2
 }
 
