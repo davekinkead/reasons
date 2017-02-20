@@ -1,18 +1,19 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Reasons=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 const Reason = require('./reason')
 const Relation = require('./relation')
+const Graph = require('./graph')
 
 module.exports = {
   render: (dom, graph) => {
-    return new Canvas(dom, graph)
+    return new Canvas(dom)
   }
 }
 
-function Canvas (dom, graph) {
+function Canvas (dom) {
 
   let domBB = dom.getBoundingClientRect()
   let last = {}
-  let elements = []
+  let graph = new Graph()
   let mouseDown = false
   let dragged = false
   let editing = false
@@ -25,10 +26,9 @@ function Canvas (dom, graph) {
 
     //  set last x & y
     mouseDown = true
-    last.x = parseInt(event.x || event.clientX)
-    last.y = parseInt(event.y || event.clientY)
+    last = getPosition(event)
 
-    elements.forEach((el) => {
+    graph.elements.forEach((el) => {
       //  clear selected flag on click
       el.selected = false
 
@@ -43,12 +43,9 @@ function Canvas (dom, graph) {
 
   canvas.addEventListener('mousemove', (event) => {
       //  flag elements in hit zone as hovering
-    let current = {
-      x: parseInt(event.x || event.clientX),
-      y: parseInt(event.y || event.clientY)
-    }
+    let current = getPosition(event)
 
-    elements.forEach((el) => {
+    graph.elements.forEach((el) => {
       if (el.collides(current)) {
         dirty = true
         el.hovering = true
@@ -60,20 +57,18 @@ function Canvas (dom, graph) {
     //  drag should only fire if mouse is pressed over an element
     if (mouseDown) {
       dragged = true
-      elements.forEach((el) => {
+      graph.elements.forEach((el) => {
 
         //  draggable elements should be dragged
         if (el.draggable) {
           dirty = true
           el.draw()
-          el.move(parseInt(event.x || event.clientX) - last.x, parseInt(event.y || event.clientY) - last.y)
-          last.x = parseInt(event.x || event.clientX)
-          last.y = parseInt(event.y || event.clientY)
+          el.move(getPosition(event).x - last.x, getPosition(event).y - last.y)
+          last = getPosition(event)
 
           //  is there an overlap?
-          elements.forEach((e) => {
+          graph.elements.forEach((e) => {
             if (el !== e && el.collides(e)) {
-              //  add a hover effect
 
               //  flag this element as droppable
               e.droppable = true
@@ -95,14 +90,14 @@ function Canvas (dom, graph) {
     if (dragged) {
   
       //  was there a successful drop?
-      let from = elements.filter((el) => {return el.draggable})[0]
-      let to = elements.filter((el) => {return el.droppable})[0]
+      let from = graph.elements.filter((el) => {return el.draggable})[0]
+      let to = graph.elements.filter((el) => {return el.droppable})[0]
       if (from && to) {
-        elements.unshift(new Relation({canvas: canvas, from: from, to: to}))
+        graph.elements.unshift(new Relation({canvas: canvas, from: from, to: to}))
         draw(this)
       }
 
-      elements.forEach((el) => {
+      graph.elements.forEach((el) => {
 
         //  remove draggable & droppable flags from elements
         el.draggable = false
@@ -113,7 +108,7 @@ function Canvas (dom, graph) {
     } else {
 
       //  if so, flag clicked element as selected
-      elements.forEach((el) => {
+      graph.elements.forEach((el) => {
         if (el.collides(last)) {
           dirty = true
           el.selected = true
@@ -125,16 +120,17 @@ function Canvas (dom, graph) {
 
     mouseDown = false
     dragged = false
+    last = getPosition(event)
 
     if (dirty) draw(this)
   })
 
   canvas.addEventListener('dblclick', (event) => {
-console.log(elements)
+
     //  dblclick on element to edit it
     editing = false
 
-    elements.forEach((el) => {
+    graph.elements.forEach((el) => {
       el.selected = false
 
       if (el instanceof Reason && el.collides(last)) {
@@ -146,7 +142,9 @@ console.log(elements)
     //  dblclick on raw canvas should create a new node
     if (!editing) {
       let reason = new Reason({canvas: canvas, x: last.x, y: last.y})
-      elements.push(reason)
+      graph.elements.push(reason)
+      editing = true
+      addOverlay(reason)
     }
 
     draw(this)      
@@ -155,35 +153,41 @@ console.log(elements)
   window.addEventListener('keydown', (event) => {
 
     //  update node text
-    if (editing && event.keyCode == 13) {
-      removeOverlay(elements)
-      dirty = true
-    }
+    if (editing) {
 
-    //  delete a selected element
-    if (!editing && event.keyCode == 8) {
-      event.preventDefault()
-      let i = elements.findIndex((el) => { return el.selected})
-      if (i > -1) {
+      //  return
+      if (event.keyCode == 13) {
+        removeOverlay(graph.elements)
         dirty = true
+        editing = false
+      }
+    } else {
 
-        if (elements[i] instanceof Reason) {
+      //  delete a selected element
+      if (event.keyCode == 8) {
+        event.preventDefault()
+        let i = graph.elements.findIndex((el) => { return el.selected})
+        if (i > -1) {
+          dirty = true
 
-          //  find associated edges first
-          let edges = elements.filter((el) => { 
-            return (el.from && el.to) && (el.from.id == elements[i].id || el.to.id == elements[i].id)
-          })
-          //  remove the node
-          elements.splice(i, 1)
+          if (graph.elements[i] instanceof Reason) {
 
-          //  and then the edges
-          edges.forEach((edge) => {
-            let ei = elements.indexOf(edge)
-            elements.splice(ei, 1)
-          })
+            //  find associated edges first
+            let edges = graph.elements.filter((el) => { 
+              return (el.from && el.to) && (el.from.id == graph.elements[i].id || el.to.id == graph.elements[i].id)
+            })
+            //  remove the node
+            graph.elements.splice(i, 1)
 
-        } else {
-          elements.splice(i, 1)
+            //  and then the edges
+            edges.forEach((edge) => {
+              let ei = graph.elements.indexOf(edge)
+              graph.elements.splice(ei, 1)
+            })
+
+          } else {
+            graph.elements.splice(i, 1)
+          }
         }
       }
     }
@@ -194,14 +198,14 @@ console.log(elements)
   //  set public variables
   this.canvas = canvas
   this.context = canvas.getContext('2d')
-  this.elements = elements
+  this.graph = graph
   this.width = domBB.width
   this.height = domBB.height
 }
 
 function draw (canvas) {
   clear(canvas)
-  canvas.elements.forEach((el) => {
+  canvas.graph.elements.forEach((el) => {
     el.draw()
   })
 }
@@ -210,6 +214,12 @@ function clear (canvas) {
   canvas.context.clearRect(0, 0, canvas.width, canvas.height)
 }
 
+function getPosition(event) {
+  return {
+    x: parseInt(event.x || event.clientX),
+    y: parseInt(event.y || event.clientY)
+  }
+}
 
 function build(type, options, attributes) {
   let node = document.createElement(type)
@@ -237,11 +247,10 @@ function addOverlay(el) {
 function removeOverlay(elements) {
   let input = document.querySelector('#edit-reason-input')
   let el = elements.find(el => el.id == input.getAttribute('data-element') )
-  console.log(el)
   el.text = input.value
   document.querySelector('#reason-overlay').remove()
 }
-},{"./reason":4,"./relation":6}],2:[function(require,module,exports){
+},{"./graph":2,"./reason":4,"./relation":6}],2:[function(require,module,exports){
 const unique = require('array-unique')
 const flatten = require('array-flatten')
 const diff = require('array-difference')
@@ -251,6 +260,7 @@ module.exports = Graph
 function Graph (graph) {
   if (!graph) graph = {nodes: {}, edges: []}
   if (!(this instanceof Graph)) return new Graph(graph)
+  this.elements = []
   this.nodes = graph.nodes || graph.vertices || graph.reasons
   this.edges = graph.edges || graph.arcs || graph.relations
 }
@@ -323,7 +333,7 @@ function Reason(opts) {
   // public state
   this.canvas = opts.canvas
   this.id = opts.id || Math.random().toString(36).slice(-5)
-  this.text = opts.text || "Click to edit..."
+  this.text = opts.text || 'A reason'
   this.width = 200
   this.height = 75
   this.x1 = opts.x
@@ -337,7 +347,7 @@ function Reason(opts) {
 
 Reason.prototype.draw = function(opts={}) {
   let context = this.canvas.getContext('2d')
-  let cornerRadius = 6
+  let cornerRadius = 4
 
   //  draw a white rectangle for background
   context.fillStyle = 'rgba(255,255,255,1)'
@@ -345,9 +355,9 @@ Reason.prototype.draw = function(opts={}) {
 
   //  draw a solid rounded border
   let rgb = '0,0,0'
-  if (this.selected) rgb = '255,0,0'
   let opacity = 0.5
   if (this.hovering) opacity = 0.75
+  if (this.selected) opacity = 0.9
   context.strokeStyle = 'rgba('+rgb+','+opacity+')'
   context.lineJoin = "round"
   context.lineWidth = cornerRadius
@@ -407,9 +417,9 @@ Relation.prototype.draw = function () {
 
   let context = this.canvas.getContext('2d')
   let rgb = '0,0,0'
-  if (this.selected) rgb = '255,0,0'
   let opacity = 0.5
   if (this.hovering) opacity = 0.75
+  if (this.selected) opacity = 0.9
   context.strokeStyle = 'rgba('+rgb+','+opacity+')'
   context.beginPath()
   context.moveTo(this.x1, this.y1)
