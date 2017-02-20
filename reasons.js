@@ -11,15 +11,12 @@ function Canvas (dom, graph) {
 
   let domBB = dom.getBoundingClientRect()
   let last = {}
+  let elements = []
   let mouseDown = false
   let dirty = false  
+  var canvas = build('canvas', {id: 'reasons-'+dom.id}, {width: domBB.width, height: domBB.height})
+  dom.appendChild(canvas)
 
-  this.width = domBB.width
-  this.height = domBB.height
-  this.elements = []
-
-  let canvas = build('canvas', {id: 'reasons-'+dom.id}, {width: domBB.width, height: domBB.height})
-  this.context = canvas.getContext('2d')
 
   canvas.addEventListener('mousedown', (event) => {
     event.preventDefault()
@@ -31,26 +28,38 @@ function Canvas (dom, graph) {
     last.y = parseInt(event.y || event.clientY)
 
     //  flag elements in hit zone
-    this.elements.forEach((el) => {
-      if (el.bounds(last)) {
+    elements.forEach((el) => {
+      if (el.collides(last)) {
         el.draggable = true
       }
     })
   })
 
   canvas.addEventListener('mousemove', (event) => {
+    
+    //  drag should only fire if mouse is pressed over an element
     if (mouseDown) {
-      //  drag should only fire if mouse is pressed over an element
-      this.elements.forEach((el) => {
+      elements.forEach((el) => {
+
+        //  draggable elements should be dragged
         if (el.draggable) {
           dirty = true
           el.draw()
-          el.x1 += parseInt(event.x || event.clientX) - last.x
-          el.x2 = el.x1 + el.width
-          el.y1 += parseInt(event.y || event.clientY) - last.y
-          el.y2 = el.y1 + el.height
+          el.move(parseInt(event.x || event.clientX) - last.x, parseInt(event.y || event.clientY) - last.y)
           last.x = parseInt(event.x || event.clientX)
           last.y = parseInt(event.y || event.clientY)
+
+          //  is there an overlap?
+          elements.forEach((e) => {
+            if (el !== e && el.collides(e)) {
+              //  add a hover effect
+
+              //  flag this element as droppable
+              e.droppable = true
+            } else {
+              e.droppable = false
+            }
+          })
         }
       })
 
@@ -63,21 +72,32 @@ function Canvas (dom, graph) {
     event.stopPropagation()
     mouseDown = false
 
-    //  remove draggable flag from elements
-    this.elements.forEach((el) => {
+    //  was there a successful drop?
+    let candidates = elements.filter((el) => {return el.draggable || el.droppable})
+    if (candidates.length > 1) {
+      console.log('dropped')
+    }
+
+    elements.forEach((el) => {
+      //  remove draggable & droppable flags from elements
       el.draggable = false
+      el.droppable = false
     })
   })
 
   canvas.addEventListener('dblclick', (event) => {
     // dblclick on raw canvas should create a new node
     let reason = new Reason({canvas: canvas, x: last.x, y: last.y})
-    this.elements.push(reason)
+    elements.push(reason)
     draw(this)
   })  
 
-  dom.appendChild(canvas)
+  //  set public variables
   this.canvas = canvas
+  this.context = canvas.getContext('2d')
+  this.elements = elements
+  this.width = domBB.width
+  this.height = domBB.height
 }
 
 function draw (canvas) {
@@ -159,7 +179,7 @@ Graph.prototype.removeEdge = function (object) {}
 Graph.prototype.root = function () {}
 },{"array-difference":6,"array-flatten":7,"array-unique":8}],3:[function(require,module,exports){
 const Graph = require('./graph')
-const Canvas = require('./canvas')
+var Canvas = require('./canvas')
 
 module.exports = ArgumentMap
 
@@ -195,7 +215,7 @@ function Reason(opts) {
 }
 
 
-Reason.prototype.draw = function() {
+Reason.prototype.draw = function(opts={}) {
   let context = this.canvas.getContext('2d')
   let cornerRadius = 6
 
@@ -216,10 +236,20 @@ Reason.prototype.draw = function() {
   context.fillText(this.text || 'Click to edit...', this.x1+this.width/2, this.y1+this.height/2)
 }
 
+Reason.prototype.move = function (x, y) {
+  this.x1 += x
+  this.x2 = this.x1 + this.width
+  this.y1 += y
+  this.y2 = this.y1 + this.height
+}
 
-Reason.prototype.bounds = function(point) {
-  return (point.x > this.x1 && point.x < this.x2 && point.y > this.y1 && point.y < this.y2) ? true : false
-} 
+Reason.prototype.collides = function(el) {
+  if (el instanceof Reason) {
+    return (this.x2 < el.x1 || this.x1 > el.x2 || this.y1 > el.y2 || this.y2 < el.y1) ? false : true
+  } else {
+    return (el.x > this.x1 && el.x < this.x2 && el.y > this.y1 && el.y < this.y2) ? true : false
+  }
+}
 },{}],5:[function(require,module,exports){
 //  Reasons.js
 //  Copyright (c) 2017 Dave Kinkead
