@@ -27,21 +27,26 @@ function Canvas (dom, graph) {
     last.x = parseInt(event.x || event.clientX)
     last.y = parseInt(event.y || event.clientY)
 
-    //  flag elements in hit zone
     elements.forEach((el) => {
+      //  clear selected flag on click
+      el.selected = false
+
+      //  flag elements in hit zone      
       if (el.collides(last)) {
         el.draggable = true
       }
     })
+
+    draw(this)
   })
 
   canvas.addEventListener('mousemove', (event) => {
-
       //  flag elements in hit zone as hovering
     let current = {
       x: parseInt(event.x || event.clientX),
       y: parseInt(event.y || event.clientY)
     }
+
     elements.forEach((el) => {
       if (el.collides(current)) {
         dirty = true
@@ -50,9 +55,11 @@ function Canvas (dom, graph) {
         el.hovering = false
       }
     })
+
     //  drag should only fire if mouse is pressed over an element
     if (mouseDown) {
       elements.forEach((el) => {
+
         //  draggable elements should be dragged
         if (el.draggable) {
           dirty = true
@@ -100,11 +107,59 @@ function Canvas (dom, graph) {
   })
 
   canvas.addEventListener('dblclick', (event) => {
-    // dblclick on raw canvas should create a new node
-    let reason = new Reason({canvas: canvas, x: last.x, y: last.y})
-    elements.push(reason)
-    draw(this)
+    //  dblclick on element selects it
+    let selected = false
+
+    elements.forEach((el) => {
+      if (el.collides(last)) {
+        selected = true
+        el.selected = true
+      } else {
+        el.selected = false
+      }
+    })
+
+    //  dblclick on raw canvas should create a new node
+    if (!selected) {
+      let reason = new Reason({canvas: canvas, x: last.x, y: last.y})
+      elements.push(reason)
+    }
+
+    draw(this)      
   })  
+
+  window.addEventListener('keydown', (event) => {
+
+    //  delete a selected elements
+    if (event.keyCode == 8) {
+      event.preventDefault()
+      let i = elements.findIndex((el) => { return el.selected})
+      if (i > -1) {
+        dirty = true
+        if (elements[i] instanceof Reason) {
+          
+          //  find associated edges first
+          let edges = elements.filter((el) => { 
+            return (el.from && el.to) && (el.from.id == elements[i].id || el.to.id == elements[i].id)
+          })
+          //  remove the node
+          elements.splice(i, 1)
+
+          //  and then the edges
+          edges.forEach((edge) => {
+            let ei = elements.indexOf(edge)
+            elements.splice(ei, 1)
+          })
+
+
+        } else {
+          elements.splice(i, 1)
+        }
+      }
+    }
+
+    if (dirty) draw(this)
+  })
 
   //  set public variables
   this.canvas = canvas
@@ -219,8 +274,8 @@ function Reason(opts) {
   this.canvas = opts.canvas
   this.id = opts.id || Math.random().toString(36).slice(-5)
   this.text = opts.text || "Click to edit..."
-  this.width = 250
-  this.height = 100
+  this.width = 200
+  this.height = 75
   this.x1 = opts.x
   this.y1 = opts.y
   this.x2 = opts.x + this.width
@@ -239,7 +294,11 @@ Reason.prototype.draw = function(opts={}) {
   context.fillRect(this.x1, this.y1, this.width, this.height)  
 
   //  draw a solid rounded border
-  context.strokeStyle = (this.hovering) ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.5)'
+  let rgb = '0,0,0'
+  if (this.selected) rgb = '255,0,0'
+  let opacity = 0.5
+  if (this.hovering) opacity = 0.75
+  context.strokeStyle = 'rgba('+rgb+','+opacity+')'
   context.lineJoin = "round"
   context.lineWidth = cornerRadius
   context.strokeRect(this.x1+cornerRadius/2, this.y1+cornerRadius/2, this.width-cornerRadius, this.height-cornerRadius)
@@ -297,7 +356,11 @@ Relation.prototype.draw = function () {
   this.locate()
 
   let context = this.canvas.getContext('2d')
-  context.strokeStyle = (this.hovering) ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.5)'
+  let rgb = '0,0,0'
+  if (this.selected) rgb = '255,0,0'
+  let opacity = 0.5
+  if (this.hovering) opacity = 0.75
+  context.strokeStyle = 'rgba('+rgb+','+opacity+')'
   context.beginPath()
   context.moveTo(this.x1, this.y1)
   context.lineTo(this.x2, this.y2)
@@ -305,8 +368,8 @@ Relation.prototype.draw = function () {
 }
 
 Relation.prototype.collides = function (el) {
-  // If the difference between the 2 vectors is less than n
   this.locate()
+  //  Calculate the difference between 2 vectors el -> x1,y1 and el -> x2,y2
   if (Math.abs((Math.atan2(el.x - this.x1, el.y - this.y1))-( Math.atan2(this.x2 - el.x, this.y2 - el.y))) < 0.02) {
     return true
   } else {
