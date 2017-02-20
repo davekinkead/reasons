@@ -36,11 +36,23 @@ function Canvas (dom, graph) {
   })
 
   canvas.addEventListener('mousemove', (event) => {
-    
+
+      //  flag elements in hit zone as hovering
+    let current = {
+      x: parseInt(event.x || event.clientX),
+      y: parseInt(event.y || event.clientY)
+    }
+    elements.forEach((el) => {
+      if (el.collides(current)) {
+        dirty = true
+        el.hovering = true
+      } else {
+        el.hovering = false
+      }
+    })
     //  drag should only fire if mouse is pressed over an element
     if (mouseDown) {
       elements.forEach((el) => {
-
         //  draggable elements should be dragged
         if (el.draggable) {
           dirty = true
@@ -62,9 +74,9 @@ function Canvas (dom, graph) {
           })
         }
       })
-
-      if (dirty) draw(this)
     }
+
+    if (dirty) draw(this)
   })
 
   canvas.addEventListener('mouseup', (event) => {
@@ -227,9 +239,9 @@ Reason.prototype.draw = function(opts={}) {
   context.fillRect(this.x1, this.y1, this.width, this.height)  
 
   //  draw a solid rounded border
+  context.strokeStyle = (this.hovering) ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.5)'
   context.lineJoin = "round"
   context.lineWidth = cornerRadius
-  context.strokeStyle = 'rgba(0,0,0,0.5)'
   context.strokeRect(this.x1+cornerRadius/2, this.y1+cornerRadius/2, this.width-cornerRadius, this.height-cornerRadius)
 
   //  add the text content
@@ -282,17 +294,34 @@ function Relation (opts) {
 }
 
 Relation.prototype.draw = function () {
+  this.locate()
+
   let context = this.canvas.getContext('2d')
-  context.strokeStyle = 'rgba(0,0,0,0.5)'
+  context.strokeStyle = (this.hovering) ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.5)'
   context.beginPath()
-  context.moveTo(this.from.x1+(this.from.x2-this.from.x1)/2, this.from.y1+(this.from.y2-this.from.y1)/2)
-  context.lineTo(this.to.x1+(this.to.x2-this.to.x1)/2, this.to.y1+(this.to.y2-this.to.y1)/2)
+  context.moveTo(this.x1, this.y1)
+  context.lineTo(this.x2, this.y2)
   context.stroke()
 }
 
-Relation.prototype.collides = function () {
-
+Relation.prototype.collides = function (el) {
+  // If the difference between the 2 vectors is less than n
+  this.locate()
+  if (Math.abs((Math.atan2(el.x - this.x1, el.y - this.y1))-( Math.atan2(this.x2 - el.x, this.y2 - el.y))) < 0.02) {
+    return true
+  } else {
+    return false
+  }
 }
+
+Relation.prototype.locate = function () {
+  this.x1 = this.from.x1+(this.from.x2-this.from.x1)/2
+  this.x2 = this.to.x1+(this.to.x2-this.to.x1)/2
+  this.y1 = this.from.y1+(this.from.y2-this.from.y1)/2
+  this.y2 = this.to.y1+(this.to.y2-this.to.y1)/2
+}
+
+
 },{}],7:[function(require,module,exports){
 (function(global) {
 
