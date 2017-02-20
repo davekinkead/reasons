@@ -1,5 +1,6 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Reasons=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 const Reason = require('./reason')
+const Relation = require('./relation')
 
 module.exports = {
   render: (dom, graph) => {
@@ -14,9 +15,8 @@ function Canvas (dom, graph) {
   let elements = []
   let mouseDown = false
   let dirty = false  
-  var canvas = build('canvas', {id: 'reasons-'+dom.id}, {width: domBB.width, height: domBB.height})
+  let canvas = build('canvas', {id: 'reasons-'+dom.id}, {width: domBB.width, height: domBB.height})
   dom.appendChild(canvas)
-
 
   canvas.addEventListener('mousedown', (event) => {
     event.preventDefault()
@@ -73,9 +73,11 @@ function Canvas (dom, graph) {
     mouseDown = false
 
     //  was there a successful drop?
-    let candidates = elements.filter((el) => {return el.draggable || el.droppable})
-    if (candidates.length > 1) {
-      console.log('dropped')
+    let from = elements.filter((el) => {return el.draggable})[0]
+    let to = elements.filter((el) => {return el.droppable})[0]
+    if (from && to) {
+      elements.unshift(new Relation({canvas: canvas, from: from, to: to}))
+      draw(this)
     }
 
     elements.forEach((el) => {
@@ -122,7 +124,7 @@ function build(type, options, attributes) {
   }
   return node
 }
-},{"./reason":4}],2:[function(require,module,exports){
+},{"./reason":4,"./relation":6}],2:[function(require,module,exports){
 const unique = require('array-unique')
 const flatten = require('array-flatten')
 const diff = require('array-difference')
@@ -177,9 +179,9 @@ Graph.prototype.addEdge = function (object) {}
 Graph.prototype.removeEdge = function (object) {}
 
 Graph.prototype.root = function () {}
-},{"array-difference":6,"array-flatten":7,"array-unique":8}],3:[function(require,module,exports){
+},{"array-difference":7,"array-flatten":8,"array-unique":9}],3:[function(require,module,exports){
 const Graph = require('./graph')
-var Canvas = require('./canvas')
+const Canvas = require('./canvas')
 
 module.exports = ArgumentMap
 
@@ -203,7 +205,8 @@ function Reason(opts) {
 
   // public state
   this.canvas = opts.canvas
-  this.text = opts.text
+  this.id = opts.id || Math.random().toString(36).slice(-5)
+  this.text = opts.text || "Click to edit..."
   this.width = 250
   this.height = 100
   this.x1 = opts.x
@@ -233,7 +236,7 @@ Reason.prototype.draw = function(opts={}) {
   context.fillStyle = 'rgba(0,0,0,0.8)'
   context.font = '16px sans-serif'
   context.textAlign = 'center'
-  context.fillText(this.text || 'Click to edit...', this.x1+this.width/2, this.y1+this.height/2)
+  context.fillText(this.text, this.x1+this.width/2, this.y1+this.height/2)
 }
 
 Reason.prototype.move = function (x, y) {
@@ -265,6 +268,32 @@ module.exports = {
   }
 }
 },{"./map":3}],6:[function(require,module,exports){
+module.exports = Relation
+
+function Relation (opts) {
+  if (!this instanceof Relation) return new Relation(opts)
+
+  this.canvas = opts.canvas
+  this.from = opts.from
+  this.to = opts.to
+  this.type = opts.type || 'supports'
+  
+  return this
+}
+
+Relation.prototype.draw = function () {
+  let context = this.canvas.getContext('2d')
+  context.strokeStyle = 'rgba(0,0,0,0.5)'
+  context.beginPath()
+  context.moveTo(this.from.x1+(this.from.x2-this.from.x1)/2, this.from.y1+(this.from.y2-this.from.y1)/2)
+  context.lineTo(this.to.x1+(this.to.x2-this.to.x1)/2, this.to.y1+(this.to.y2-this.to.y1)/2)
+  context.stroke()
+}
+
+Relation.prototype.collides = function () {
+
+}
+},{}],7:[function(require,module,exports){
 (function(global) {
 
 	var indexOf = Array.prototype.indexOf || function(elem) {
@@ -312,7 +341,7 @@ module.exports = {
 
 }(this));
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict'
 
 /**
@@ -422,7 +451,7 @@ function flattenDownDepth (array, result, depth) {
   return result
 }
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /*!
  * array-unique <https://github.com/jonschlinkert/array-unique>
  *
