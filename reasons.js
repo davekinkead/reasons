@@ -24,20 +24,31 @@ function Canvas (dom) {
   canvas.addEventListener('mousedown', (event) => {
     event.preventDefault()
 
+    let current = null
+
     //  set last x & y
     mouseDown = true
     last = getPosition(event)
 
-    graph.elements.forEach((el) => {
+    graph.elements.forEach((el, i) => {
       //  clear selected flag on click
       el.selected = false
 
       //  flag elements in hit zone      
       if (el.collides(last)) {
         el.draggable = true
+
+        //  pop clicked reason to the top
+        if (el instanceof Reason) {
+          current = graph.elements.splice(i, 1)[0]
+          graph.elements.push(current)
+        }
+
+        // if (current) 
       }
     })
 
+    
     draw(this)
   })
 
