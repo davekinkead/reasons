@@ -7,6 +7,7 @@
   "devDependencies": {
     "array-difference": "0.0.1",
     "array-flatten": "^2.1.1",
+    "array-intersection": "^0.1.2",
     "array-unique": "^0.3.2",
     "mocha": "^3.2.0",
     "should": "^11.2.0",
