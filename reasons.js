@@ -133,7 +133,7 @@ function Canvas (dom) {
     graph.elements.forEach((el) => {
       el.selected = false
 
-      if (el instanceof Reason && el.collides(last)) {
+      if (el.collides(last)) {
         editing = true
         addOverlay(el)
       } 
@@ -236,7 +236,7 @@ function addOverlay(el) {
   let overlay = build('div', {id: 'reason-overlay'})
   overlay.setAttribute('style', 'position:absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75);')
 
-  let input = build('input', {id: 'edit-reason-input'}, {value: el.text})
+  let input = build('input', {id: 'edit-reason-input'}, {value: el.text || el.type})
   input.setAttribute('style', 'position:absolute; top: 45%; bottom: 50%; left: 25%; right: 50%; width:50%; padding: 1rem;')
   input.setAttribute('data-element', el.id)
 
@@ -247,7 +247,11 @@ function addOverlay(el) {
 function removeOverlay(elements) {
   let input = document.querySelector('#edit-reason-input')
   let el = elements.find(el => el.id == input.getAttribute('data-element') )
-  el.text = input.value
+  if (el instanceof Reason) {
+    el.text = input.value
+  } else {
+    el.type = input.value
+  }
   document.querySelector('#reason-overlay').remove()
 }
 },{"./graph":2,"./reason":4,"./relation":6}],2:[function(require,module,exports){
@@ -349,9 +353,8 @@ Reason.prototype.draw = function(opts={}) {
   let context = this.canvas.getContext('2d')
   let cornerRadius = 4
 
-  //  draw a white rectangle for background
-  context.fillStyle = 'rgba(255,255,255,1)'
-  context.fillRect(this.x1, this.y1, this.width, this.height)  
+  //  clear a white rectangle for background
+  context.clearRect(this.x1, this.y1, this.width, this.height)  
 
   //  draw a solid rounded border
   let rgb = '0,0,0'
@@ -405,6 +408,7 @@ function Relation (opts) {
   if (!this instanceof Relation) return new Relation(opts)
 
   this.canvas = opts.canvas
+  this.id = opts.id || Math.random().toString(36).slice(-5)
   this.from = opts.from
   this.to = opts.to
   this.type = opts.type || 'supports'
@@ -414,8 +418,9 @@ function Relation (opts) {
 
 Relation.prototype.draw = function () {
   this.locate()
-
   let context = this.canvas.getContext('2d')
+
+  //  stroke
   let rgb = '0,0,0'
   let opacity = 0.5
   if (this.hovering) opacity = 0.75
@@ -425,6 +430,20 @@ Relation.prototype.draw = function () {
   context.moveTo(this.x1, this.y1)
   context.lineTo(this.x2, this.y2)
   context.stroke()
+
+  //  label background
+  let center = {
+    x: this.x1+(this.x2-this.x1)/2,
+    y: this.y1+(this.y2-this.y1)/2
+  }
+  context.clearRect(center.x-this.type.length*5, center.y-15, this.type.length*10, 25)
+
+  //  label
+  context.fillStyle = 'rgba(0,0,0,0.8)'
+  context.font = '14px sans-serif'
+  context.textAlign = 'center'
+  context.fillText(this.type, center.x, center.y) 
+
 }
 
 Relation.prototype.collides = function (el) {
