@@ -91,9 +91,11 @@
       {id: 'p1', text: 'All '+cat+' are '+adj, x: box.width*1/3-125, y: box.height*1/3},
       {id: 'p2', text: name+' is a '+cat.substring(0, cat.length-1), x: box.width*2/3-125, y: box.height*1/3},
       {id: 'c1', text: name+' is '+adj, x: box.width*1/2-125, y: box.height*2/3},
-      {from: 'p1', to: 'c1'}
+      {id: 'r1', text: 'random junk', x:20, y: 200},
+      {from: 'r1', to: 'c1'},
+      {from: ['p1', 'p2'], to: 'c1'}
     ]
-    
+
     Reasons.create('#canvas').render(graph)
   </script>
 </body>

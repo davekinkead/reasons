@@ -364,13 +364,20 @@ ArgumentMap.prototype.render = function (elements) {
   if (elements instanceof Array) {
     this.graph = new Graph()
 
-    //  build graph with reasons and relations
-    elements.forEach((el) => {
-      if (el.from && el.to) {
-        this.graph.push(new Relation(el))
+    //  build graph with reasons
+    elements.filter(el => !el.from || !el.to).map((el) => {
+      this.graph.push(new Reason(el))
+    })
+
+    //  and then relations 
+    elements.filter(el => el.from && el.to ).map((el) => {
+      if (el.from instanceof Array) {
+        el.from = this.graph.filter(reason => el.from.indexOf(reason.id) > -1)
       } else {
-        this.graph.push(new Reason(el))
+        el.from = this.graph.find(reason => reason.id == el.from)
       }
+      el.to = this.graph.find(reason => reason.id == el.to)
+      this.graph.unshift(new Relation(el))
     })
   }
 
@@ -384,7 +391,6 @@ function Reason(opts) {
   if (!this instanceof Reason) return new Reason(opts)
 
   // public state
-  this.canvas = opts.canvas
   this.id = opts.id || Math.random().toString(36).slice(-5)
   this.text = opts.text || 'A reason'
   this.width = 200
@@ -459,7 +465,8 @@ function Relation (opts) {
   this.from = opts.from
   this.to = opts.to
   this.type = opts.type || 'supports'
-  console.log(this.id)  
+  this.paths = []
+
   return this
 }
 
@@ -472,6 +479,7 @@ Relation.prototype.draw = function (context) {
   if (this.hovering) opacity = 0.75
   if (this.selected) opacity = 0.9
   context.strokeStyle = 'rgba('+rgb+','+opacity+')'
+  context.lineWidth = 4
 
   //  stroke position
   context.beginPath()
@@ -512,8 +520,6 @@ Relation.prototype.locate = function () {
   this.x2 = this.to.x1+(this.to.x2-this.to.x1)/2
   this.y2 = this.to.y1+(this.to.y2-this.to.y1)/2
 }
-
-
 },{}],7:[function(require,module,exports){
 (function(global) {
 
