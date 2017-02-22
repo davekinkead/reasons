@@ -92,6 +92,7 @@ describe('Graph', () => {
     it('should remove an complex element from the graph', () => {
       var graph = new Graph([map.a, map.b, map.c, {from: [map.a, map.b], to: map.c}])
       graph.remove(map.a).should.have.length(3)
+      graph.edges()[0].from.should.be.equal(map.b)
     })    
   })
 

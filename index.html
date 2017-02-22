@@ -9,6 +9,7 @@
       padding: 0;
       color: #666;
       box-sizing: border-box;
+      font-family: Helvetica, sans-serif;
     }
     .fa-bars {
       position: absolute;
@@ -70,9 +71,10 @@
   <i class="fa fa-bars" aria-hidden="true"></i>
   <nav>
     <ul>
-      <li>Home</li>
-      <li>About</li>
-      <li>Source</li>
+      <li><a href="#">Home</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Export</a></li>
+      <li><a href="#">Source</a></li>
     </ul>      
   </nav>
   <div id="canvas">
@@ -89,10 +91,8 @@
 
     let graph = [
       {id: 'p1', text: 'All '+cat+' are '+adj, x: box.width*1/3-125, y: box.height*1/3},
-      {id: 'p2', text: name+' is a '+cat.substring(0, cat.length-1), x: box.width*2/3-125, y: box.height*1/3},
-      {id: 'c1', text: name+' is '+adj, x: box.width*1/2-125, y: box.height*2/3},
-      {id: 'r1', text: 'random junk', x:20, y: 200},
-      {from: 'r1', to: 'c1'},
+      {id: 'p2', text: name+' is a '+cat.substring(0, cat.length-1), x: box.width*2/3-125, y: box.height*1/3-25},
+      {id: 'c1', text: name+' is '+adj, x: box.width*1/2, y: box.height*2/3},
       {from: ['p1', 'p2'], to: 'c1'}
     ]
 
