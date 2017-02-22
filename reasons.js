@@ -20,6 +20,7 @@ function Canvas (dom, graph) {
   let dragged = false
   let editing = false
   let dirty = false
+  let zoom = 1.0
 
   //  canvas DOM object
   let domBB = dom.getBoundingClientRect()
@@ -161,7 +162,7 @@ function Canvas (dom, graph) {
 
     //  dblclick on raw canvas should create a new node
     if (!editing) {
-      let reason = new Reason({canvas: canvas, x: last.x, y: last.y})
+      let reason = new Reason({x: last.x, y: last.y})
       graph.add(reason)
       editing = true
       addOverlay(reason)
@@ -169,6 +170,13 @@ function Canvas (dom, graph) {
 
     draw(this)      
   })  
+
+  canvas.addEventListener('wheel', (event, w) => {
+    // let zoom = event.deltaY/120
+    // this.zoom = 1 + zoom/2
+    // console.log(this.zoom)
+    // draw(this)
+  })
 
   window.addEventListener('keydown', (event) => {
 
@@ -199,6 +207,7 @@ function Canvas (dom, graph) {
   this.graph = graph
   this.width = domBB.width
   this.height = domBB.height
+  this.zoom = zoom
 
   //  draw for the first time
   draw(this)
@@ -207,6 +216,7 @@ function Canvas (dom, graph) {
 function draw (canvas) {
   clear(canvas)
   canvas.graph.forEach((el) => {
+    // canvas.context.scale(canvas.zoom, canvas.zoom)
     el.draw(canvas.context)
   })
 }
@@ -580,7 +590,7 @@ Relation.prototype.draw = function (context) {
 
 }
 
-Relation.prototype.collides = function (el) {
+Relation.prototype.collides = function (point) {
   this.locate()
 
   //  Deterine a hit for each of the paths
@@ -589,8 +599,8 @@ Relation.prototype.collides = function (el) {
 
     //  Calculate the difference between 2 vectors el -> x1,y1 and el -> x2,y2
     if (
-      Math.abs((Math.atan2(el.x-path.x1, el.y-path.y1))
-        -(Math.atan2(path.x2-el.x, path.y2-el.y))) < 0.05
+      Math.abs((Math.atan2(point.y-path.y1, point.x-path.x1))
+        -(Math.atan2(path.y2-point.y, path.x2-point.x))) < 0.05
     ) { hit = true }
   })
 
@@ -626,23 +636,80 @@ Relation.prototype.locate = function () {
         y2: parseInt(this.center.y)
       }
     })
-    this.paths.push({
+   let offset = edgeOfView(this.to, Math.atan2(this.center.y-this.to.y1, this.center.x-this.to.x1))
+   this.paths.push({
       x1: parseInt(this.center.x),
       y1: parseInt(this.center.y),
-      x2: parseInt(this.to.x1+(this.to.x2-this.to.x1)/2),
-      y2: parseInt(this.to.y1+(this.to.y2-this.to.y1)/2)
+      x2: parseInt(this.to.x1+(this.to.x2-this.to.x1)/2+offset.x),
+      y2: parseInt(this.to.y1+(this.to.y2-this.to.y1)/2+offset.y) 
     })
   } else {
 
     //  when only a single from element exists
+    let offset = edgeOfView(this.to, Math.atan2(this.from.y1-this.to.y1, this.from.x1-this.to.x1))
     this.paths = [{
       x1: parseInt(this.from.x1+(this.from.x2-this.from.x1)/2),
       y1: parseInt(this.from.y1+(this.from.y2-this.from.y1)/2),
-      x2: parseInt(this.to.x1+(this.to.x2-this.to.x1)/2),
-      y2: parseInt(this.to.y1+(this.to.y2-this.to.y1)/2) 
+      x2: parseInt(this.to.x1+(this.to.x2-this.to.x1)/2+offset.x),
+      y2: parseInt(this.to.y1+(this.to.y2-this.to.y1)/2+offset.y) 
     }]
   }
 }
+
+//  Bahh stackoverflow
+function edgeOfView(rect, theta) {
+  var twoPI = Math.PI*2;
+  // var theta = deg * Math.PI / 180;
+  
+  while (theta < -Math.PI) {
+    theta += twoPI;
+  }
+  
+  while (theta > Math.PI) {
+    theta -= twoPI;
+  }
+  
+  var rectAtan = Math.atan2(rect.height, rect.width);
+  var tanTheta = Math.tan(theta);
+  var region;
+  
+  if ((theta > -rectAtan) && (theta <= rectAtan)) {
+      region = 1;
+  } else if ((theta > rectAtan) && (theta <= (Math.PI - rectAtan))) {
+      region = 2;
+  } else if ((theta > (Math.PI - rectAtan)) || (theta <= -(Math.PI - rectAtan))) {
+      region = 3;
+  } else {
+      region = 4;
+  }
+  
+  var edgePoint = {x: rect.width/2, y: rect.height/2};
+  var xFactor = 1;
+  var yFactor = 1;
+  
+  switch (region) {
+    case 1: yFactor = -1; break;
+    case 2: yFactor = -1; break;
+    case 3: xFactor = -1; break;
+    case 4: xFactor = -1; break;
+  }
+  
+  if ((region === 1) || (region === 3)) {
+    edgePoint.x += xFactor * (rect.width / 2.);
+    edgePoint.y += yFactor * (rect.width / 2.) * tanTheta;
+  } else {
+    edgePoint.x += xFactor * (rect.height / (2. * tanTheta));
+    edgePoint.y += yFactor * (rect.height /  2.);
+  }
+
+  //  fix up for center reference rather than bottom left
+  edgePoint.x -= rect.width/2
+  edgePoint.y -= rect.height/2
+  edgePoint.y *= -1
+  
+  return edgePoint;
+};
+
 },{"array-flatten":14}],7:[function(require,module,exports){
 /*!
  * arr-diff <https://github.com/jonschlinkert/arr-diff>
