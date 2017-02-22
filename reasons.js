@@ -576,6 +576,13 @@ Relation.prototype.draw = function (context) {
     context.moveTo(path.x1, path.y1)
     context.lineTo(path.x2, path.y2)    
   })
+
+  //  arrow tip
+  let last = this.paths[this.paths.length-1]
+  let arrow = arrowify(last)
+  context.lineTo(arrow.x1, arrow.y1)
+  context.moveTo(last.x2, last.y2)
+  context.lineTo(arrow.x2, arrow.y2)
   context.stroke()
 
   //  text stroke
@@ -587,7 +594,6 @@ Relation.prototype.draw = function (context) {
   context.font = '14px sans-serif'
   context.textAlign = 'center'
   context.fillText(this.type, this.center.x, this.center.y) 
-
 }
 
 Relation.prototype.collides = function (point) {
@@ -656,6 +662,17 @@ Relation.prototype.locate = function () {
   }
 }
 
+//  Helper function to make arrow tips
+function arrowify(path) {
+  let angle = Math.atan2(path.y1-path.y2, path.x1-path.x2)
+  return {
+    x1: path.x2 + 10*Math.cos(angle+0.5),
+    y1: path.y2 + 10*Math.sin(angle+0.5),
+    x2: path.x2 + 10*Math.cos(angle-0.5),
+    y2: path.y2 + 10*Math.sin(angle-0.5)    
+  }
+}
+
 //  Bahh stackoverflow
 function edgeOfView(rect, theta) {
   var twoPI = Math.PI*2;
@@ -672,6 +689,7 @@ function edgeOfView(rect, theta) {
   var rectAtan = Math.atan2(rect.height, rect.width);
   var tanTheta = Math.tan(theta);
   var region;
+  var buffer = 10
   
   if ((theta > -rectAtan) && (theta <= rectAtan)) {
       region = 1;
@@ -683,7 +701,7 @@ function edgeOfView(rect, theta) {
       region = 4;
   }
   
-  var edgePoint = {x: rect.width/2, y: rect.height/2};
+  var edgePoint = {x: (rect.width)/2, y: (rect.height)/2};
   var xFactor = 1;
   var yFactor = 1;
   
@@ -695,11 +713,11 @@ function edgeOfView(rect, theta) {
   }
   
   if ((region === 1) || (region === 3)) {
-    edgePoint.x += xFactor * (rect.width / 2.);
-    edgePoint.y += yFactor * (rect.width / 2.) * tanTheta;
+    edgePoint.x += xFactor * ((rect.width+buffer) / 2.);
+    edgePoint.y += yFactor * ((rect.width+buffer) / 2.) * tanTheta;
   } else {
-    edgePoint.x += xFactor * (rect.height / (2. * tanTheta));
-    edgePoint.y += yFactor * (rect.height /  2.);
+    edgePoint.x += xFactor * ((rect.height+buffer) / (2. * tanTheta));
+    edgePoint.y += yFactor * ((rect.height+buffer) /  2.);
   }
 
   //  fix up for center reference rather than bottom left
