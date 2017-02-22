@@ -112,7 +112,7 @@ function Canvas (dom, graph) {
         //  snap back position
         from.move(first.x-from.x1, first.y-from.y1)
 
-        //  otherwise add new relation to bottom
+        //  add new relation to bottom
         graph.add(new Relation({from: from, to: to}))
         draw(this)
       }
@@ -183,34 +183,10 @@ function Canvas (dom, graph) {
       }
     } else {
 
-//------> Move this to Graph.js
       //  delete a selected element
       if (event.keyCode == 8) {
         event.preventDefault()
         graph.remove((graph.find(el => el.selected)))
-        // let i = graph.findIndex((el) => { return el.selected})
-        // if (i > -1) {
-        //   dirty = true
-
-        //   if (graph[i] instanceof Reason) {
-
-        //     //  find associated edges first
-        //     let edges = graph.filter((el) => { 
-        //       return (el.from && el.to) && (el.from.id == graph[i].id || el.to.id == graph[i].id)
-        //     })
-        //     //  remove the node
-        //     graph.splice(i, 1)
-
-        //     //  and then the edges
-        //     edges.forEach((edge) => {
-        //       let ei = graph.indexOf(edge)
-        //       graph.splice(ei, 1)
-        //     })
-
-        //   } else {
-        //     graph.splice(i, 1)
-        //   }
-        // }
       }
     }
 
@@ -310,17 +286,16 @@ Graph.prototype.add = function (el) {
       common.map((el) => {
         let edges = this.edges().filter(e => e.to.id == el.id || e.to == el)
         let keeper = edges.shift()
-        edges.map((el) => {
-          keeper.from = flatten([keeper.from].concat(el.from))
-        }).map(el => this.remove(el))
+        edges.map(e => keeper.from = flatten([keeper.from].concat(e.from)))
+        edges.map(e => this.remove(e))
       })
-
     } else {
       this.unshift(el)      
     }
   } else {
     this.push(el)
   }
+  console.log(this.edges())
 }
 
 //  remove an element from the graph
