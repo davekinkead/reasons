@@ -1,7 +1,7 @@
 ---
 title: about
 layout: template
-permalink: /about/
+permalink: /about
 ---
 
 # Reasons.js

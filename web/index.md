@@ -29,6 +29,7 @@ permalink: /
 
   //  Generate a PNG image of the argument map
   function toPNG () {
+    let canvas = document.querySelector('#content')
     window.open(canvas.toDataURL('image/png'), '_blank')
   }
 </script>

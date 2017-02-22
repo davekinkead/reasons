@@ -3,6 +3,6 @@
 title: Reasons.js
 author: Dave Kinkead
 description: Web based argument mapping using HTML5 Canvas and Javascript
-baseurl: http://dave.kinkead.com.au/reasons/
+baseurl: /reasons
 permalink: /:title
 layouts_dir: /web/
