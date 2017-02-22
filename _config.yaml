@@ -4,5 +4,5 @@ title: Reasons.js
 author: Dave Kinkead
 description: Web based argument mapping using HTML5 Canvas and Javascript
 baseurl: /reasons
-permalink: /:title
+permalink: /:title/
 layouts_dir: /web/
