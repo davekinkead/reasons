@@ -3,91 +3,15 @@
 <head>
   <meta charset="utf8">
   <link rel="stylesheet" href="web/css/font-awesome.min.css">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      color: #666;
-      box-sizing: border-box;
-      font-family: sans-serif;
-    }
-    .fa-bars {
-      position: absolute;
-      font-size: 2rem;
-      top: 1.5rem;
-      left: 2rem;
-      z-index: 10;
-    }
-    nav {
-      position:fixed;
-      top:0;
-      left:0;
-      width:250px;
-      height:100%;
-      margin:0 0 0 -250px;
-      -moz-transition:all 200ms ease-in;
-      -webkit-transition:all 200ms ease-in;
-      -o-transition:all 200ms ease-in;
-      transition:all 200ms ease-in;
-      background: #ddd;
-      font-size: 2rem;
-    }
-    .fa-bars:hover + nav {
-      margin: 0;
-    }
-    nav:hover {
-      margin: 0;
-    }
-    nav ul {
-      font-size: 1.2rem;
-      margin: 5rem 0 0 1rem;
-      width:250px;
-      padding:0;
-      list-style:none;
-      overflow:hidden;
-    }
-    nav li {
-      padding: 0.25rem 1rem;
-    }
-    h1 {
-      position: absolute;
-      top: 50px;
-      left: 0; 
-      right: 0; 
-      margin-left: auto; 
-      margin-right: auto; 
-      width: 700px;
-      text-align: center;
-      color: rgba(0,0,0,0.25);
-    }
-    #canvas, svg {
-      width: 100%;
-      height: 99vh;
-    }
-    a {
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-    nav a:hover {
-      color: #333;
-    }
-    #credits {
-      position: absolute;
-      left: 1rem;
-      bottom: 1rem;
-    }
-
-  </style>
+  <link rel="stylesheet" href="web/css/styles.css">
 </head>
 <body>
   <i class="fa fa-bars" aria-hidden="true"></i>
   <nav>
     <ul>
-      <li><a href="#">Home</a></li>
-      <li><a href="#">About</a></li>
-      <li><a href="#" onclick="exportMe()">Export</a></li>
+      <li><a href="/">Home</a></li>
+      <li><a href="web/about">About</a></li>
+      <li><a href="#" onclick="toPNG()">Export</a></li>
       <li><a href="https://github.com/davekinkead/reasons">Source</a></li>
     </ul>
   </nav>
@@ -97,6 +21,8 @@
   </div>
   <script src="reasons.js"></script>
   <script>
+
+    //  Variables for some randomized defaults
     let box = canvas.getBoundingClientRect()
 
     let cat = ['humans', 'philosophers', 'doctors', 'students', 'winners', 'cats', 'dogs', 'birds', 'democrats', 'republicans'][Math.floor(Math.random() * 10)]
@@ -110,9 +36,11 @@
       {from: ['p1', 'p2'], to: 'c1'}
     ]
 
+    //  Invoke the Reasons.js API
     Reasons.create('#canvas').render(graph)
 
-    function exportMe () {
+    //  Generate a PNG image of the argument map
+    function toPNG () {
       let canvas = document.querySelector('canvas')
       window.open(canvas.toDataURL('image/png'), '_blank')
     }
