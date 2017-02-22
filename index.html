@@ -9,7 +9,7 @@
       padding: 0;
       color: #666;
       box-sizing: border-box;
-      font-family: Helvetica, sans-serif;
+      font-family: sans-serif;
     }
     .fa-bars {
       position: absolute;
@@ -58,11 +58,25 @@
       margin-right: auto; 
       width: 700px;
       text-align: center;
-      color: rgba(0,0,0,0.5);
+      color: rgba(0,0,0,0.25);
     }
     #canvas, svg {
       width: 100%;
       height: 99vh;
+    }
+    a {
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    nav a:hover {
+      color: #333;
+    }
+    #credits {
+      position: absolute;
+      left: 1rem;
+      bottom: 1rem;
     }
 
   </style>
@@ -73,16 +87,16 @@
     <ul>
       <li><a href="#">Home</a></li>
       <li><a href="#">About</a></li>
-      <li><a href="#">Export</a></li>
-      <li><a href="#">Source</a></li>
-    </ul>      
+      <li><a href="#" onclick="exportMe()">Export</a></li>
+      <li><a href="https://github.com/davekinkead/reasons">Source</a></li>
+    </ul>
   </nav>
+  <div id="credits">Made with 😢 by <a href="http://dave.kinkead.com.au">Dave Kinkead</a></div>
   <div id="canvas">
-    <h1>reasons.js</h1>
+    <h1>Reasons.js</h1>
   </div>
   <script src="reasons.js"></script>
   <script>
-    let canvas = document.querySelector('#canvas')
     let box = canvas.getBoundingClientRect()
 
     let cat = ['humans', 'philosophers', 'doctors', 'students', 'winners', 'cats', 'dogs', 'birds', 'democrats', 'republicans'][Math.floor(Math.random() * 10)]
@@ -97,6 +111,11 @@
     ]
 
     Reasons.create('#canvas').render(graph)
+
+    function exportMe () {
+      let canvas = document.querySelector('canvas')
+      window.open(canvas.toDataURL('image/png'), '_blank')
+    }
   </script>
 </body>
 </html>
