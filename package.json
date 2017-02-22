@@ -9,12 +9,15 @@
     "array-flatten": "^2.1.1",
     "array-intersection": "^0.1.2",
     "array-unique": "^0.3.2",
+    "babelify": "^7.3.0",
+    "browserify": "^14.1.0",
     "mocha": "^3.2.0",
     "should": "^11.2.0",
     "yamljs": "^0.2.8"
   },
   "scripts": {
-    "test": "mocha"
+    "build": "browserify lib/reasons.js -s Reasons -o reasons.js",
+    "test": "npm run build && mocha"
   },
   "repository": {
     "type": "git",

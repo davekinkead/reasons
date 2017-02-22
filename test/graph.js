@@ -9,102 +9,122 @@ should.Assertion.add('haveTheSameItems', function(other) {
   this.obj.length.should.be.equal(other.length);
 })
 
-const graph = new Graph([
-    {id: 'a', text: 'blah blah'},
-    {id: 'b', text: 'blah blah'},
-    {id: 'c', text: 'blah blah'},
-    {id: 'd', text: 'blah blah'},
-    {id: 'e', text: 'blah blah'},
-    {id: 'f', text: 'blah blah'},
-    {id: 'g', text: 'blah blah'},
-    {id: 'h', text: 'blah blah'},
-    {from: 'a', to: 'b'}, 
-    {from: ['b', 'c'], to: 'd'}, 
-    {from: 'f', to: 'g'},
-    {from: 'h', to: 'd'},
-    {from: 'b', to: 'f'}
-   ])
+var map = {
+    a: {id: 'a', text: 'blah blah'},
+    b: {id: 'b', text: 'blah blah'},
+    c: {id: 'c', text: 'blah blah'},
+    d: {id: 'd', text: 'blah blah'},
+    e: {id: 'e', text: 'blah blah'},
+    f: {id: 'f', text: 'blah blah'},
+    g: {id: 'g', text: 'blah blah'},
+    h: {id: 'h', text: 'blah blah'},
+    i: {id: 'i', from: 'a', to: 'b'}, 
+    j: {id: 'j', from: ['b', 'c'], to: 'd'}, 
+    k: {id: 'k', from: 'f', to: 'g'},
+    l: {id: 'l', from: 'h', to: 'd'},
+    m: {id: 'm', from: 'b', to: 'f'}
+  }
+var elements = []
+for (key in map) {
+  elements.push(map[key])
+}
 
 describe('Graph', () => {
   describe('#new', () => {
+
     it('should accept no arguments', () => {
       new Graph()
     })
 
     it('should accept an array of objects', () => {
-      new Graph([{id: 1}])
+      new Graph(elements)
     })
 
     it('should be an instance of Array', () => {
-      graph.should.be.instanceof(Array)
+      new Graph(elements).should.be.instanceof(Array)
     })
   })
 
   describe('#edges', () => {
     it('should find all the edges', () => {
-      graph.edges().should.be.instanceof(Array)
-      graph.edges().should.have.length(5)
+      new Graph(elements).edges().should.be.instanceof(Array)
+      new Graph(elements).edges().should.have.length(5)
     })
   })
 
   describe('#nodes', () => {
     it('should find all the nodes', () => {
-      graph.nodes().should.be.instanceof(Array)
-      graph.nodes().should.have.length(8)
+      new Graph(elements).nodes().should.be.instanceof(Array)
+      new Graph(elements).nodes().should.have.length(8)
     })
   })  
 
   describe('#parents', () => {
     it('should find all the parents of a node', () => {
-      graph.parents('d').should.be.instanceof(Array)
-      graph.parents('d').should.have.length(3)
-      graph.parents('d')[0].should.be.instanceof(Object)
+      new Graph(elements).parents('d').should.be.instanceof(Array)
+      new Graph(elements).parents('d').should.have.length(3)
+      new Graph(elements).parents('d')[0].should.be.instanceof(Object)
     })
   })  
 
   describe('#children', () => {
-    it('should find all the children of a node', () => {
+    it('should find all the children of a node id', () => {
+      var graph = new Graph(elements)
       graph.children('b').should.be.instanceof(Array)
       graph.children('b').should.have.length(2)
       graph.children('b')[0].should.be.instanceof(Object)
     })
+
+    it('should find all the children of a node', () => {
+      var graph = new Graph([map.a, map.b, map.c, {from: [map.a, map.b], to: map.c}])
+      graph.children('a').should.be.instanceof(Array)
+      graph.children('a').should.have.length(1)
+      graph.children('a')[0].should.be.instanceof(Object)
+    })
   })  
 
+  describe('#remove', () => {
+    it('should remove an element from the graph', () => {
+      var graph = new Graph([map.a, map.b, map.c, {from: map.a, to: map.c}])
+      graph.remove(map.a).should.have.length(2)
+    })
+  })
+
   // describe('#connected', () => {
-  //   it('should return all connected nodes in the graph when no args are supplied', () => {
-  //     graph.connected().should.haveTheSameItems(['a', 'b', 'c', 'd', 'f', 'g'])
+  //   it('should return all connected nodes in the new Graph(elements) when no args are supplied', () => {
+  //     new Graph(elements).connected().should.haveTheSameItems(['a', 'b', 'c', 'd', 'f', 'g'])
   //   })
   // })
 
   // describe('#children', () => {
-  //   it('should return all child nodes in the graph when no args are supplied', () => {
-  //     graph.children().should.haveTheSameItems(['b', 'd', 'g'])
+  //   it('should return all child nodes in the new Graph(elements) when no args are supplied', () => {
+  //     new Graph(elements).children().should.haveTheSameItems(['b', 'd', 'g'])
   //   })
   // })
 
   // describe('#parents', () => {
-  //   it('should return all parent nodes in the graph when no args are supplied', () => {
-  //     graph.parents().should.haveTheSameItems(['a', 'b', 'c', 'f'])
+  //   it('should return all parent nodes in the new Graph(elements) when no args are supplied', () => {
+  //     new Graph(elements).parents().should.haveTheSameItems(['a', 'b', 'c', 'f'])
   //   })
 
   //   it('should return all parent nodes for a given node ID', () => {
-  //     graph.parents('d').should.haveTheSameItems(['b', 'c'])
+  //     new Graph(elements).parents('d').should.haveTheSameItems(['b', 'c'])
   //   })
 
   //   it('should return all parent nodes for an array of node ID', () => {
-  //     graph.parents(['g', 'd']).should.haveTheSameItems(['b', 'c', 'f'])
+  //     new Graph(elements).parents(['g', 'd']).should.haveTheSameItems(['b', 'c', 'f'])
   //   })
   // })
 
   // describe('#orphans', () => {
-  //   it('should return all orphan nodes in the graph', () => {
-  //     graph.orphans().should.haveTheSameItems(['e', 'h'])
+  //   it('should return all orphan nodes in the new Graph(elements)', () => {
+  //     new Graph(elements).orphans().should.haveTheSameItems(['e', 'h'])
   //   })
   // })
 
   // describe('#ends', () => {
-  //   it('should find the last node in a directed graph', () => {
-  //     graph.ends().should.haveTheSameItems(['d', 'g'])
+  //   it('should find the last node in a directed new Graph(elements)', () => {
+  //     new Graph(elements).ends().should.haveTheSameItems(['d', 'g'])
   //   })    
   // })
 })
