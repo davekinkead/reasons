@@ -88,6 +88,11 @@ describe('Graph', () => {
       var graph = new Graph([map.a, map.b, map.c, {from: map.a, to: map.c}])
       graph.remove(map.a).should.have.length(2)
     })
+
+    it('should remove an complex element from the graph', () => {
+      var graph = new Graph([map.a, map.b, map.c, {from: [map.a, map.b], to: map.c}])
+      graph.remove(map.a).should.have.length(3)
+    })    
   })
 
   // describe('#connected', () => {

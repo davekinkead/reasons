@@ -295,7 +295,6 @@ Graph.prototype.add = function (el) {
   } else {
     this.push(el)
   }
-  console.log(this.edges())
 }
 
 //  remove an element from the graph
@@ -318,6 +317,13 @@ Graph.prototype.remove = function (el) {
       edges.forEach((edge) => {
         let ei = this.indexOf(edge)
         this.splice(ei, 1)
+      })
+
+      //  also remove node from any complex relations
+      this.edges().filter(el => el.from instanceof Array).map((el) => {
+        let ei = el.from.indexOf(el)
+        el.from.splice(ei, 1)
+        if (el.from.length ==1) el.from = el.from[0]
       })
     } else {
       this.splice(i, 1)
