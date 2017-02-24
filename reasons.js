@@ -45,17 +45,16 @@ function Canvas (dom, graph) {
       //  flag elements in hit zone      
       if (el.collides(last)) {
         el.draggable = true
+        dirty = true
 
         //  pop clicked reason to the top
         if (el instanceof Reason) {
-          current = graph.splice(i, 1)[0]
-          graph.push(current)
+          graph.focus(el)
         }
       }
     })
 
-    
-    draw(this)
+    if (dirty) draw(this)
   })
 
   canvas.addEventListener('mousemove', (event) => {
@@ -186,7 +185,6 @@ function Canvas (dom, graph) {
       //  return
       if (event.keyCode == 13) {
         removeOverlay(graph)
-        dirty = true
         editing = false
       }
     } else {
@@ -198,7 +196,7 @@ function Canvas (dom, graph) {
       }
     }
 
-    if (dirty) draw(this)
+    draw(this)
   })
 
   //  set public variables
@@ -344,6 +342,14 @@ Graph.prototype.remove = function (el) {
   return this
 }
 
+//  Move an element to the top of the graph
+Graph.prototype.focus = function (el) {
+  let index = this.indexOf(el)
+  if (index > -1) {
+    this.push(this.splice(index, 1)[0])
+  }
+}
+
 //  Find all the edges
 Graph.prototype.edges = function () {
   return this.filter(el => el.from && el.to)
@@ -382,56 +388,6 @@ function isEdge (el) {
 function isNode (el) {
   return (isEdge(el)) ? false : true
 }
-
-
-// function Graph (graph) {
-//   if (!graph) graph = {nodes: {}, edges: []}
-//   if (!(this instanceof Graph)) return new Graph(graph)
-//   this.nodes = graph.nodes || graph.vertices || graph.reasons
-//   this.edges = graph.edges || graph.arcs || graph.relations
-// }
-
-// Graph.prototype.children = function (id) {
-//   if (! this.edges) return []
-//   return unique( flatten( this.edges.map((edge) => { return edge.to })) )
-// }
-
-// Graph.prototype.parents = function (id) {
-//   if (! this.edges) return []
-//   if (id) {
-//     return unique( flatten( this.edges.filter((edge) => {
-//       return id == edge.to || id.indexOf(edge.to) > -1
-//     }).map((edge) => {
-//       return edge.from
-//     })))
-//   } else {
-//     return unique( flatten( this.edges.map((edge) => { return edge.from })) )    
-//   }
-// }
-
-// Graph.prototype.connected = function (id) {
-//   return unique( this.parents().concat(this.children()) )
-// }
-
-// Graph.prototype.orphans = function () {
-//   return diff(Object.keys(this.nodes), this.connected())
-// }
-
-// Graph.prototype.ends = function () {
-//   return this.children().filter((i) => {
-//     return this.parents().indexOf(i) < 0
-//   })
-// }
-
-// Graph.prototype.addNode = function (id, object) {}
-
-// Graph.prototype.removeNode = function (id) {}
-
-// Graph.prototype.addEdge = function (object) {}
-
-// Graph.prototype.removeEdge = function (object) {}
-
-// Graph.prototype.root = function () {}
 },{"array-difference":12,"array-flatten":14,"array-intersection":15,"array-unique":18}],3:[function(require,module,exports){
 const Graph = require('./graph')
 const Canvas = require('./canvas')
@@ -474,24 +430,41 @@ ArgumentMap.prototype.render = function (elements) {
 },{"./canvas":1,"./graph":2,"./reason":4,"./relation":6}],4:[function(require,module,exports){
 module.exports = Reason
 
+const maxWidth = 200
+const padding = 10
+const fontSize = 16
+
 function Reason(opts) {
   if (!this instanceof Reason) return new Reason(opts)
 
   // public state
   this.id = opts.id || Math.random().toString(36).slice(-5)
   this.text = opts.text || 'A reason'
-  this.width = 200
-  this.height = 75
+  this.width = maxWidth
+  this.height = fontSize * 3.5
   this.x1 = opts.x
   this.y1 = opts.y
   this.x2 = opts.x + this.width
   this.y2 = opts.y + this.height
+  this.resize()
 
   return this
 }
 
+Reason.prototype.resize = function () {
+  this.x2 = this.x1 + this.width
+  this.y2 = this.y1 + this.height
+}
+
 
 Reason.prototype.draw = function(context) {
+
+  //  word wrap the text 
+  let text = wordWrap(this.text, context)
+
+  //  recalculate the height
+  this.height = text.length * fontSize + fontSize * 2.5
+  this.resize()
 
   //  clear a white rectangle for background
   context.clearRect(this.x1, this.y1, this.width, this.height)  
@@ -507,18 +480,40 @@ Reason.prototype.draw = function(context) {
   context.lineWidth = cornerRadius
   context.strokeRect(this.x1+cornerRadius/2, this.y1+cornerRadius/2, this.width-cornerRadius, this.height-cornerRadius)
 
-  //  add the text content
+  //  set text box styles
   context.fillStyle = 'rgba(0,0,0,0.8)'
   context.font = '16px sans-serif'
   context.textAlign = 'center'
-  context.fillText(this.text, this.x1+this.width/2, this.y1+this.height/2)
+
+  //  add the text content
+  text.forEach((line, i) => {
+    context.fillText(line, this.x1 + this.width/2, this.y1  + (i+2) * fontSize)
+  })  }
+
+function wordWrap(text, context) {
+  let words = text.split(' ')
+  let lines = []
+  let line = ''
+
+  words.forEach((word) => {
+    let width = context.measureText(line + ' ' + word).width
+
+    if (width < (maxWidth - padding * 2) ) {
+      line += ' ' + word
+    } else { 
+      lines.push(line)
+      line = word
+    }
+  })
+
+  lines.push(line)
+  return lines
 }
 
 Reason.prototype.move = function (x, y) {
   this.x1 += x
-  this.x2 = this.x1 + this.width
   this.y1 += y
-  this.y2 = this.y1 + this.height
+  this.resize()
 }
 
 Reason.prototype.collides = function(el) {
@@ -594,6 +589,9 @@ Relation.prototype.draw = function (context) {
   context.font = '14px sans-serif'
   context.textAlign = 'center'
   context.fillText(this.type, this.center.x, this.center.y) 
+
+  if (this.intersection)
+    context.fillRect(this.intersection.x, this.intersection.y, 10, 10)
 }
 
 Relation.prototype.collides = function (point) {
@@ -623,14 +621,14 @@ Relation.prototype.locate = function () {
   //  find the weighted center point
   let elements = flatten([this.from, this.to])
   this.center = elements.map((el) => {
-      return {x: (el.x1+(el.x2-el.x1)/2), y: (el.y1+(el.y2-el.y1)/2)}
+      return {x: (el.x1+(el.width)/2), y: (el.y1+(el.height )/2)}
     }).reduce((acc, el) => {
       return {x: acc.x + el.x, y: acc.y + el.y}
     })
   this.center.x = parseInt(this.center.x/(elements.length))
   this.center.y = parseInt(this.center.y/(elements.length))
 
-  //  when multiple from elements exist
+  //  create paths between from and to elements
   if (this.from instanceof Array) {
 
     //  create pairs from from-points to center to to-point
@@ -642,22 +640,28 @@ Relation.prototype.locate = function () {
         y2: parseInt(this.center.y)
       }
     })
-   let offset = edgeOfView(this.to, Math.atan2(this.center.y-this.to.y1, this.center.x-this.to.x1))
-   this.paths.push({
+
+
+    //  move the 'to' point back down the path to just outside the node.
+    let offset = pointOfIntersection(this.center, this.to, 5)
+
+    // get offset x,y from rectangle intersect
+    this.paths.push({
       x1: parseInt(this.center.x),
       y1: parseInt(this.center.y),
-      x2: parseInt(this.to.x1+(this.to.x2-this.to.x1)/2+offset.x),
-      y2: parseInt(this.to.y1+(this.to.y2-this.to.y1)/2+offset.y) 
+      x2: parseInt(this.to.x1+(this.to.x2-this.to.x1)/2)-offset.x,
+      y2: parseInt(this.to.y1+(this.to.y2-this.to.y1)/2)+offset.y 
     })
   } else {
 
     //  when only a single from element exists
-    let offset = edgeOfView(this.to, Math.atan2(this.from.y1-this.to.y1, this.from.x1-this.to.x1))
+    let offset = pointOfIntersection(this.center, this.to, 5)
+
     this.paths = [{
       x1: parseInt(this.from.x1+(this.from.x2-this.from.x1)/2),
       y1: parseInt(this.from.y1+(this.from.y2-this.from.y1)/2),
-      x2: parseInt(this.to.x1+(this.to.x2-this.to.x1)/2+offset.x),
-      y2: parseInt(this.to.y1+(this.to.y2-this.to.y1)/2+offset.y) 
+      x2: parseInt(this.to.x1+(this.to.x2-this.to.x1)/2)-offset.x,
+      y2: parseInt(this.to.y1+(this.to.y2-this.to.y1)/2)+offset.y 
     }]
   }
 }
@@ -671,6 +675,21 @@ function arrowify(path) {
     x2: path.x2 + 10*Math.cos(angle-0.5),
     y2: path.y2 + 10*Math.sin(angle-0.5)    
   }
+}
+
+//  determines the intersection x,y from a point to center of rectangle
+function pointOfIntersection (from, rect, buffer=0) {
+  let center = {x: rect.x1 + rect.width/2, y: rect.y1 + rect.height/2}
+
+  //  determine the angle of the path
+  let angle = Math.atan2(from.y - center.y, center.x - from.x)
+  absCos = Math.abs(Math.cos(angle))
+  absSin = Math.abs(Math.sin(angle))  
+
+  let distance = (rect.width/2*absSin <= rect.height/2*absCos) ? rect.width/2/absCos : rect.height/2/absSin
+  distance += buffer
+
+  return {x: distance * Math.cos(angle), y: distance * Math.sin(angle)}
 }
 
 //  Bahh stackoverflow
