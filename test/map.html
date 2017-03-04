@@ -1,12 +1,27 @@
----
-title: index
-layout: template
-permalink: /
----
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf8">
+  <link rel="stylesheet" href="./../web/css/font-awesome.min.css">
+  <link rel="stylesheet" href="./../web/css/styles.css">
+</head>
+<body class="index">
+  <i class="fa fa-bars" aria-hidden="true"></i>
+  <nav>
+    <ul>
+      <li><a href="/reasons/">Home</a></li>
+      <li><a href="/reasons/about/">About</a></li>
+      <li><a href="#" onclick="toPNG()">Export</a></li>
+      <li><a href="https://github.com/davekinkead/reasons">Source</a></li>
+    </ul>
+  </nav>
+  <div id="site-credits">Made with 😢 by <a href="http://dave.kinkead.com.au">Dave Kinkead</a></div>
+  <div id="content">
 
-# Reasons.js
+    <h1 id="reasonsjs">Reasons.js</h1>
 
 <script src="reasons.js"></script>
+
 <script>
 
   //  Variables for some randomized defaults
@@ -33,3 +48,9 @@ permalink: /
     window.open(canvas.toDataURL('image/png'), '_blank')
   }
 </script>
+
+
+
+  </div>
+</body>
+</html>
