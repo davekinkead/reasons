@@ -380,6 +380,8 @@ function isNode (el) {
 }
 },{"array-difference":14,"array-flatten":16,"array-intersection":17,"array-unique":20}],3:[function(require,module,exports){
 const Utils = require('./utils')
+const MAP_URL = 'map.html' //'http::/dave.kinkead.com.au/reasons'
+const reasons = []
 
 module.exports = Highlighter
 
@@ -395,8 +397,8 @@ function Highlighter (dom) {
     const tooltip = document.querySelector('#tooltip')
     
     if (selection.focusOffset - selection.anchorOffset > 0) {
-      let offset = window.scrollY
-      let rect = selection.getRangeAt(0).getBoundingClientRect()
+      const offset = window.scrollY
+      const rect = selection.getRangeAt(0).getBoundingClientRect()
 
       //  set some default styling
       tooltip.setAttribute('style', 'position:absolute; display:block; top:'+(rect.top+offset-40)+'px; left:'+(rect.left+rect.width/2-tooltip.offsetWidth/2)+'px; background-color:#FFF; border-radius: 3px; box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2); height: 34px;')
@@ -408,6 +410,25 @@ function Highlighter (dom) {
 
 function buildToolTip () {
 
+  const tooltip = Utils.buildNode('div', {id: 'tooltip'}, {style: 'display:none;'})
+  document.body.appendChild(tooltip)
+
+  const premise = Utils.buildNode('img', {name: 'premise', title: 'Premise', src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAANlBMVEUAAABERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERER5ECNjAAAAEXRSTlMAAQYUIyYtLjlLVVZxoLzt7xYSs+QAAABUSURBVCjPzZA5EsAgDMSW+0oA//+zDDCksZt0qFupsoGDzaUkDYahSeXBr0A8hKtCbCRQNTqJJMieyu+Q8crBQrmweLbYw5tbn3hwyzce1Ly0x28PkhUQ+2QwVtEAAAAASUVORK5CYII="})
+  premise.setAttribute('style', 'padding:5px;')
+  premise.addEventListener('click', addReason)
+
+  const objection = Utils.buildNode('img', {name: 'objection', title: 'Objection', src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAgVBMVEUAAABERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERER4EtaNAAAAKnRSTlMAAQMFBgcJDEdLWFlbXF1odXeFiIuRkpSVl5itr7m6vsfIytXX4ubo6f1TzZtTAAAAr0lEQVQoz22Q1xaCQAxEZ6mKBStiwS7q/P8H+rAlAdmn5N6zJ5kAQPleGoQ3areRrVYkD8EUJJvIc3JvhFtTksoUrjsCH1eyNsLJBAuKEX4GTB26R6iuMTrGv1sMDBnH/0zgPXMXDhiZ+80Ux0T9qM0w12ba28qb2V8Oa+Yyt2PGsmcmW2+AVu2v8iSodC6z8/cEoqaT15pXDmfkDpXnQHTiRd1nzWfu61SfB6kBgB9Z7jbscyDPiwAAAABJRU5ErkJggg=="})
+  objection.setAttribute('style', 'padding:5px;')
+  objection.addEventListener('click', addReason)
+
+  const conclusion = Utils.buildNode('img', {name: 'conclusion', title: 'Conclusion', src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAaVBMVEUAAABERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERdclAKAAAAInRSTlMAAQIDBQcLDhEUHCYnKSowQEFCQ2JjZGaOlNrg4u3x9/v9hyAg+QAAAHVJREFUKFO1y0kSgkAQRNEPKoo44Ag4Yef9D+mCDoKedvJ39TIKZm27jnsjs4+7ZA5xl75L3++SJL0XAFnu+6cEKB79zvrN8ZdkqtDzp2QXx1kNl6m4Og5nu3Sew0WTJj7+BA6nhI9L4FAnHOqEw7HdRP0P/QCyxRQBq+KXRQAAAABJRU5ErkJggg=="})
+  conclusion.setAttribute('style', 'padding:5px;')
+  conclusion.addEventListener('click', addReason)
+
+  tooltip.appendChild(premise)
+  tooltip.appendChild(objection)
+  tooltip.appendChild(conclusion)
+
   const button = Utils.buildNode('input', {id: 'create-map-button'}, {
     name: 'create-map-button',
     type: 'submit',
@@ -415,28 +436,25 @@ function buildToolTip () {
   })
 
   button.onclick = () => {
+    sessionStorage.setItem('reasons', JSON.stringify(reasons))
     window.open(MAP_URL, '_blank')  
   }
 
   document.body.appendChild(button)  
+}
 
-  const premise = Utils.buildNode('img', {name: 'premise', title: 'Premise', src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAANlBMVEUAAABERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERER5ECNjAAAAEXRSTlMAAQYUIyYtLjlLVVZxoLzt7xYSs+QAAABUSURBVCjPzZA5EsAgDMSW+0oA//+zDDCksZt0qFupsoGDzaUkDYahSeXBr0A8hKtCbCRQNTqJJMieyu+Q8crBQrmweLbYw5tbn3hwyzce1Ly0x28PkhUQ+2QwVtEAAAAASUVORK5CYII="})
-  premise.setAttribute('style', 'padding:5px;')
+function addReason(event) {
 
-  const objection = Utils.buildNode('img', {name: 'objection', title: 'Objection', src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAABI1BMVEUAAABEREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREQkHb00AAAAYHRSTlMAAQIDBAUGBwkKDA0PEBESExUWGhsdHyAjJicoLzA2OEFCQ0VGS0xOUVZZW11naWtsb3N0eYmMkpeYmpudnqCio6Wmqq+wsrS1t7m8wMXKztHT19rc3uDm6Onr7fP3+f3BndnPAAABFUlEQVQYGV3BByNCUQCG4e+chGxCdnaysrNKKEIZ2UTv//8V7r1HxPPoh23tiVj9F5rK4yslmtVo9p26jyWjOpuh0VWzHFMCaluxFhuOrlaBh7AC20ApIqejBhTkGwJ2jRx7iW9SnjLcWjn2AviEFyv1Av1y7AWw312DMWkZynJsETgwSsOOdAqLCtgicGikCXiVKjAmnz0HDo2kPsCoCiPy2HMgY+TpAkK6hrgkewZkjXyDgLQPG5ItAFmjwAJUpGl4MzYPHBk5ZViTIkAyD+SMnGFgQFKaQM7IabqHkjxt+I6NnPAlEJNvBk9CzvgTkJKzied5fWI0vvKIZ0918zRK6VdnhrpiVH+0z2VvqncnyR59+wJfrlyUdx7iXwAAAABJRU5ErkJggg=="})
-  objection.setAttribute('style', 'padding:5px;')
+  document.querySelector('#create-map-button').setAttribute('style', 'position:fixed;bottom:2rem;right:2rem;padding:1rem;border:1px solid #CCC;border-radius:3px;display:block')
+  document.querySelector('#tooltip').setAttribute('style', 'display:none')
 
-  const conclusion = Utils.buildNode('img', {name: 'conclusion', title: 'Conclusion', src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAaVBMVEUAAABERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERdclAKAAAAInRSTlMAAQIDBQcLDhEUHCYnKSowQEFCQ2JjZGaOlNrg4u3x9/v9hyAg+QAAAHVJREFUKFO1y0kSgkAQRNEPKoo44Ag4Yef9D+mCDoKedvJ39TIKZm27jnsjs4+7ZA5xl75L3++SJL0XAFnu+6cEKB79zvrN8ZdkqtDzp2QXx1kNl6m4Og5nu3Sew0WTJj7+BA6nhI9L4FAnHOqEw7HdRP0P/QCyxRQBq+KXRQAAAABJRU5ErkJggg=="})
-  conclusion.setAttribute('style', 'padding:5px;')
-
-  // anchor.addEventListener('click', addReason)
-
-  const tooltip = Utils.buildNode('div', {id: 'tooltip'}, {style: 'display:none;'})
-
-  tooltip.appendChild(premise)
-  tooltip.appendChild(objection)
-  tooltip.appendChild(conclusion)
-  document.body.appendChild(tooltip)
+  const paragraph = document.getSelection()
+  const selection = {
+    type: event.target.name,
+    text: paragraph.anchorNode.nodeValue.substring(paragraph.anchorOffset, paragraph.focusOffset)
+  }
+  
+  reasons.push(selection)
 }
 },{"./utils":8}],4:[function(require,module,exports){
 const Graph = require('./graph')
@@ -476,6 +494,9 @@ ArgumentMap.prototype.render = function (elements) {
 
   //  display the layout
   Canvas.render(this.dom, this.graph)
+
+  //  return map for method chaining
+  return this
 }
 },{"./canvas":1,"./graph":2,"./reason":5,"./relation":7}],5:[function(require,module,exports){
 module.exports = Reason
