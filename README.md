@@ -20,8 +20,6 @@ Include *Reasons* in any web page to enable highlighting of premises, conclusion
 
 Now, when text on the page is highlighted, you can indicate what part-of-argument it is and generate an argument map from these selections.
 
-`Reasons.highlight` has been applied to this README.md file so highlight some text and give it a go.
-
 
 ### Mapper
 
@@ -42,8 +40,3 @@ An argument map consists of an abstract graph and a rendering engine.  The graph
 ### Scaffolder
 
 TBA
-
-<script src="reasons.js"></script>
-<script>
-  Reasons.highlight('#readme')
-</script>
