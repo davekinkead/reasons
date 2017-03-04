@@ -25,7 +25,7 @@ permalink: /
     function buildGraphFromSession () {
       const session = sessionStorage.getItem('reasons')
       
-      if (session !== 'null') {
+      if (session && session !== 'null') {
         let max_per_line = Math.floor(box.width/250)
         let line = 0
 
