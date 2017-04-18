@@ -28,4 +28,4 @@ Feedback & Suggestions are very welcome.  If you've got something in mind, creat
 
 ## Credits
 
-Reasons.js was built by [Dave Kinkead](http://dave.kinkead.com.au) and is released under a [MIT license](/LICENSE)
+Reasons.js was built by [Dave Kinkead](http://dave.kinkead.com.au) and is released under a [MIT license](/LICENSE).  Copyright 2017 University of Queensland.

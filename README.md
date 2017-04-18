@@ -20,7 +20,7 @@ Include *Reasons* in any web page to enable highlighting of premises, conclusion
 
 Now, when text on the page is highlighted, you can indicate what part-of-argument it is and generate an argument map from these selections.
 
-[Highlighter Demo](http://dave.kinkead.com.au/reasons/demo/highlighter.html)
+[Highlighter Demo](http://dave.kinkead.com.au/reasons/demo/highlighter)
 
 
 ### Argument Mapper
