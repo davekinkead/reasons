@@ -4,9 +4,9 @@
 
 There are three key parts to *Reasons*:
 
-  - highlighter
-  - mapper
-  - scaffolder 
+  - Highlighter
+  - Argument Mapper
+  - Scaffolder 
 
 
 ### Highlighter  
@@ -20,8 +20,10 @@ Include *Reasons* in any web page to enable highlighting of premises, conclusion
 
 Now, when text on the page is highlighted, you can indicate what part-of-argument it is and generate an argument map from these selections.
 
+[Highlighter Demo](http://dave.kinkead.com.au/reasons/demo/highlighter.html)
 
-### Mapper
+
+### Argument Mapper
 
 An argument map consists of an abstract graph and a rendering engine.  The graph is made up of an array of nodes and edges.
 
@@ -37,6 +39,8 @@ An argument map consists of an abstract graph and a rendering engine.  The graph
     </script>
     
 
+[Argument Mapper Demo](http://dave.kinkead.com.au/reasons/)
+
 ### Scaffolder
 
-TBA
+Under development
