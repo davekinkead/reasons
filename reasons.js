@@ -380,7 +380,7 @@ function isNode (el) {
 }
 },{"array-difference":14,"array-flatten":16,"array-intersection":17,"array-unique":20}],3:[function(require,module,exports){
 const Utils = require('./utils')
-const MAP_URL = 'http::/dave.kinkead.com.au/reasons'
+const MAP_URL = 'http://dave.kinkead.com.au/reasons'
 const reasons = []
 
 module.exports = Highlighter
@@ -595,8 +595,8 @@ Reason.prototype.collides = function(el) {
   }
 }
 },{}],6:[function(require,module,exports){
-//  Reasons.js
-//  Copyright (c) 2017 Dave Kinkead
+//  Reasons.js by Dave Kinkead
+//  Copyright (c) 2017 University of Queensland
 //  Available under the MIT license
 
 //  Reasons.js API
