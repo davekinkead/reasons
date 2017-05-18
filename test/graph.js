@@ -1,7 +1,7 @@
 const should = require('should')
 const Graph = require('./../lib/graph')
 
-should.Assertion.add('haveTheSameItems', function(other) {
+should.Assertion.add('haveTheSameItemsAs', function(other) {
   this.params = { operator: 'to be have same items' };
   this.obj.forEach(item => {
     other.should.containEql(item);
@@ -9,29 +9,30 @@ should.Assertion.add('haveTheSameItems', function(other) {
   this.obj.length.should.be.equal(other.length);
 })
 
-var map = {
-    a: {id: 'a', text: 'blah blah'},
-    b: {id: 'b', text: 'blah blah'},
-    c: {id: 'c', text: 'blah blah'},
-    d: {id: 'd', text: 'blah blah'},
-    e: {id: 'e', text: 'blah blah'},
-    f: {id: 'f', text: 'blah blah'},
-    g: {id: 'g', text: 'blah blah'},
-    h: {id: 'h', text: 'blah blah'},
+const map = {
+    a: {id: 'a', text: 'blah blah a'},
+    b: {id: 'b', text: 'blah blah b'},
+    c: {id: 'c', text: 'blah blah c'},
+    d: {id: 'd', text: 'blah blah d'},
+    e: {id: 'e', text: 'blah blah e'},
+    f: {id: 'f', text: 'blah blah f'},
+    g: {id: 'g', text: 'blah blah g'},
+    h: {id: 'h', text: 'blah blah h'},
     i: {id: 'i', from: 'a', to: 'b'}, 
     j: {id: 'j', from: ['b', 'c'], to: 'd'}, 
     k: {id: 'k', from: 'f', to: 'g'},
     l: {id: 'l', from: 'h', to: 'd'},
     m: {id: 'm', from: 'b', to: 'f'}
   }
-var elements = []
+
+const elements = []
 for (key in map) {
   elements.push(map[key])
 }
+const graph = new Graph(elements)
 
 describe('Graph', () => {
   describe('#new', () => {
-
     it('should accept no arguments', () => {
       new Graph()
     })
@@ -46,30 +47,40 @@ describe('Graph', () => {
   })
 
   describe('#edges', () => {
-    it('should find all the edges', () => {
-      new Graph(elements).edges().should.be.instanceof(Array)
-      new Graph(elements).edges().should.have.length(5)
+    it('should return all the edges', () => {
+      graph.edges().should.be.instanceof(Array)
+      graph.edges().should.have.length(5)
     })
   })
 
   describe('#nodes', () => {
-    it('should find all the nodes', () => {
-      new Graph(elements).nodes().should.be.instanceof(Array)
-      new Graph(elements).nodes().should.have.length(8)
+    it('should return all the nodes', () => {
+      graph.nodes().should.be.instanceof(Array)
+      graph.nodes().should.have.length(8)
     })
   })  
 
+  describe('#elements', () => {
+    it('should return all the elements', () => {
+      graph.elements().should.be.instanceof(Array)
+      graph.elements().should.haveTheSameItemsAs(elements)
+    })
+
+    it('should reproduce the same elements from itself', () => {
+      new Graph(graph.elements()).elements().should.haveTheSameItemsAs(elements)
+    })
+  })
+
   describe('#parents', () => {
     it('should find all the parents of a node', () => {
-      new Graph(elements).parents('d').should.be.instanceof(Array)
-      new Graph(elements).parents('d').should.have.length(3)
-      new Graph(elements).parents('d')[0].should.be.instanceof(Object)
+      graph.parents('d').should.be.instanceof(Array)
+      graph.parents('d').should.have.length(3)
+      graph.parents('d')[0].should.be.instanceof(Object)
     })
   })  
 
   describe('#children', () => {
     it('should find all the children of a node id', () => {
-      var graph = new Graph(elements)
       graph.children('b').should.be.instanceof(Array)
       graph.children('b').should.have.length(2)
       graph.children('b')[0].should.be.instanceof(Object)
