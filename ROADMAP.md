@@ -5,7 +5,8 @@ Feature Roadmap
 Map
 
   - [x] Add divergent reasons
-  - [] Add backspace and delete key codes for Windows
+  - [] Tab to different elements
+  - [x] Add backspace and delete key codes for Windows
   - [] Add independent conjoined argument chains
   - [] Automatically highlight reason text on node creation
   - [] Changes to canvas events should update graph object
@@ -21,7 +22,6 @@ Highlighter
   - [] replace premise/conclusion with 'save'
   - [] display already highlighted text
   - [] delete already highlight text
-
 
 Tests
 
