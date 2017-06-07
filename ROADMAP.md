@@ -5,17 +5,19 @@ Feature Roadmap
 Map
 
   - [x] Add divergent reasons
-  - [] Tab to different elements
   - [x] Add backspace and delete key codes for Windows
-  - [] Add independent conjoined argument chains
-  - [] Automatically highlight reason text on node creation
-  - [] Changes to canvas events should update graph object
+  - [x] Automatically highlight reason text on node creation
   - [] Hover over relation text should tigger edit
   - [] Add zoom in/out functionality map
   - [] Render map from existing x,y coordinates
+  - [] Tab to different elements
+  - [] Return to edit selected element
+  - [] Add undo / redo hot keys
+  - [] Changes to canvas events should update graph object
+  - [] Add independent conjoined argument chains
   - [] Permit multiple relations between nodes
-  - [] Add multiple node selection for dragging
   - [] Add automatic padding when dropping node
+  - [] Add multiple node selection for dragging
   
 Highlighter
 

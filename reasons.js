@@ -150,7 +150,6 @@ function Canvas (dom, graph) {
 
     //  dblclick on element to edit it
     editing = false
-
     graph.forEach((el) => {
       el.selected = false
 
@@ -190,8 +189,8 @@ function Canvas (dom, graph) {
       }
     } else {
 
-      //  delete a selected element
-      if (event.keyCode == 8) {
+      //  delete a selected element with `backspace` or `delete`
+      if (event.keyCode == 8 || event.keyCode == 46) {
         event.preventDefault()
         graph.remove((graph.find(el => el.selected)))
       }
@@ -231,16 +230,21 @@ function getPosition(event) {
   }
 }
 
+//  Overlays a text box to edit a node or edge
 function addOverlay(el) {
+
+  //  background layer
   let overlay = Utils.buildNode('div', {id: 'reason-overlay'})
   overlay.setAttribute('style', 'position:absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75);')
 
+  // text input field
   let input = Utils.buildNode('input', {id: 'edit-reason-input'}, {value: el.text || el.type})
   input.setAttribute('style', 'position:absolute; top: 45%; bottom: 50%; left: 25%; right: 50%; width:50%; padding: 1rem;')
   input.setAttribute('data-element', el.id)
 
   overlay.appendChild(input)
   document.body.appendChild(overlay)
+  input.select()
 }
 
 function removeOverlay(elements) {
