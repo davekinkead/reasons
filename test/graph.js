@@ -14,19 +14,11 @@ const map = {
     b: {id: 'b', text: 'blah blah b'},
     c: {id: 'c', text: 'blah blah c'},
     d: {id: 'd', text: 'blah blah d'},
-    e: {id: 'e', text: 'blah blah e'},
-    f: {id: 'f', text: 'blah blah f'},
-    g: {id: 'g', text: 'blah blah g'},
-    h: {id: 'h', text: 'blah blah h'},
-    i: {id: 'i', text: 'blah blah i'},
-    j: {id: 'j', text: 'blah blah j'},
-    k: {id: 'k', text: 'blah blah k'},
-    l: {id: 'l', text: 'blah blah l'},
     ab: {id: 'ab', from: 'a', to: 'b'}, 
     ac: {id: 'ac', from: 'a', to: 'c'}, 
     bc: {id: 'bc', from: 'b', to: 'c'}, 
     ca: {id: 'ca', from: 'c', to: 'a'}, 
-    cd: {id: 'cd', from: 'c', to: 'd'}, 
+    cd: {id: 'cd', from: 'c', to: 'd'},
   }
 
 describe('Graph', () => {
@@ -66,9 +58,15 @@ describe('Graph', () => {
     })    
 
     it('should add conjoined edge to the graph', () => {
+      const graph = new Graph([map.a, map.b, map.c])
+      graph.add({from: map.a, to: map.b})
+      graph.edges().length.should.equal(1)
+    })
+
+    it('should conjoin shared edge to the graph', () => {
       const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
-      graph.add(map.ab)
-      graph.edges().should.equal(1)
+      graph.add({from: map.a, to: map.b})
+      graph.edges().length.should.equal(1)
     })
   })
 
@@ -120,10 +118,17 @@ describe('Graph', () => {
     })
 
     it('should find all the children of a node', () => {
+      const graph = new Graph([map.a, map.b, map.c, map.d, map.ac, map.bc, map.cd])
+      graph.children(map.b).should.be.instanceof(Array)
+      graph.children(map.b).should.have.length(1)
+      graph.children(map.b)[0].should.be.equal(map.c)
+    })
+
+    it('should find all the children of a conjoined node', () => {
       var graph = new Graph([map.a, map.b, map.c, {from: [map.a, map.b], to: map.c}])
-      graph.children('a').should.be.instanceof(Array)
-      graph.children('a').should.have.length(1)
-      graph.children('a')[0].should.be.instanceof(Object)
+      graph.children(map.a).should.be.instanceof(Array)
+      graph.children(map.a).should.have.length(1)
+      graph.children(map.a)[0].should.be.instanceof(Object)
     })
   })  
 
@@ -139,43 +144,5 @@ describe('Graph', () => {
       graph.edges()[0].from.should.be.equal(map.b)
     })    
   })
-
-  // describe('#connected', () => {
-  //   it('should return all connected nodes in the new Graph(elements) when no args are supplied', () => {
-  //     new Graph(elements).connected().should.haveTheSameItems(['a', 'b', 'c', 'd', 'f', 'g'])
-  //   })
-  // })
-
-  // describe('#children', () => {
-  //   it('should return all child nodes in the new Graph(elements) when no args are supplied', () => {
-  //     new Graph(elements).children().should.haveTheSameItems(['b', 'd', 'g'])
-  //   })
-  // })
-
-  // describe('#parents', () => {
-  //   it('should return all parent nodes in the new Graph(elements) when no args are supplied', () => {
-  //     new Graph(elements).parents().should.haveTheSameItems(['a', 'b', 'c', 'f'])
-  //   })
-
-  //   it('should return all parent nodes for a given node ID', () => {
-  //     new Graph(elements).parents('d').should.haveTheSameItems(['b', 'c'])
-  //   })
-
-  //   it('should return all parent nodes for an array of node ID', () => {
-  //     new Graph(elements).parents(['g', 'd']).should.haveTheSameItems(['b', 'c', 'f'])
-  //   })
-  // })
-
-  // describe('#orphans', () => {
-  //   it('should return all orphan nodes in the new Graph(elements)', () => {
-  //     new Graph(elements).orphans().should.haveTheSameItems(['e', 'h'])
-  //   })
-  // })
-
-  // describe('#ends', () => {
-  //   it('should find the last node in a directed new Graph(elements)', () => {
-  //     new Graph(elements).ends().should.haveTheSameItems(['d', 'g'])
-  //   })    
-  // })
 })
 
