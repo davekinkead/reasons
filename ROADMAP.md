@@ -7,7 +7,7 @@ Map
   - [x] Add divergent reasons
   - [x] Add backspace and delete key codes for Windows
   - [x] Automatically highlight reason text on node creation
-  - [] Hover over relation text should tigger edit
+  - [x] Hover over relation text should tigger edit
   - [] Add zoom in/out functionality map
   - [] Render map from existing x,y coordinates
   - [] Tab to different elements

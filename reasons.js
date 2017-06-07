@@ -29,6 +29,8 @@ function Canvas (dom, graph) {
   dom.appendChild(canvas)
 
   //  DOM object event listeners
+
+  //  `Mousedown` is used to identify clicks and drag starts
   canvas.addEventListener('mousedown', (event) => {
     event.preventDefault()
 
@@ -58,10 +60,11 @@ function Canvas (dom, graph) {
     if (dirty) draw(this)
   })
 
+  //  `Mousemove` is used to identify drags and hovers
   canvas.addEventListener('mousemove', (event) => {
-      //  flag elements in hit zone as hovering
-    let current = getPosition(event)
 
+    //  Hover is true if the mouse is moved whilst over an element
+    let current = getPosition(event)
     graph.forEach((el) => {
       if (el.collides(current)) {
         dirty = true
@@ -99,6 +102,8 @@ function Canvas (dom, graph) {
     if (dirty) draw(this)
   })
 
+
+  //  `Mouseup` used to identify clicks and drag ends
   canvas.addEventListener('mouseup', (event) => {
     event.preventDefault()
 
@@ -118,9 +123,8 @@ function Canvas (dom, graph) {
         draw(this)
       }
 
+      //  remove draggable & droppable flags from elements
       graph.forEach((el) => {
-
-        //  remove draggable & droppable flags from elements
         el.draggable = false
         el.droppable = false
       })
@@ -146,6 +150,7 @@ function Canvas (dom, graph) {
     if (dirty) draw(this)
   })
 
+  //  `Dblclicks` used for element creation & editing
   canvas.addEventListener('dblclick', (event) => {
 
     //  dblclick on element to edit it
@@ -177,8 +182,8 @@ function Canvas (dom, graph) {
     // draw(this)
   })
 
-  window.addEventListener('keydown', (event) => {
 
+  window.addEventListener('keydown', (event) => {
     //  update node text
     if (editing) {
 
@@ -230,23 +235,29 @@ function getPosition(event) {
   }
 }
 
+
 //  Overlays a text box to edit a node or edge
 function addOverlay(el) {
 
-  //  background layer
+  //  Create background layer
   let overlay = Utils.buildNode('div', {id: 'reason-overlay'})
   overlay.setAttribute('style', 'position:absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75);')
 
-  // text input field
+  // Create text input field
   let input = Utils.buildNode('input', {id: 'edit-reason-input'}, {value: el.text || el.type})
   input.setAttribute('style', 'position:absolute; top: 45%; bottom: 50%; left: 25%; right: 50%; width:50%; padding: 1rem;')
   input.setAttribute('data-element', el.id)
 
+  //  Append to the DOM
   overlay.appendChild(input)
   document.body.appendChild(overlay)
+
+  //  Highlight text on element creation
   input.select()
 }
 
+
+//  Remove overlay and update the Graph
 function removeOverlay(elements) {
   let input = document.querySelector('#edit-reason-input')
   let el = elements.find(el => el.id == input.getAttribute('data-element') )
@@ -681,19 +692,20 @@ Relation.prototype.draw = function (context) {
     context.fillRect(this.intersection.x, this.intersection.y, 10, 10)
 }
 
+//  Returns a boolean if there is a coordinate overlap
 Relation.prototype.collides = function (point) {
   this.locate()
 
   //  Deterine a hit for each of the paths
   let hit = false
   this.paths.forEach((path) => {
-
-    //  Calculate the difference between 2 vectors el -> x1,y1 and el -> x2,y2
-    if (
-      Math.abs((Math.atan2(point.y-path.y1, point.x-path.x1))
-        -(Math.atan2(path.y2-point.y, path.x2-point.x))) < 0.05
-    ) { hit = true }
+    if (differenceOfVectors(point, path) < 0.05)
+      hit = true
   })
+
+  //  Estimate collision of the label box
+  let width = this.type.length * 5
+  hit = (point.x < this.center.x - width || point.x > this.center.x + width || point.y < this.center.y - 10 ||  point.y > this.center.y +  10) ? false : true
 
   //  otherwise
   return hit
@@ -703,6 +715,7 @@ Relation.prototype.move = function () {
   this.locate()
 }
 
+//  Returns a list of `paths` between nodes for this relation
 Relation.prototype.locate = function () {
 
   //  find the weighted center point
@@ -727,7 +740,6 @@ Relation.prototype.locate = function () {
         y2: parseInt(this.center.y)
       }
     })
-
 
     //  move the 'to' point back down the path to just outside the node.
     let offset = pointOfIntersection(this.center, this.to, 5)
@@ -764,7 +776,17 @@ function arrowify(path) {
   }
 }
 
+
+//  Calculates the difference between 2 vectors el -> x1,y1 and el -> x2,y2
+//  TODO: Add tests
+function differenceOfVectors (point, path) {
+  return Math.abs((Math.atan2(point.y-path.y1, point.x-path.x1))
+        -(Math.atan2(path.y2-point.y, path.x2-point.x)))
+}
+
+
 //  determines the intersection x,y from a point to center of rectangle
+//  TODO: Add tests
 function pointOfIntersection (from, rect, buffer=0) {
   let center = {x: rect.x1 + rect.width/2, y: rect.y1 + rect.height/2}
 
