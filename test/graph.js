@@ -1,13 +1,5 @@
-const should = require('should')
+const should = require('./should')
 const Graph = require('./../lib/graph')
-
-should.Assertion.add('haveTheSameItemsAs', function(other) {
-  this.params = { operator: 'to be have same items' };
-  this.obj.forEach(item => {
-    other.should.containEql(item);
-  })
-  this.obj.length.should.be.equal(other.length);
-})
 
 const map = {
     a: {id: 'a', text: 'blah blah a'},

@@ -109,10 +109,12 @@ function Canvas (dom, graph) {
 
     //  was this a drag and release
     if (dragged) {
+  
       //  was there a successful drop?
       let from = graph.find((el) => {return el.draggable})
       let to = graph.find((el) => {return el.droppable})
       if (from && to) {
+
         //  snap back position
         from.move(first.x-from.x1, first.y-from.y1)
 
@@ -150,9 +152,9 @@ function Canvas (dom, graph) {
 
   //  `Dblclicks` used for element creation & editing
   canvas.addEventListener('dblclick', (event) => {
-    editing = false
 
-      //  dblclick on an element triggers edit mode
+    //  dblclick on element to edit it
+    editing = false
     graph.forEach((el) => {
       el.selected = false
 
@@ -173,7 +175,6 @@ function Canvas (dom, graph) {
     draw(this)      
   })  
 
-  //  TODO: Placeholder for canvas zoom
   canvas.addEventListener('wheel', (event, w) => {
     // let zoom = event.deltaY/120
     // this.zoom = 1 + zoom/2
@@ -183,8 +184,9 @@ function Canvas (dom, graph) {
 
 
   window.addEventListener('keydown', (event) => {
-    //  update node text if in edit mode
+    //  update node text
     if (editing) {
+
       //  return
       if (event.keyCode == 13) {
         removeOverlay(graph)
@@ -196,11 +198,6 @@ function Canvas (dom, graph) {
       if (event.keyCode == 8 || event.keyCode == 46) {
         event.preventDefault()
         graph.remove((graph.find(el => el.selected)))
-      }
-
-      //  focus on element with `arrow left & right`
-      if (event.keyCode == 37) {
-        graph.focus(graph[graph.length-1]) 
       }
     }
 
@@ -278,9 +275,13 @@ const Utils = require('./utils')
 
 module.exports = Graph
 
-//  A Graph is simply and extended array containing node and edge objects
-//  It is an abstract data structure with no DOM form 
-//  We instantiate a new Graph by supplying the function with an array of elements
+
+/**
+ * A Graph is simply an extended array containing node and edge objects.
+ * It is an abstract data structure with no DOM form.  
+ *
+ * @param elements  the elements (nodes & edges) to consitute the graph
+ */
 function Graph(elements) {
   if (!(this instanceof Graph)) return new Graph(elements)
   if (elements instanceof Array) elements.forEach(el => this.add(el))
@@ -324,8 +325,13 @@ Graph.prototype.add = function (element) {
   }
 }
 
-//  remove an element from the graph
-Graph.prototype.remove = function (el) {
+
+/**
+ * Removes an existing Reason or Relation from the Graph.
+ *
+ * @param el the element to remove
+ */
+ Graph.prototype.remove = function (el) {
   let i = this.indexOf(el)
   if (i > -1) {
 
@@ -361,30 +367,49 @@ Graph.prototype.remove = function (el) {
   return this
 }
 
-//  Move an element to the top of the graph
-Graph.prototype.focus = function (el) {
+
+/**
+ * Moves an element to the front of the Graph.  Useful for assiting with
+ * layouts.
+ *
+ * @param el an element to focus
+ */
+ Graph.prototype.focus = function (el) {
   let index = this.indexOf(el)
   if (index > -1) {
     this.push(this.splice(index, 1)[0])
   }
 }
 
-//  Return an array all the edges
-Graph.prototype.edges = function () {
+
+/**
+ * Returns an array of all the Graph's edges
+ */
+ Graph.prototype.edges = function () {
   return this.filter(el => el.from && el.to)
 }
 
-//  Return an array of all the nodes
+
+/**
+ * Returns an array of all the Graph's nodes
+ */
 Graph.prototype.nodes = function () {
   return this.filter(el => !el.from || !el.to )
 }
 
-//  Return an array of all the elements
+
+/**
+ * Returns an array of all the Graph's elements
+ */
 Graph.prototype.elements = function () {
   return this
 }
 
-//  Find all the parents of a node or id
+
+/**
+ * Find all the parents for a given node or id
+ * @params id a Node or String id of a Node
+ */
 Graph.prototype.parents = function (id) {
   if (id instanceof Object) id = id.id
 
@@ -393,7 +418,11 @@ Graph.prototype.parents = function (id) {
   )).map(el => this.find(i => i.id == el))
 }
 
-//  Find all children of a node or id
+
+/**
+ * Find all the children for a given node or id
+ * @params id a Node or String id of a Node
+ */
 Graph.prototype.children = function (id) {
   if (id instanceof Object) id = id.id
 
@@ -403,12 +432,20 @@ Graph.prototype.children = function (id) {
     .map(el => this.find(i => i == el || i.id == el))
 }
 
-//  Is an element an edge?
+
+/**
+ * Returns true if an element is an Edge
+ * @params el a Node or Edge
+ */
 function isEdge (el) {
   return (el.to && el.from) ? true : false
 }
 
-//  Is an element a node?
+
+/**
+ * Returns true if an element is a Node
+ * @params el a Node or Edge
+ */
 function isNode (el) {
   return (isEdge(el)) ? false : true
 }
@@ -491,6 +528,8 @@ function addReason(event) {
   reasons.push(selection)
 }
 },{"./utils":8}],4:[function(require,module,exports){
+'use strict'
+
 const Graph = require('./graph')
 const Canvas = require('./canvas')
 const Reason = require('./reason')
@@ -532,7 +571,13 @@ ArgumentMap.prototype.render = function (elements) {
   //  return map for method chaining
   return this
 }
+
+ArgumentMap.prototype.save = function () {
+  return this.graph
+}
 },{"./canvas":1,"./graph":2,"./reason":5,"./relation":7}],5:[function(require,module,exports){
+'use strict'
+
 module.exports = Reason
 
 const maxWidth = 200
@@ -635,12 +680,12 @@ Reason.prototype.collides = function(el) {
 
 //  Reasons.js API
 
-const ArgumentMap = require('./map')
+const Map = require('./map')
 const Highlighter = require('./highlighter')
 
 module.exports = {
   map: function (dom) {
-    return new ArgumentMap(dom)
+    return new Map(dom)
   },
 
   highlight: function(dom) {
@@ -648,6 +693,8 @@ module.exports = {
   }
 }
 },{"./highlighter":3,"./map":4}],7:[function(require,module,exports){
+'use strict'
+
 const flatten = require('array-flatten')
 
 module.exports = Relation
@@ -799,22 +846,20 @@ function differenceOfVectors (point, path) {
 
 //  determines the intersection x,y from a point to center of rectangle
 //  TODO: Add tests
-function pointOfIntersection (from, rect, buffer=0) {
+function pointOfIntersection (from, rect, buffer) {
   let center = {x: rect.x1 + rect.width/2, y: rect.y1 + rect.height/2}
 
   //  determine the angle of the path
   let angle = Math.atan2(from.y - center.y, center.x - from.x)
-  absCos = Math.abs(Math.cos(angle))
-  absSin = Math.abs(Math.sin(angle))  
+  let absCos = Math.abs(Math.cos(angle))
+  let absSin = Math.abs(Math.sin(angle))  
 
   let distance = (rect.width/2*absSin <= rect.height/2*absCos) ? rect.width/2/absCos : rect.height/2/absSin
-  distance += buffer
+  distance += buffer || 0
 
   return {x: distance * Math.cos(angle), y: distance * Math.sin(angle)}
 }
 },{"array-flatten":10}],8:[function(require,module,exports){
-// const unique = require('array-unique')
-
 module.exports = {
 
   //  build a DOM element

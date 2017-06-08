@@ -13,7 +13,7 @@
       <li><a href="/reasons/about/">About</a></li>
       <li><a href="#" onclick="toPNG()">Export Map</a></li>
       <li><a href="#" onclick="reset()">Delete Map</a></li>
-      <!-- <li><a href="#" onclick="save()">Save</a></li> -->
+      <li><a href="#" onclick="save()">Save</a></li>
     </ul>
   </nav>
   <div id="site-credits">Made with 😢 by <a href="http://dave.kinkead.com.au">Dave Kinkead</a></div>
@@ -72,11 +72,12 @@
     }
 
     //  Save the argument map
-    // function save() {
-    //   const graphs = JSON.parse(localStorage.getItem('reasons')) || []
-    //   graphs.push(map)
-    //   localStorage.setItem('reasons', JSON.stringify(graphs))
-    // }
+    function save() {
+      console.log(map.save())
+      // const graphs = JSON.parse(localStorage.getItem('reasons')) || []
+      // graphs.push(map)
+      // localStorage.setItem('reasons', JSON.stringify(graphs))
+    }
   </script>
 </body>
 </html>

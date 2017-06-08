@@ -6,6 +6,7 @@ Map
 
   - Relations
     - [x] Add divergent reasons
+    - [] Conjoining reasons should only join dropped reasons
     - [] Add independent conjoined argument chains
     - [] Permit multiple relations between nodes
   - UX
@@ -15,7 +16,7 @@ Map
     - [] Add automatic padding when dropping node
     - [] Add multiple node selection for dragging  
   - Data
-    - [] Changes to canvas events should update graph object
+    - [x] Changes to canvas events should update graph object
     - [] Render map from existing x,y coordinates
   - Hot Keys
     - [x] Add backspace and delete key codes for Windows
