@@ -341,7 +341,7 @@ Map.prototype.render = function (elements) {
  * Exports a Graph's data
  */
 Map.prototype.export = function () {
-  return this.graph
+  return Array.from(this.graph)
 }
 
 
