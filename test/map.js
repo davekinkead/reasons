@@ -5,11 +5,7 @@ const Map = require('./../lib/map')
 
 describe('Map', () => {
 
-  describe('#new', () => {
-    it('should return an instance of Map for method chaining', () => {
-      new Map('some_id').should.be.instanceof(Map)
-    })
-  })
+  describe('#new', () => {})
 
   describe('#render', () => {})
 

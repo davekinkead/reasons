@@ -273,6 +273,9 @@ module.exports = Map
  * It is responsible for handling all mouse and keyboard events, and sending 
  * changes in the argument map to the Graph object.
  *
+ * The Map contains references to @graph (the data), @canvas (the DOM object)
+ * and @context (the 2D drawing API)
+ *
  * @params elementID  the element id to append the map canvas to
  */
 function Map (elementID) {
@@ -301,9 +304,9 @@ function Map (elementID) {
 
 
 /**
- * Populates a Graph with Reasons and Relations
+ * Populates a Graph with Reasons and Relations.
  *
- * @params elements
+ * @params elements   the elements to render
  */
 Map.prototype.render = function (elements) {
 
@@ -327,15 +330,24 @@ Map.prototype.render = function (elements) {
     })
   }
 
-  //  draw it
+  //  Draw it
   draw(this)
+
+  //  For method chaining
+  return this
 }
 
-Map.prototype.save = function () {
+/**
+ * Exports a Graph's data
+ */
+Map.prototype.export = function () {
   return this.graph
 }
 
 
+/**
+ * Helper function to add DOM event listeners to the canvas
+ */
 function addEventListeners (map) {
 
   //  initial & current position of a click event
@@ -519,7 +531,9 @@ function addEventListeners (map) {
   })
 }
 
-
+/**
+ * Helper function to draw the map
+ */
 function draw (map) {
   clear(map)
   map.graph.forEach((el) => {
@@ -537,7 +551,6 @@ function getPosition(event) {
     y: parseInt(event.y || event.clientY)
   }
 }
-
 
 //  Overlays a text box to edit a node or edge
 function addOverlay(el) {

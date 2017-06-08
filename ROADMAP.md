@@ -32,9 +32,8 @@ Highlighter
 
 Tests
 
-  - [] graph.js
+  - [x] graph.js
   - [] map.js
-  - [] canvas.js
   - [] highlighter.js
   - [] reason.js
   - [] relation.js
