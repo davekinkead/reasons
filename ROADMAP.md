@@ -12,17 +12,24 @@ Map
   - UX
     - [x] Automatically highlight reason text on node creation
     - [x] Hover over relation text should tigger edit
-    - [] Add zoom in/out functionality map
+    - [] automatically scale to view port
+    - [] Add params option for colour etc
     - [] Add automatic padding when dropping node
+    - [] Node line type selector (solid/dotted) 
+    - [] Add zoom in/out functionality map
     - [] Add multiple node selection for dragging  
+    - [] Touch UI
   - Data
     - [x] Changes to canvas events should update graph object
-    - [] Render map from existing x,y coordinates
+    - [x] Render map from existing x,y coordinates
   - Hot Keys
     - [x] Add backspace and delete key codes for Windows
     - [] Tab to different elements
     - [] Return to edit selected element
     - [] Add undo / redo hot keys
+    - [x] escape to cancel overlay
+
+  - [] Add build process to include Safari
   
 Highlighter
 

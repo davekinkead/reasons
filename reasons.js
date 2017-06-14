@@ -337,8 +337,9 @@ Map.prototype.render = function (elements) {
   return this
 }
 
+
 /**
- * Exports a Graph's data
+ * Exports a Graph's data structure as an Array
  */
 Map.prototype.export = function () {
   return this.graph.map(element => element.export())
@@ -510,15 +511,14 @@ function addEventListeners (map) {
 
 
   window.addEventListener('keydown', (event) => {
-    //  update node text
-    if (editing) {
 
-      //  return
-      if (event.keyCode == 13) {
-        removeOverlay(map.graph)
-        editing = false
-      }
-    } else {
+    //  Escape key
+    if (editing && event.keyCode == 27) removeOverlay()
+    //  Return key
+    if (editing && event.keyCode == 13) submitOverlay(map.graph)
+
+    //  update node text
+    if (!editing) {
 
       //  delete a selected element with `backspace` or `delete`
       if (event.keyCode == 8 || event.keyCode == 46) {
@@ -572,9 +572,8 @@ function addOverlay(el) {
   input.select()
 }
 
-
-//  Remove overlay and update the Graph
-function removeOverlay(elements) {
+//  Update the graph from the overlay and remove it
+function submitOverlay (elements) {
   let input = document.querySelector('#edit-reason-input')
   let el = elements.find(el => el.id == input.getAttribute('data-element') )
   if (el instanceof Reason) {
@@ -582,7 +581,12 @@ function removeOverlay(elements) {
   } else {
     el.type = input.value
   }
-  document.querySelector('#reason-overlay').remove()
+  removeOverlay()
+}
+
+//  Remove overlay
+function removeOverlay () {
+  document.querySelector('#reason-overlay').remove()  
 }
 },{"./graph":1,"./reason":4,"./relation":6,"./utils":7}],4:[function(require,module,exports){
 'use strict'
@@ -714,10 +718,18 @@ module.exports = {
 },{"./highlighter":2,"./map":3}],6:[function(require,module,exports){
 'use strict'
 
-const flatten = require('array-flatten')
+const Utils = require('./utils')
 
 module.exports = Relation
 
+
+/**
+ * Creates a Relation element to be used in a Graph.
+ * Opts must specify at least a from: and to: 
+ * id: and type: are optional with defaults set.
+ *
+ * @params opts  a hash of arguments
+ */
 function Relation (opts) {
   if (!this instanceof Relation) return new Relation(opts)
 
@@ -730,6 +742,12 @@ function Relation (opts) {
   return this
 }
 
+
+/**
+ * Renders the relation using HTML Canvas.
+ *
+ * @params context  the canvas context to render in
+ */
 Relation.prototype.draw = function (context) {
   this.locate()
 
@@ -797,7 +815,7 @@ Relation.prototype.move = function () {
 Relation.prototype.locate = function () {
 
   //  find the weighted center point
-  let elements = flatten([this.from, this.to])
+  let elements = Utils.flatten([this.from, this.to])
   this.center = elements.map((el) => {
       return {x: (el.x1+(el.width)/2), y: (el.y1+(el.height )/2)}
     }).reduce((acc, el) => {
@@ -843,12 +861,25 @@ Relation.prototype.locate = function () {
   }
 }
 
+/**
+ * Exports the relation data structure as an Object.
+ * from: and to: are exported as IDs only.
+ */
 Relation.prototype.export = function () {
   return {
     id: this.id,
     type: this.type,
-    from: this.from.id || this.from,
-    to: this.to.id || this.to
+    from: convertObjectsToIds(this.from),
+    to: convertObjectsToIds(this.to)
+  }
+}
+
+//  When exporting Reasons, only IDs should be passed
+function convertObjectsToIds (obj) {
+  if (obj instanceof Array) {
+    return obj.map(el => el.id || el)
+  } else {
+    return obj.id || obj    
   }
 }
 
@@ -887,7 +918,7 @@ function pointOfIntersection (from, rect, buffer) {
 
   return {x: distance * Math.cos(angle), y: distance * Math.sin(angle)}
 }
-},{"array-flatten":9}],7:[function(require,module,exports){
+},{"./utils":7}],7:[function(require,module,exports){
 module.exports = {
 
   //  build a DOM element
