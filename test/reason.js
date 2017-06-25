@@ -15,6 +15,11 @@ describe('Reason', () => {
       const reason = new Reason(reasons.a)
       reason.should.be.instanceof(Reason)
     })    
+
+    it('generates a default ID if none are supplied', () => {
+      const reason = new Reason({text: 'no id'})
+      reason.id.should.be.instanceof(String)
+    })
   })
 
   describe('#resize', () => {})

@@ -12,11 +12,11 @@ Map
   - UX
     - [x] Automatically highlight reason text on node creation
     - [x] Hover over relation text should tigger edit
-    - [] automatically scale to view port
-    - [] Add params option for colour etc
+    - [] Automatically scale to view port
+    - [] Add zoom in/out functionality map
+    - [] Add params option for line, overlay, background colour etc
     - [] Add automatic padding when dropping node
     - [] Node line type selector (solid/dotted) 
-    - [] Add zoom in/out functionality map
     - [] Add multiple node selection for dragging  
     - [] Touch UI
   - Data
@@ -27,7 +27,7 @@ Map
     - [] Tab to different elements
     - [] Return to edit selected element
     - [] Add undo / redo hot keys
-    - [x] escape to cancel overlay
+    - [x] Escape to cancel overlay
 
   - [] Add build process to include Safari
   

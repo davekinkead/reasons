@@ -313,10 +313,29 @@ Map.prototype.render = function (elements) {
   //  sets the graph if arg supplied
   if (elements instanceof Array) {
 
+    //  TODO: convert this to a zoom function
+    //  Scale the reasons if they are bigger than the DOM
+    let rightest = this.canvas.width
+    let lowest = this.canvas.height
+    elements.filter(el => !(el.from && el.to)).map((el) => {
+      rightest = Math.max(rightest, el.x)
+      lowest = Math.max(lowest, el.y)
+    })
+
+    if (rightest > this.canvas.width || lowest > this.canvas.height) {
+      elements.filter(el => !(el.from && el.to)).map((el) => {
+        // el.x1 *= ((this.canvas.width-100) / rightest)
+        el.x *= ((this.canvas.width-200) / rightest)
+        // el.y1 *= ((this.canvas.height-100) / lowest)
+        el.y *= ((this.canvas.height-75) / lowest)
+      })
+    }   
+
+
     //  build graph with reasons
     elements.filter(el => !el.from || !el.to).map((el) => {
       this.graph.push(new Reason(el))
-    })
+    }) 
 
     //  and then relations 
     elements.filter(el => el.from && el.to ).map((el) => {
@@ -329,6 +348,9 @@ Map.prototype.render = function (elements) {
       this.graph.unshift(new Relation(el))
     })
   }
+
+
+
 
   //  Draw it
   draw(this)
@@ -597,6 +619,12 @@ const maxWidth = 200
 const padding = 10
 const fontSize = 16
 
+
+/**
+ * Creates a Reason node for the Graph.
+ *
+ * @params opts  parameter options for the Reason
+ */
 function Reason (opts) {
   if (!this instanceof Reason) return new Reason(opts)
 
