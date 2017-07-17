@@ -533,6 +533,7 @@ function addEventListeners (map) {
 
 
   window.addEventListener('keydown', (event) => {
+    /**** variable leakage of 'editing' here when adding a reaon/relation. */
 
     //  Escape key
     if (editing && event.keyCode == 27) removeOverlay()
@@ -540,13 +541,14 @@ function addEventListeners (map) {
     if (editing && event.keyCode == 13) submitOverlay(map.graph)
 
     //  update node text
-    if (!editing) {
 
-      //  delete a selected element with `backspace` or `delete`
-      if (event.keyCode == 8 || event.keyCode == 46) {
-        event.preventDefault()
-        map.graph.remove((map.graph.find(el => el.selected)))
-      }
+    //  delete a selected element with `backspace` or `delete`
+    if (event.keyCode == 8 || event.keyCode == 46) {
+      event.preventDefault()
+
+      map.graph.forEach((el) => {
+        if (el.selected) map.graph.remove(el)
+      })
     }
 
     draw(map)
