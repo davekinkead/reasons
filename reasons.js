@@ -531,7 +531,6 @@ function addEventListeners (map) {
   //  TODO: Placeholder for zoom
   map.canvas.addEventListener('wheel', (event, w) => {})
 
-
   window.addEventListener('keydown', (event) => {
     /**** variable leakage of 'editing' here when adding a reaon/relation. */
 
@@ -544,7 +543,7 @@ function addEventListeners (map) {
 
     //  delete a selected element with `backspace` or `delete`
     if (event.keyCode == 8 || event.keyCode == 46) {
-      event.preventDefault()
+      if (!editing) event.preventDefault()
 
       map.graph.forEach((el) => {
         if (el.selected) map.graph.remove(el)
