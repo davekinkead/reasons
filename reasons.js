@@ -265,6 +265,11 @@ const Reason = require('./reason')
 const Relation = require('./relation')
 const Utils = require('./utils')
 
+//  moving this here to prevent variable leakage 
+// TODO: make this purely functional!!!!
+let editing = false
+
+
 module.exports = Map
 
 
@@ -380,7 +385,6 @@ function addEventListeners (map) {
   //  event flags to manage state between events
   let mouseDown = false
   let dragged = false
-  let editing = false
   let dirty = false
 
   //  `Mousedown` is used to identify clicks and drag starts
@@ -609,6 +613,7 @@ function submitOverlay (elements) {
 
 //  Remove overlay
 function removeOverlay () {
+  editing = false
   document.querySelector('#reason-overlay').remove()  
 }
 },{"./graph":1,"./reason":4,"./relation":6,"./utils":7}],4:[function(require,module,exports){
