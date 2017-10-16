@@ -6,7 +6,7 @@ Map
 
   - Relations
     - [x] Add divergent reasons
-    - [] Conjoining reasons should only join dropped reasons
+    - [] Conjoining reasons should only join on dropped reasons
     - [] Add independent conjoined argument chains
     - [] Permit multiple relations between nodes
   - UX

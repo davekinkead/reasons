@@ -2,6 +2,8 @@
 'use strict'
 
 const Utils = require('./utils')
+const Reason = require('./reason')
+const Relation = require('./relation')
 
 module.exports = Graph
 
@@ -13,9 +15,9 @@ module.exports = Graph
  * @param elements  the elements (nodes & edges) to consitute the graph
  */
 function Graph(elements) {
-  if (!(this instanceof Graph)) return new Graph(elements)
   if (elements instanceof Array) elements.forEach(el => this.add(el))
 }
+
 
 //  Use Array as the prototype
 Graph.prototype = Object.create(Array.prototype)
@@ -47,11 +49,11 @@ Graph.prototype.add = function (element) {
         edges.map(e => this.remove(e))
       })
     } else {
-      this.unshift(element)      
+      this.unshift(new Relation(element))  
     }
   } else {
     //  otherwise if the element is a node we just add it to the graph
-    this.push(element)
+    this.push(new Reason(element))
   }
 }
 
@@ -109,6 +111,9 @@ Graph.prototype.add = function (element) {
   if (index > -1) {
     this.push(this.splice(index, 1)[0])
   }
+
+  //  permit chaining during tests
+  return this
 }
 
 
@@ -179,7 +184,7 @@ function isEdge (el) {
 function isNode (el) {
   return (isEdge(el)) ? false : true
 }
-},{"./utils":7}],2:[function(require,module,exports){
+},{"./reason":4,"./relation":6,"./utils":8}],2:[function(require,module,exports){
 const Utils = require('./utils')
 const MAP_URL = 'http://dave.kinkead.com.au/reasons'
 const reasons = []
@@ -257,20 +262,18 @@ function addReason(event) {
   
   reasons.push(selection)
 }
-},{"./utils":7}],3:[function(require,module,exports){
+},{"./utils":8}],3:[function(require,module,exports){
 'use strict'
 
 const Graph = require('./graph')
-const Reason = require('./reason')
-const Relation = require('./relation')
-const Utils = require('./utils')
-
-//  moving this here to prevent variable leakage 
-// TODO: make this purely functional!!!!
-let editing = false
+const UI = require('./ui')
+const View = require('./view')
 
 
-module.exports = Map
+/**
+ * This module wraps the DOM UI, Canvas renderer, and Graph data
+ */
+module.exports = Mapper
 
 
 /**
@@ -283,28 +286,14 @@ module.exports = Map
  *
  * @params elementID  the element id to append the map canvas to
  */
-function Map (elementID) {
-  if (!this instanceof Map) return new Map(elementID)
-  
-  let dom = document.querySelector(elementID)
-  let domBB = dom.getBoundingClientRect()
-  let canvas = Utils.buildNode(
-    'canvas', 
-    {id: 'reasons-'+dom.id}, 
-    {width: domBB.width, height: domBB.height}
-  )
-  dom.appendChild(canvas)
+function Mapper (elementID) {
 
-  //  Set public attributes
-  this.graph = new Graph()
-  this.canvas = canvas
-  this.context = canvas.getContext('2d')
+  //  get the DOM element
+  this.DOM = document.querySelector(elementID)
 
-  //  DOM object event listeners
-  addEventListeners(this)
-
-  //  draw for the first time
-  draw(this)
+  //  attach the canvas to the HTML if the reference was valid
+  if (this.DOM)
+    View.init(this)
 }
 
 
@@ -313,310 +302,19 @@ function Map (elementID) {
  *
  * @params elements   the elements to render
  */
-Map.prototype.render = function (elements) {
-
-  //  sets the graph if arg supplied
-  if (elements instanceof Array) {
-
-    //  TODO: convert this to a zoom function
-    //  Scale the reasons if they are bigger than the DOM
-    let rightest = this.canvas.width
-    let lowest = this.canvas.height
-    elements.filter(el => !(el.from && el.to)).map((el) => {
-      rightest = Math.max(rightest, el.x)
-      lowest = Math.max(lowest, el.y)
-    })
-
-    if (rightest > this.canvas.width || lowest > this.canvas.height) {
-      elements.filter(el => !(el.from && el.to)).map((el) => {
-        // el.x1 *= ((this.canvas.width-100) / rightest)
-        el.x *= ((this.canvas.width-200) / rightest)
-        // el.y1 *= ((this.canvas.height-100) / lowest)
-        el.y *= ((this.canvas.height-75) / lowest)
-      })
-    }   
-
-
-    //  build graph with reasons
-    elements.filter(el => !el.from || !el.to).map((el) => {
-      this.graph.push(new Reason(el))
-    }) 
-
-    //  and then relations 
-    elements.filter(el => el.from && el.to ).map((el) => {
-      if (el.from instanceof Array) {
-        el.from = this.graph.filter(reason => el.from.indexOf(reason.id) > -1)
-      } else {
-        el.from = this.graph.find(reason => reason.id == el.from)
-      }
-      el.to = this.graph.find(reason => reason.id == el.to)
-      this.graph.unshift(new Relation(el))
-    })
-  }
-
-
-
-
-  //  Draw it
-  draw(this)
-
-  //  For method chaining
-  return this
+Mapper.prototype.render = function (elements) {
+  this.graph = new Graph(elements)
+  View.draw(this)
 }
 
 
 /**
  * Exports a Graph's data structure as an Array
  */
-Map.prototype.export = function () {
+Mapper.prototype.export = function () {
   return this.graph.map(element => element.export())
 }
-
-
-/**
- * Helper function to add DOM event listeners to the canvas
- */
-function addEventListeners (map) {
-
-  //  initial & current position of a click event
-  let first = {}
-  let last = {}
-
-  //  event flags to manage state between events
-  let mouseDown = false
-  let dragged = false
-  let dirty = false
-
-  //  `Mousedown` is used to identify clicks and drag starts
-  map.canvas.addEventListener('mousedown', (event) => {
-    event.preventDefault()
-
-    let current = null
-
-    //  set last x & y
-    mouseDown = true
-    first = getPosition(event)
-    last = first
-
-    map.graph.forEach((el, i) => {
-      //  clear selected flag on click
-      el.selected = false
-
-      //  flag elements in hit zone      
-      if (el.collides(last)) {
-        el.draggable = true
-        dirty = true
-
-        //  pop clicked reason to the top
-        if (el instanceof Reason) {
-          map.graph.focus(el)
-        }
-      }
-    })
-
-    if (dirty) draw(map)
-  })
-
-  //  `Mousemove` is used to identify drags and hovers
-  map.canvas.addEventListener('mousemove', (event) => {
-
-    //  Hover is true if the mouse is moved whilst over an element
-    let current = getPosition(event)
-    map.graph.forEach((el) => {
-      if (el.collides(current)) {
-        dirty = true
-        el.hovering = true
-      } else {
-        el.hovering = false
-      }
-    })
-
-    //  drag should only fire if mouse is pressed over an element
-    if (mouseDown) {
-      dragged = true
-      map.graph.forEach((el) => {
-
-        //  draggable elements should be dragged
-        if (el.draggable) {
-          dirty = true
-          el.move(getPosition(event).x - last.x, getPosition(event).y - last.y)
-          last = getPosition(event)
-
-          //  is there an overlap?
-          map.graph.forEach((e) => {
-            if (el !== e && el.collides(e)) {
-
-              //  flag this element as droppable
-              e.droppable = true
-            } else {
-              e.droppable = false
-            }
-          })
-        }
-      })
-    }
-
-    if (dirty) draw(map)
-  })
-
-
-  //  `Mouseup` used to identify clicks and drag ends
-  map.canvas.addEventListener('mouseup', (event) => {
-    event.preventDefault()
-
-    //  was this a drag and release
-    if (dragged) {
-  
-      //  was there a successful drop?
-      let from = map.graph.find((el) => {return el.draggable})
-      let to = map.graph.find((el) => {return el.droppable})
-      if (from && to) {
-
-        //  snap back position
-        from.move(first.x-from.x1, first.y-from.y1)
-
-        //  add new relation to bottom
-        map.graph.add(new Relation({from: from, to: to}))
-        draw(map)
-      }
-
-      //  remove draggable & droppable flags from elements
-      map.graph.forEach((el) => {
-        el.draggable = false
-        el.droppable = false
-      })
-
-    //  or was it a straight click
-    } else {
-
-      //  if so, flag clicked element as selected
-      map.graph.forEach((el) => {
-        if (el.collides(last)) {
-          dirty = true
-          el.selected = true
-        } else {
-          el.selected = false
-        }
-      })
-    }
-
-    mouseDown = false
-    dragged = false
-    last = getPosition(event)
-
-    if (dirty) draw(map)
-  })
-
-  //  `Dblclicks` used for element creation & editing
-  map.canvas.addEventListener('dblclick', (event) => {
-
-    //  dblclick on element to edit it
-    editing = false
-    map.graph.forEach((el) => {
-      el.selected = false
-
-      if (el.collides(last)) {
-        editing = true
-        addOverlay(el)
-      } 
-    })
-
-    //  dblclick on raw canvas should create a new node
-    if (!editing) {
-      let reason = new Reason({x: last.x, y: last.y})
-      map.graph.add(reason)
-      editing = true
-      addOverlay(reason)
-    }
-
-    draw(map)      
-  })  
-
-  //  TODO: Placeholder for zoom
-  map.canvas.addEventListener('wheel', (event, w) => {})
-
-  window.addEventListener('keydown', (event) => {
-    /**** variable leakage of 'editing' here when adding a reaon/relation. */
-
-    //  Escape key
-    if (editing && event.keyCode == 27) removeOverlay()
-    //  Return key
-    if (editing && event.keyCode == 13) submitOverlay(map.graph)
-
-    //  update node text
-
-    //  delete a selected element with `backspace` or `delete`
-    if (event.keyCode == 8 || event.keyCode == 46) {
-      if (!editing) event.preventDefault()
-
-      map.graph.forEach((el) => {
-        if (el.selected) map.graph.remove(el)
-      })
-    }
-
-    draw(map)
-  })
-}
-
-/**
- * Helper function to draw the map
- */
-function draw (map) {
-  clear(map)
-  map.graph.forEach((el) => {
-    el.draw(map.context)
-  })
-}
-
-function clear (map) {
-  map.context.clearRect(0, 0, map.canvas.width, map.canvas.height)
-}
-
-function getPosition(event) {
-  return {
-    x: parseInt(event.x || event.clientX),
-    y: parseInt(event.y || event.clientY)
-  }
-}
-
-//  Overlays a text box to edit a node or edge
-function addOverlay(el) {
-
-  //  Create background layer
-  let overlay = Utils.buildNode('div', {id: 'reason-overlay'})
-  overlay.setAttribute('style', 'position:absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75);')
-
-  // Create text input field
-  let input = Utils.buildNode('input', {id: 'edit-reason-input'}, {value: el.text || el.type})
-  input.setAttribute('style', 'position:absolute; top: 45%; bottom: 50%; left: 25%; right: 50%; width:50%; padding: 1rem;')
-  input.setAttribute('data-element', el.id)
-
-  //  Append to the DOM
-  overlay.appendChild(input)
-  document.body.appendChild(overlay)
-
-  //  Highlight text on element creation
-  input.select()
-}
-
-//  Update the graph from the overlay and remove it
-function submitOverlay (elements) {
-  let input = document.querySelector('#edit-reason-input')
-  let el = elements.find(el => el.id == input.getAttribute('data-element') )
-  if (el instanceof Reason) {
-    el.text = input.value
-  } else {
-    el.type = input.value
-  }
-  removeOverlay()
-}
-
-//  Remove overlay
-function removeOverlay () {
-  editing = false
-  document.querySelector('#reason-overlay').remove()  
-}
-},{"./graph":1,"./reason":4,"./relation":6,"./utils":7}],4:[function(require,module,exports){
+},{"./graph":1,"./ui":7,"./view":9}],4:[function(require,module,exports){
 'use strict'
 
 module.exports = Reason
@@ -639,13 +337,22 @@ function Reason (opts) {
   this.text = opts.text || 'A reason'
   this.width = maxWidth
   this.height = fontSize * 3.5
-  this.x1 = opts.x
-  this.y1 = opts.y
+  this.x1 = opts.x || 0
+  this.y1 = opts.y || 0
   this.x2 = opts.x + this.width
   this.y2 = opts.y + this.height
   this.resize()
 
   return this
+}
+
+Reason.prototype.export = function () {
+  return {
+    id: this.id, 
+    text: this.text,
+    x: this.x1,
+    y: this.y1
+  }
 }
 
 Reason.prototype.resize = function () {
@@ -685,7 +392,8 @@ Reason.prototype.draw = function (context) {
   //  add the text content
   text.forEach((line, i) => {
     context.fillText(line, this.x1 + this.width/2, this.y1  + (i+2) * fontSize)
-  })  }
+  })  
+}
 
 Reason.prototype.move = function (x, y) {
   this.x1 += x
@@ -698,15 +406,6 @@ Reason.prototype.collides = function (el) {
     return (this.x2 < el.x1 || this.x1 > el.x2 || this.y1 > el.y2 || this.y2 < el.y1) ? false : true
   } else {
     return (el.x > this.x1 && el.x < this.x2 && el.y > this.y1 && el.y < this.y2) ? true : false
-  }
-}
-
-Reason.prototype.export = function () {
-  return {
-    id: this.id, 
-    text: this.text,
-    x: this.x1,
-    y: this.y1
   }
 }
 
@@ -737,19 +436,19 @@ function wordWrap(text, context) {
 
 //  Reasons.js API
 
-const Map = require('./map')
+const Mapper = require('./mapper')
 const Highlighter = require('./highlighter')
 
 module.exports = {
-  map: function (dom) {
-    return new Map(dom)
+  mapper: function (dom) {
+    return new Mapper(dom)
   },
 
   highlight: function(dom) {
     return new Highlighter(dom)
   }
 }
-},{"./highlighter":2,"./map":3}],6:[function(require,module,exports){
+},{"./highlighter":2,"./mapper":3}],6:[function(require,module,exports){
 'use strict'
 
 const Utils = require('./utils')
@@ -952,7 +651,11 @@ function pointOfIntersection (from, rect, buffer) {
 
   return {x: distance * Math.cos(angle), y: distance * Math.sin(angle)}
 }
-},{"./utils":7}],7:[function(require,module,exports){
+},{"./utils":8}],7:[function(require,module,exports){
+'use strict'
+
+module.exports = {}
+},{}],8:[function(require,module,exports){
 module.exports = {
 
   //  build a DOM element
@@ -977,7 +680,238 @@ module.exports = {
   flatten: require('array-flatten'),
   diff: require('array-difference')
 }
-},{"array-difference":8,"array-flatten":9,"array-unique":10}],8:[function(require,module,exports){
+},{"array-difference":10,"array-flatten":11,"array-unique":12}],9:[function(require,module,exports){
+'use strict'
+
+const Reason = require('./reason')
+const Relation = require('./relation')
+const Utils = require('./utils')
+
+const maxWidth = 200
+const padding = 10
+const fontSize = 16
+
+/**
+ * Singleton View module to render a canvas
+ */
+module.exports = (function () {
+  
+  /**
+   * Initialise the view for this argument map instance 
+   *  by appending a HTML canvas element
+   */
+  function init (argument) {
+    let domBB = argument.DOM.getBoundingClientRect()
+    let canvas = Utils.buildNode(
+      'canvas', 
+      {id: 'reasons-'+argument.DOM.id}, 
+      {width: domBB.width, height: domBB.height}
+    )
+    argument.DOM.appendChild(canvas)
+
+    argument.context = canvas.getContext('2d')
+  }
+
+
+  /**
+   * Render an argument map instance
+   */
+  function draw (argument) {
+
+    argument.graph.elements().map((el) => {
+      if (el instanceof Reason) draw_node(el, argument.context)
+      if (el instanceof Relation) draw_edge(el, argument.context)
+    })
+
+  }
+
+  return {
+    init,
+    draw
+  }
+
+})();
+
+
+function draw_node (node, context) {
+
+  //  word wrap the text 
+  let text = wordWrap(node.text, context)
+
+  //  recalculate the height
+  let height = text.length * fontSize + fontSize * 2.5
+  resize(node)
+
+  //  clear a white rectangle for background
+  context.clearRect(node.x1, node.y1, node.width, node.height)  
+
+  //  draw a solid rounded border
+  let cornerRadius = 4
+  let rgb = '0,0,0'
+  let opacity = 0.5
+  if (node.hovering) opacity = 0.75
+  if (node.selected) opacity = 0.9
+  context.strokeStyle = 'rgba('+rgb+','+opacity+')'
+  context.lineJoin = "round"
+  context.lineWidth = cornerRadius
+  context.strokeRect(
+    node.x1+cornerRadius/2, node.y1+cornerRadius/2, 
+    node.width-cornerRadius, node.height-cornerRadius
+  )
+
+  //  set text box styles
+  context.fillStyle = 'rgba(0,0,0,0.8)'
+  context.font = '16px sans-serif'
+  context.textAlign = 'center'
+
+  //  add the text content
+  text.forEach((line, i) => {
+    context.fillText(line, node.x1 + node.width/2, node.y1  + (i+2) * fontSize)
+  })  
+}
+
+function draw_edge (edge, context) {
+  locate(edge)
+
+  //  stroke style
+  let rgb = '0,0,0'
+  let opacity = 0.5
+  if (edge.hovering) opacity = 0.75
+  if (edge.selected) opacity = 0.9
+  context.strokeStyle = 'rgba('+rgb+','+opacity+')'
+  context.lineWidth = 4
+
+  //  stroke position
+  context.beginPath()
+  edge.paths.forEach((path) => {
+    context.moveTo(path.x1, path.y1)
+    context.lineTo(path.x2, path.y2)    
+  })
+
+  //  arrow tip
+  let last = edge.paths[edge.paths.length-1]
+  let arrow = arrowify(last)
+  context.lineTo(arrow.x1, arrow.y1)
+  context.moveTo(last.x2, last.y2)
+  context.lineTo(arrow.x2, arrow.y2)
+  context.stroke()
+
+  //  text stroke
+  let textWidth = context.measureText(edge.type).width + 5
+  context.clearRect(edge.center.x-textWidth/2, edge.center.y-15, textWidth, 20)
+
+  //  label
+  context.fillStyle = 'rgba(0,0,0,0.8)'
+  context.font = '14px sans-serif'
+  context.textAlign = 'center'
+  context.fillText(edge.type, edge.center.x, edge.center.y) 
+
+  if (edge.intersection)
+    context.fillRect(edge.intersection.x, edge.intersection.y, 10, 10)
+}
+
+//  Returns a list of `paths` between nodes for this relation
+function locate (edge) {
+
+  //  find the weighted center point
+  let elements = Utils.flatten([edge.from, edge.to])
+  edge.center = elements.map((el) => {
+      return {x: (el.x1+(el.width)/2), y: (el.y1+(el.height )/2)}
+    }).reduce((acc, el) => {
+      return {x: acc.x + el.x, y: acc.y + el.y}
+    })
+  edge.center.x = parseInt(edge.center.x/(elements.length))
+  edge.center.y = parseInt(edge.center.y/(elements.length))
+
+  //  create paths between from and to elements
+  if (edge.from instanceof Array) {
+
+    //  create pairs from from-points to center to to-point
+    edge.paths = edge.from.map((el) => {
+      return {
+        x1: parseInt(el.x1+(el.x2-el.x1)/2),
+        y1: parseInt(el.y1+(el.y2-el.y1)/2),
+        x2: parseInt(edge.center.x),
+        y2: parseInt(edge.center.y)
+      }
+    })
+
+    //  move the 'to' point back down the path to just outside the node.
+    let offset = pointOfIntersection(edge.center, edge.to, 5)
+
+    // get offset x,y from rectangle intersect
+    edge.paths.push({
+      x1: parseInt(edge.center.x),
+      y1: parseInt(edge.center.y),
+      x2: parseInt(edge.to.x1+(edge.to.x2-edge.to.x1)/2)-offset.x,
+      y2: parseInt(edge.to.y1+(edge.to.y2-edge.to.y1)/2)+offset.y 
+    })
+  } else {
+
+    //  when only a single from element exists
+    let offset = pointOfIntersection(edge.center, edge.to, 5)
+
+    edge.paths = [{
+      x1: parseInt(edge.from.x1+(edge.from.x2-edge.from.x1)/2),
+      y1: parseInt(edge.from.y1+(edge.from.y2-edge.from.y1)/2),
+      x2: parseInt(edge.to.x1+(edge.to.x2-edge.to.x1)/2)-offset.x,
+      y2: parseInt(edge.to.y1+(edge.to.y2-edge.to.y1)/2)+offset.y 
+    }]
+  }
+}
+
+function resize (node) {
+  node.x2 = node.x1 + node.width
+  node.y2 = node.y1 + node.height
+}
+
+function wordWrap(text, context) {
+  let words = text.split(' ')
+  let lines = []
+  let line = ''
+
+  words.forEach((word) => {
+    let width = context.measureText(line + ' ' + word).width
+
+    if (width < (maxWidth - padding * 2) ) {
+      line += ' ' + word
+    } else { 
+      lines.push(line)
+      line = word
+    }
+  })
+
+  lines.push(line)
+  return lines
+}
+
+//  Helper function to make arrow tips
+function arrowify(path) {
+  let angle = Math.atan2(path.y1-path.y2, path.x1-path.x2)
+  return {
+    x1: path.x2 + 10*Math.cos(angle+0.5),
+    y1: path.y2 + 10*Math.sin(angle+0.5),
+    x2: path.x2 + 10*Math.cos(angle-0.5),
+    y2: path.y2 + 10*Math.sin(angle-0.5)    
+  }
+}
+
+//  determines the intersection x,y from a point to center of rectangle
+//  TODO: Add tests
+function pointOfIntersection (from, rect, buffer) {
+  let center = {x: rect.x1 + rect.width/2, y: rect.y1 + rect.height/2}
+
+  //  determine the angle of the path
+  let angle = Math.atan2(from.y - center.y, center.x - from.x)
+  let absCos = Math.abs(Math.cos(angle))
+  let absSin = Math.abs(Math.sin(angle))  
+
+  let distance = (rect.width/2*absSin <= rect.height/2*absCos) ? rect.width/2/absCos : rect.height/2/absSin
+  distance += buffer || 0
+
+  return {x: distance * Math.cos(angle), y: distance * Math.sin(angle)}
+}
+},{"./reason":4,"./relation":6,"./utils":8}],10:[function(require,module,exports){
 (function(global) {
 
 	var indexOf = Array.prototype.indexOf || function(elem) {
@@ -1025,7 +959,7 @@ module.exports = {
 
 }(this));
 
-},{}],9:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict'
 
 /**
@@ -1135,7 +1069,7 @@ function flattenDownDepth (array, result, depth) {
   return result
 }
 
-},{}],10:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /*!
  * array-unique <https://github.com/jonschlinkert/array-unique>
  *
