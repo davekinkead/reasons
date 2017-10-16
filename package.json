@@ -10,14 +10,14 @@
     "array-unique": "^0.3.2"
   },
   "devDependencies": {
-    "browserify": "^14.1.0",
-    "jsdom": "11.0.0",
-    "jsdom-global": "3.0.2",
-    "mocha": "^3.2.0",
-    "mocha-jsdom": "^1.1.0",
-    "npm": "^4.2.0",
-    "should": "^11.2.0",
-    "yamljs": "^0.2.8"
+    "browserify": "^14.4.0",
+    "canvas-prebuilt": "^1.6.5-prerelease.1",
+    "jsdom": "^11.0.0",
+    "literati": "0.0.2",
+    "mocha": "^3.5.0",
+    "npm": "^4.6.1",
+    "should": "^11.2.1",
+    "yamljs": "^0.2.10"
   },
   "scripts": {
     "build": "browserify lib/reasons.js -s Reasons -o reasons.js",
