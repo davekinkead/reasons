@@ -18,12 +18,41 @@ function mixin(element) {
   element.isEdge = isEdge
   element.isNode = isNode
   element.export = save
+  init(element)
+  return element
+}
+
+
+/**
+ * Initialize an Element
+ *  @params element Node or Edge
+ */
+function init (element) {
+  element.id = element.id || Math.random().toString(36).slice(-5)
+
+  if (element.isEdge()) {
+
+    //  Default Edge values
+    element.from = element.from
+    element.to = element.to
+    element.type = element.type || 'supports'
+    element.paths = []
+  } else {
+
+    //  Default Node values
+    element.text = element.text || 'A reason'
+    element.width = maxWidth
+    element.height = fontSize * 3.5
+    element.x1 = element.x || 0
+    element.y1 = element.y || 0
+    element.x2 = element.x + element.width
+    element.y2 = element.y + element.height
+  }
 }
 
 
 /**
  * Returns true if an element is an Edge
- *  @params el a Node or Edge
  */
 function isEdge () {
   return (this.to && this.from) ? true : false
@@ -32,7 +61,6 @@ function isEdge () {
 
 /**
  * Returns true if an element is a Node
- *  @params el a Node or Edge
  */
 function isNode () {
   return (this.isEdge()) ? false : true
@@ -45,7 +73,16 @@ function isNode () {
 function save () {
   if (this.isEdge()) {
 
+    //  Export an Edge
+    return {
+      id: this.id,
+      type: this.type,
+      from: convertObjectsToIds(this.from),
+      to: convertObjectsToIds(this.to)
+    }
   } else {
+
+    //  Export a Node
     return {
       id: this.id, 
       text: this.text,
@@ -54,13 +91,26 @@ function save () {
     }    
   }
 }
+
+/**
+ * Helper function to ensure permit edge references to both nodes and node.ids
+ */
+ function convertObjectsToIds (obj) {
+  if (obj instanceof Array) {
+    return obj.map(el => el.id || el)
+  } else {
+    return obj.id || obj    
+  }
+}
 },{}],2:[function(require,module,exports){
+arguments[4][1][0].apply(exports,arguments)
+},{"dup":1}],3:[function(require,module,exports){
 'use strict'
 
 const Utils = require('./utils')
 const Element = require('./element')
-const Reason = require('./reason')
-const Relation = require('./relation')
+// const Reason = require('./reason')
+// const Relation = require('./relation')
 
 module.exports = Graph
 
@@ -228,7 +278,7 @@ Graph.prototype.children = function (id) {
   }).map(el => el.to)
     .map(el => this.find(i => i == el || i.id == el))
 }
-},{"./element":1,"./reason":5,"./relation":7,"./utils":9}],3:[function(require,module,exports){
+},{"./element":2,"./utils":8}],4:[function(require,module,exports){
 const Utils = require('./utils')
 const MAP_URL = 'http://dave.kinkead.com.au/reasons'
 const reasons = []
@@ -306,7 +356,7 @@ function addReason(event) {
   
   reasons.push(selection)
 }
-},{"./utils":9}],4:[function(require,module,exports){
+},{"./utils":8}],5:[function(require,module,exports){
 'use strict'
 
 const Graph = require('./graph')
@@ -357,122 +407,7 @@ Mapper.prototype.render = function (elements) {
 Mapper.prototype.export = function () {
   return this.graph.map(element => element.export())
 }
-},{"./graph":2,"./ui":8,"./view":10}],5:[function(require,module,exports){
-'use strict'
-
-module.exports = Reason
-
-const maxWidth = 200
-const padding = 10
-const fontSize = 16
-
-
-/**
- * Creates a Reason node for the Graph.
- *
- * @params opts  parameter options for the Reason
- */
-function Reason (opts) {
-  if (!this instanceof Reason) return new Reason(opts)
-
-  // public state
-  this.id = opts.id || Math.random().toString(36).slice(-5)
-  this.text = opts.text || 'A reason'
-  this.width = maxWidth
-  this.height = fontSize * 3.5
-  this.x1 = opts.x || 0
-  this.y1 = opts.y || 0
-  this.x2 = opts.x + this.width
-  this.y2 = opts.y + this.height
-  this.resize()
-
-  return this
-}
-
-Reason.prototype.export = function () {
-  return {
-    id: this.id, 
-    text: this.text,
-    x: this.x1,
-    y: this.y1
-  }
-}
-
-Reason.prototype.resize = function () {
-  this.x2 = this.x1 + this.width
-  this.y2 = this.y1 + this.height
-}
-
-
-Reason.prototype.draw = function (context) {
-
-  //  word wrap the text 
-  let text = wordWrap(this.text, context)
-
-  //  recalculate the height
-  this.height = text.length * fontSize + fontSize * 2.5
-  this.resize()
-
-  //  clear a white rectangle for background
-  context.clearRect(this.x1, this.y1, this.width, this.height)  
-
-  //  draw a solid rounded border
-  let cornerRadius = 4
-  let rgb = '0,0,0'
-  let opacity = 0.5
-  if (this.hovering) opacity = 0.75
-  if (this.selected) opacity = 0.9
-  context.strokeStyle = 'rgba('+rgb+','+opacity+')'
-  context.lineJoin = "round"
-  context.lineWidth = cornerRadius
-  context.strokeRect(this.x1+cornerRadius/2, this.y1+cornerRadius/2, this.width-cornerRadius, this.height-cornerRadius)
-
-  //  set text box styles
-  context.fillStyle = 'rgba(0,0,0,0.8)'
-  context.font = '16px sans-serif'
-  context.textAlign = 'center'
-
-  //  add the text content
-  text.forEach((line, i) => {
-    context.fillText(line, this.x1 + this.width/2, this.y1  + (i+2) * fontSize)
-  })  
-}
-
-Reason.prototype.move = function (x, y) {
-  this.x1 += x
-  this.y1 += y
-  this.resize()
-}
-
-Reason.prototype.collides = function (el) {
-  if (el instanceof Reason) {
-    return (this.x2 < el.x1 || this.x1 > el.x2 || this.y1 > el.y2 || this.y2 < el.y1) ? false : true
-  } else {
-    return (el.x > this.x1 && el.x < this.x2 && el.y > this.y1 && el.y < this.y2) ? true : false
-  }
-}
-
-function wordWrap(text, context) {
-  let words = text.split(' ')
-  let lines = []
-  let line = ''
-
-  words.forEach((word) => {
-    let width = context.measureText(line + ' ' + word).width
-
-    if (width < (maxWidth - padding * 2) ) {
-      line += ' ' + word
-    } else { 
-      lines.push(line)
-      line = word
-    }
-  })
-
-  lines.push(line)
-  return lines
-}
-
-},{}],6:[function(require,module,exports){
+},{"./graph":3,"./ui":7,"./view":9}],6:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
 //  Copyright (c) 2017 University of Queensland
 //  Available under the MIT license
@@ -491,214 +426,11 @@ module.exports = {
     return new Highlighter(dom)
   }
 }
-},{"./highlighter":3,"./mapper":4}],7:[function(require,module,exports){
-'use strict'
-
-const Utils = require('./utils')
-
-module.exports = Relation
-
-
-/**
- * Creates a Relation element to be used in a Graph.
- * Opts must specify at least a from: and to: 
- * id: and type: are optional with defaults set.
- *
- * @params opts  a hash of arguments
- */
-function Relation (opts) {
-  if (!this instanceof Relation) return new Relation(opts)
-
-  this.id = opts.id || Math.random().toString(36).slice(-5)
-  this.from = opts.from
-  this.to = opts.to
-  this.type = opts.type || 'supports'
-  this.paths = []
-
-  return this
-}
-
-
-/**
- * Renders the relation using HTML Canvas.
- *
- * @params context  the canvas context to render in
- */
-Relation.prototype.draw = function (context) {
-  this.locate()
-
-  //  stroke style
-  let rgb = '0,0,0'
-  let opacity = 0.5
-  if (this.hovering) opacity = 0.75
-  if (this.selected) opacity = 0.9
-  context.strokeStyle = 'rgba('+rgb+','+opacity+')'
-  context.lineWidth = 4
-
-  //  stroke position
-  context.beginPath()
-  this.paths.forEach((path) => {
-    context.moveTo(path.x1, path.y1)
-    context.lineTo(path.x2, path.y2)    
-  })
-
-  //  arrow tip
-  let last = this.paths[this.paths.length-1]
-  let arrow = arrowify(last)
-  context.lineTo(arrow.x1, arrow.y1)
-  context.moveTo(last.x2, last.y2)
-  context.lineTo(arrow.x2, arrow.y2)
-  context.stroke()
-
-  //  text stroke
-  let textWidth = context.measureText(this.type).width + 5
-  context.clearRect(this.center.x-textWidth/2, this.center.y-15, textWidth, 20)
-
-  //  label
-  context.fillStyle = 'rgba(0,0,0,0.8)'
-  context.font = '14px sans-serif'
-  context.textAlign = 'center'
-  context.fillText(this.type, this.center.x, this.center.y) 
-
-  if (this.intersection)
-    context.fillRect(this.intersection.x, this.intersection.y, 10, 10)
-}
-
-//  Returns a boolean if there is a coordinate overlap
-Relation.prototype.collides = function (point) {
-  this.locate()
-
-  //  Deterine a hit for each of the paths
-  let hit = false
-  this.paths.forEach((path) => {
-    if (differenceOfVectors(point, path) < 0.05)
-      hit = true
-  })
-
-  //  Estimate collision of the label box
-  let width = this.type.length * 5
-  hit = (point.x < this.center.x - width || point.x > this.center.x + width || point.y < this.center.y - 10 ||  point.y > this.center.y +  10) ? false : true
-
-  //  otherwise
-  return hit
-}
-
-Relation.prototype.move = function () {
-  this.locate()
-}
-
-//  Returns a list of `paths` between nodes for this relation
-Relation.prototype.locate = function () {
-
-  //  find the weighted center point
-  let elements = Utils.flatten([this.from, this.to])
-  this.center = elements.map((el) => {
-      return {x: (el.x1+(el.width)/2), y: (el.y1+(el.height )/2)}
-    }).reduce((acc, el) => {
-      return {x: acc.x + el.x, y: acc.y + el.y}
-    })
-  this.center.x = parseInt(this.center.x/(elements.length))
-  this.center.y = parseInt(this.center.y/(elements.length))
-
-  //  create paths between from and to elements
-  if (this.from instanceof Array) {
-
-    //  create pairs from from-points to center to to-point
-    this.paths = this.from.map((el) => {
-      return {
-        x1: parseInt(el.x1+(el.x2-el.x1)/2),
-        y1: parseInt(el.y1+(el.y2-el.y1)/2),
-        x2: parseInt(this.center.x),
-        y2: parseInt(this.center.y)
-      }
-    })
-
-    //  move the 'to' point back down the path to just outside the node.
-    let offset = pointOfIntersection(this.center, this.to, 5)
-
-    // get offset x,y from rectangle intersect
-    this.paths.push({
-      x1: parseInt(this.center.x),
-      y1: parseInt(this.center.y),
-      x2: parseInt(this.to.x1+(this.to.x2-this.to.x1)/2)-offset.x,
-      y2: parseInt(this.to.y1+(this.to.y2-this.to.y1)/2)+offset.y 
-    })
-  } else {
-
-    //  when only a single from element exists
-    let offset = pointOfIntersection(this.center, this.to, 5)
-
-    this.paths = [{
-      x1: parseInt(this.from.x1+(this.from.x2-this.from.x1)/2),
-      y1: parseInt(this.from.y1+(this.from.y2-this.from.y1)/2),
-      x2: parseInt(this.to.x1+(this.to.x2-this.to.x1)/2)-offset.x,
-      y2: parseInt(this.to.y1+(this.to.y2-this.to.y1)/2)+offset.y 
-    }]
-  }
-}
-
-/**
- * Exports the relation data structure as an Object.
- * from: and to: are exported as IDs only.
- */
-Relation.prototype.export = function () {
-  return {
-    id: this.id,
-    type: this.type,
-    from: convertObjectsToIds(this.from),
-    to: convertObjectsToIds(this.to)
-  }
-}
-
-//  When exporting Reasons, only IDs should be passed
-function convertObjectsToIds (obj) {
-  if (obj instanceof Array) {
-    return obj.map(el => el.id || el)
-  } else {
-    return obj.id || obj    
-  }
-}
-
-//  Helper function to make arrow tips
-function arrowify(path) {
-  let angle = Math.atan2(path.y1-path.y2, path.x1-path.x2)
-  return {
-    x1: path.x2 + 10*Math.cos(angle+0.5),
-    y1: path.y2 + 10*Math.sin(angle+0.5),
-    x2: path.x2 + 10*Math.cos(angle-0.5),
-    y2: path.y2 + 10*Math.sin(angle-0.5)    
-  }
-}
-
-
-//  Calculates the difference between 2 vectors el -> x1,y1 and el -> x2,y2
-//  TODO: Add tests
-function differenceOfVectors (point, path) {
-  return Math.abs((Math.atan2(point.y-path.y1, point.x-path.x1))
-        -(Math.atan2(path.y2-point.y, path.x2-point.x)))
-}
-
-
-//  determines the intersection x,y from a point to center of rectangle
-//  TODO: Add tests
-function pointOfIntersection (from, rect, buffer) {
-  let center = {x: rect.x1 + rect.width/2, y: rect.y1 + rect.height/2}
-
-  //  determine the angle of the path
-  let angle = Math.atan2(from.y - center.y, center.x - from.x)
-  let absCos = Math.abs(Math.cos(angle))
-  let absSin = Math.abs(Math.sin(angle))  
-
-  let distance = (rect.width/2*absSin <= rect.height/2*absCos) ? rect.width/2/absCos : rect.height/2/absSin
-  distance += buffer || 0
-
-  return {x: distance * Math.cos(angle), y: distance * Math.sin(angle)}
-}
-},{"./utils":9}],8:[function(require,module,exports){
+},{"./highlighter":4,"./mapper":5}],7:[function(require,module,exports){
 'use strict'
 
 module.exports = {}
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 module.exports = {
 
   //  build a DOM element
@@ -723,11 +455,12 @@ module.exports = {
   flatten: require('array-flatten'),
   diff: require('array-difference')
 }
-},{"array-difference":11,"array-flatten":12,"array-unique":13}],10:[function(require,module,exports){
+},{"array-difference":10,"array-flatten":11,"array-unique":12}],9:[function(require,module,exports){
 'use strict'
 
-const Reason = require('./reason')
-const Relation = require('./relation')
+// const Reason = require('./reason')
+// const Relation = require('./relation')
+const Element = require('./Element')
 const Utils = require('./utils')
 
 const maxWidth = 200
@@ -752,8 +485,8 @@ module.exports = (function () {
       {id: 'reasons-'+argument.DOM.id}, 
       {width: domBB.width, height: domBB.height}
     )
+    
     argument.DOM.appendChild(canvas)
-
     argument.context = canvas.getContext('2d')
   }
 
@@ -764,8 +497,8 @@ module.exports = (function () {
   function draw (argument) {
 
     argument.graph.elements().map((el) => {
-      if (el instanceof Reason) draw_node(el, argument.context)
-      if (el instanceof Relation) draw_edge(el, argument.context)
+      if (el.isNode()) draw_node(el, argument.context)
+      if (el.isEdge()) draw_edge(el, argument.context)
     })
 
   }
@@ -956,7 +689,7 @@ function pointOfIntersection (from, rect, buffer) {
 
   return {x: distance * Math.cos(angle), y: distance * Math.sin(angle)}
 }
-},{"./reason":5,"./relation":7,"./utils":9}],11:[function(require,module,exports){
+},{"./Element":1,"./utils":8}],10:[function(require,module,exports){
 (function(global) {
 
 	var indexOf = Array.prototype.indexOf || function(elem) {
@@ -1004,7 +737,7 @@ function pointOfIntersection (from, rect, buffer) {
 
 }(this));
 
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict'
 
 /**
@@ -1114,7 +847,7 @@ function flattenDownDepth (array, result, depth) {
   return result
 }
 
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /*!
  * array-unique <https://github.com/jonschlinkert/array-unique>
  *

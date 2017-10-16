@@ -65,7 +65,6 @@ describe('Graph', () => {
   describe('#remove', () => {
     it('should remove an element from the graph', () => {
       const graph = new Graph([map.a, map.b, map.c, {from: map.a, to: map.c}])
-      console.log(graph.length)
       graph.remove(map.b).should.have.length(3)
     })
 
