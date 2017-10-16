@@ -31,12 +31,12 @@
 
     const cat = ['humans', 'philosophers', 'doctors', 'students', 'winners', 'cats', 'dogs', 'birds', 'democrats', 'republicans'][Math.floor(Math.random() * 10)]
     const name = ['Socrates', 'Plato', 'Bob', 'Lucy', 'Dazza', 'Shazza', 'Nathan', 'Deborah', 'Dave', 'Pete'][Math.floor(Math.random() * 10)]
-    const adj = ['mortal', 'smart', 'lucky', 'poor', 'cute', 'slow', 'fast', 'unlucky', 'fury', 'fluffy'][Math.floor(Math.random() * 10)]
+    const adj = ['mortal', 'smart', 'lucky', 'poor', 'cute', 'slow', 'fast', 'unlucky', 'furry', 'fluffy'][Math.floor(Math.random() * 10)]
 
     const graph = buildGraphFromSession()
 
     //  Invoke the Reasons.js API
-    const map = Reasons.map('#content').render(graph)
+    const map = Reasons.mapper('#content').render(graph)
 
     function buildGraphFromSession () {
       const session = sessionStorage.getItem('reasons')

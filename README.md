@@ -41,7 +41,7 @@ An argument map is just a directed graph representing the logical structure of a
           {from: 'p1', to: 'c1', type: "supports"},
           {from: 'c1', to: 'p1', type: "supports"}
         ]
-      Reasons.create('#element').render(graph)
+      Reasons.mapper('#element').render(graph)
     </script>
     
 

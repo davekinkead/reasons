@@ -1,7 +1,64 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Reasons = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict'
 
+const maxWidth = 200
+const padding = 10
+const fontSize = 16
+
+
+module.exports = {
+  mixin, isEdge, isNode, save
+}
+
+
+/**
+ * Mixes in the behaviour of an Element to an Object
+ */
+function mixin(element) {
+  element.isEdge = isEdge
+  element.isNode = isNode
+  element.export = save
+}
+
+
+/**
+ * Returns true if an element is an Edge
+ *  @params el a Node or Edge
+ */
+function isEdge () {
+  return (this.to && this.from) ? true : false
+}
+
+
+/**
+ * Returns true if an element is a Node
+ *  @params el a Node or Edge
+ */
+function isNode () {
+  return (this.isEdge()) ? false : true
+}
+
+
+/**
+ * Exports an element's data
+ */
+function save () {
+  if (this.isEdge()) {
+
+  } else {
+    return {
+      id: this.id, 
+      text: this.text,
+      x: this.x1,
+      y: this.y1
+    }    
+  }
+}
+},{}],2:[function(require,module,exports){
+'use strict'
+
 const Utils = require('./utils')
+const Element = require('./element')
 const Reason = require('./reason')
 const Relation = require('./relation')
 
@@ -19,21 +76,26 @@ function Graph(elements) {
 }
 
 
-//  Use Array as the prototype
+/**  
+ * Use Array as the prototype
+ */
 Graph.prototype = Object.create(Array.prototype)
 
 
 /**
- * Adds a new Reason or Relation to the Graph.
+ * Adds a new element to the Graph.
  *
- * @param el an element to add
+ * @param element an element to add
  */
 Graph.prototype.add = function (element) {
 
-  //  Edges an be independent or conjoined reasons. If A (from node)
-  //  and B (to node) both already support C then the relationships
-  //  should be merged [A,B] -> C
-  if (isEdge(element)) {
+  //  Mixin Element behaviour
+  Element.mixin(element)
+
+  //  Edges can connect independent or conjoined reasons. 
+  //  If A (from node) and B (to node) both already support C 
+  //  then the relationships should be merged [A,B] -> C
+  if (element.isEdge()) {
     let commonChildren = Utils.intersection(
       this.children(element.from.id || element.from), 
       this.children(element.to.id || element.to)
@@ -49,11 +111,11 @@ Graph.prototype.add = function (element) {
         edges.map(e => this.remove(e))
       })
     } else {
-      this.unshift(new Relation(element))  
+      this.unshift(element)  
     }
   } else {
     //  otherwise if the element is a node we just add it to the graph
-    this.push(new Reason(element))
+    this.push(element)
   }
 }
 
@@ -68,7 +130,7 @@ Graph.prototype.add = function (element) {
   if (i > -1) {
 
     //  remove edges is el is a node
-    if (isNode(el)) {
+    if (el.isNode()) {
 
       //  find associated edges first
       let edges = this.filter((el) => { 
@@ -166,25 +228,7 @@ Graph.prototype.children = function (id) {
   }).map(el => el.to)
     .map(el => this.find(i => i == el || i.id == el))
 }
-
-
-/**
- * Returns true if an element is an Edge
- * @params el a Node or Edge
- */
-function isEdge (el) {
-  return (el.to && el.from) ? true : false
-}
-
-
-/**
- * Returns true if an element is a Node
- * @params el a Node or Edge
- */
-function isNode (el) {
-  return (isEdge(el)) ? false : true
-}
-},{"./reason":4,"./relation":6,"./utils":8}],2:[function(require,module,exports){
+},{"./element":1,"./reason":5,"./relation":7,"./utils":9}],3:[function(require,module,exports){
 const Utils = require('./utils')
 const MAP_URL = 'http://dave.kinkead.com.au/reasons'
 const reasons = []
@@ -262,7 +306,7 @@ function addReason(event) {
   
   reasons.push(selection)
 }
-},{"./utils":8}],3:[function(require,module,exports){
+},{"./utils":9}],4:[function(require,module,exports){
 'use strict'
 
 const Graph = require('./graph')
@@ -281,8 +325,7 @@ module.exports = Mapper
  * It is responsible for handling all mouse and keyboard events, and sending 
  * changes in the argument map to the Graph object.
  *
- * The Map contains references to @graph (the data), @canvas (the DOM object)
- * and @context (the 2D drawing API)
+ * The Map contains references to @graph (the data) and @DOM (the DOM object)
  *
  * @params elementID  the element id to append the map canvas to
  */
@@ -314,7 +357,7 @@ Mapper.prototype.render = function (elements) {
 Mapper.prototype.export = function () {
   return this.graph.map(element => element.export())
 }
-},{"./graph":1,"./ui":7,"./view":9}],4:[function(require,module,exports){
+},{"./graph":2,"./ui":8,"./view":10}],5:[function(require,module,exports){
 'use strict'
 
 module.exports = Reason
@@ -429,7 +472,7 @@ function wordWrap(text, context) {
   return lines
 }
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
 //  Copyright (c) 2017 University of Queensland
 //  Available under the MIT license
@@ -448,7 +491,7 @@ module.exports = {
     return new Highlighter(dom)
   }
 }
-},{"./highlighter":2,"./mapper":3}],6:[function(require,module,exports){
+},{"./highlighter":3,"./mapper":4}],7:[function(require,module,exports){
 'use strict'
 
 const Utils = require('./utils')
@@ -651,11 +694,11 @@ function pointOfIntersection (from, rect, buffer) {
 
   return {x: distance * Math.cos(angle), y: distance * Math.sin(angle)}
 }
-},{"./utils":8}],7:[function(require,module,exports){
+},{"./utils":9}],8:[function(require,module,exports){
 'use strict'
 
 module.exports = {}
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 module.exports = {
 
   //  build a DOM element
@@ -680,7 +723,7 @@ module.exports = {
   flatten: require('array-flatten'),
   diff: require('array-difference')
 }
-},{"array-difference":10,"array-flatten":11,"array-unique":12}],9:[function(require,module,exports){
+},{"array-difference":11,"array-flatten":12,"array-unique":13}],10:[function(require,module,exports){
 'use strict'
 
 const Reason = require('./reason')
@@ -692,13 +735,15 @@ const padding = 10
 const fontSize = 16
 
 /**
- * Singleton View module to render a canvas
+ * Singleton View module to render a canvas.
  */
 module.exports = (function () {
   
   /**
    * Initialise the view for this argument map instance 
-   *  by appending a HTML canvas element
+   *  by appending a HTML canvas element.
+   *
+   *  @params argument  The @argument map to provide a view for
    */
   function init (argument) {
     let domBB = argument.DOM.getBoundingClientRect()
@@ -911,7 +956,7 @@ function pointOfIntersection (from, rect, buffer) {
 
   return {x: distance * Math.cos(angle), y: distance * Math.sin(angle)}
 }
-},{"./reason":4,"./relation":6,"./utils":8}],10:[function(require,module,exports){
+},{"./reason":5,"./relation":7,"./utils":9}],11:[function(require,module,exports){
 (function(global) {
 
 	var indexOf = Array.prototype.indexOf || function(elem) {
@@ -959,7 +1004,7 @@ function pointOfIntersection (from, rect, buffer) {
 
 }(this));
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict'
 
 /**
@@ -1069,7 +1114,7 @@ function flattenDownDepth (array, result, depth) {
   return result
 }
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /*!
  * array-unique <https://github.com/jonschlinkert/array-unique>
  *
@@ -1114,5 +1159,5 @@ module.exports.immutable = function uniqueImmutable(arr) {
   return module.exports(newArr);
 };
 
-},{}]},{},[5])(5)
+},{}]},{},[6])(6)
 });
