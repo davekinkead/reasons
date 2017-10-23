@@ -1,6 +1,7 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Reasons = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict'
 
+const Utils = require('./Utils')
 const maxWidth = 200
 const padding = 10
 const fontSize = 16
@@ -32,9 +33,14 @@ function init (element) {
 
   if (element.isEdge()) {
 
-    //  Default Edge values
-    element.from = element.from
-    element.to = element.to
+    /** 
+     * Default Edge values:
+     *  From should return ['node_id', 'node_id'] 
+     *  To should return 'node_id'
+     *  Path should be an empty array to be set in the View/UI
+     */
+    element.from = Utils.flatten([element.from]).map((from) => { return from.id || from })
+    element.to = element.to.id || element.to
     element.type = element.type || 'supports'
     element.paths = []
   } else {
@@ -45,8 +51,8 @@ function init (element) {
     element.height = fontSize * 3.5
     element.x1 = element.x || 0
     element.y1 = element.y || 0
-    element.x2 = element.x + element.width
-    element.y2 = element.y + element.height
+    element.x2 = element.x1 + element.width
+    element.y2 = element.y1 + element.height
   }
 }
 
@@ -102,27 +108,57 @@ function save () {
     return obj.id || obj    
   }
 }
-},{}],2:[function(require,module,exports){
+},{"./Utils":2}],2:[function(require,module,exports){
+module.exports = {
+
+  //  build a DOM element
+  buildNode: function (type, options, attributes) {
+    const node = document.createElement(type)
+    for (var key in options) {
+      node[key] = options[key]
+    }
+    for (var key in attributes) {
+      node.setAttribute(key, attributes[key])
+    }
+    return node
+  },
+
+  intersection: function (array1, array2) {
+    return array1.filter(function(n) {
+      return array2.indexOf(n) !== -1;
+    })
+  },
+
+  unique: require('array-unique'),
+  flatten: require('array-flatten'),
+  diff: require('array-difference')
+}
+},{"array-difference":11,"array-flatten":12,"array-unique":13}],3:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"dup":1}],3:[function(require,module,exports){
+},{"./Utils":2,"dup":1}],4:[function(require,module,exports){
 'use strict'
 
 const Utils = require('./utils')
 const Element = require('./element')
-// const Reason = require('./reason')
-// const Relation = require('./relation')
 
 module.exports = Graph
 
 
 /**
  * A Graph is simply an extended array containing node and edge objects.
- * It is an abstract data structure with no DOM form.  
+ *  It is an abstract data structure with no DOM form.
+ *  Edges will contain references to node objects.
  *
  * @param elements  the elements (nodes & edges) to consitute the graph
  */
 function Graph(elements) {
-  if (elements instanceof Array) elements.forEach(el => this.add(el))
+
+  //  sort the elements so nodes are added before edges
+  if (elements instanceof Array) {
+    elements.sort((a,b) => {
+      return a.to ? -1: 1 
+    }).forEach(el => this.add(el))
+  }
 }
 
 
@@ -134,6 +170,7 @@ Graph.prototype = Object.create(Array.prototype)
 
 /**
  * Adds a new element to the Graph.
+ *  Nodes should be added before edges as the latter referrence the former
  *
  * @param element an element to add
  */
@@ -142,32 +179,83 @@ Graph.prototype.add = function (element) {
   //  Mixin Element behaviour
   Element.mixin(element)
 
-  //  Edges can connect independent or conjoined reasons. 
-  //  If A (from node) and B (to node) both already support C 
-  //  then the relationships should be merged [A,B] -> C
-  if (element.isEdge()) {
+  
+  if (element.isNode()) {
+    this.unshift(element)
+  } else {
+
+    //  from: should be stored as from: [nodeObj]
+    //  to: should be stored as to: nodeObj
+
+
+    //  Edges can connect independent or conjoined reasons. 
+    //  If A B & C both already support D
+    //  and a new edge is added from A to B or vice versa
+    //  then the relationships should be merged [A,B] -> D
+    //  and C -> D kept unchanged  
     let commonChildren = Utils.intersection(
-      this.children(element.from.id || element.from), 
+      this.children(element.from), 
       this.children(element.to.id || element.to)
-    )
+    ).map(el => el.id)
 
     if (commonChildren.length > 0) {
-      commonChildren.map((el) => {
-        let edges = this.edges().filter((e) => {
-          return (e.to == el || e.to == el.id || e.to.id == el.id)
+      let commonParents = Utils.flatten([element.from, element.to]).map(el => el.id || el)
+      commonChildren.map((child) => {
+
+        //  remove edges between A -> D and B -> D
+        this.edges().forEach((edge) => {
+          if (commonParents.includes(edge.from.id) && edge.to.id == child) {
+            this.remove(edge)
+          }
         })
-        let keeper = edges.shift()
-        edges.map(e => keeper.from = Utils.flatten([keeper.from].concat(e.from)))
-        edges.map(e => this.remove(e))
+
+        //  and replace with [A,B] -> D
+        this.add({
+          from: commonParents.map(el => this.find(e => e.id == el)), 
+          to: this.find(e => e.id == child)
+        })
       })
     } else {
-      this.unshift(element)  
+      this.push(element)  
     }
-  } else {
-    //  otherwise if the element is a node we just add it to the graph
-    this.push(element)
   }
 }
+
+
+// Graph.prototype._object_refs = function () {
+//   let nodes = this.nodes()
+//   let edges = this.edges()
+
+//   edges.forEach((edge) => {
+
+//     // Replace node ids with actual node objects
+//     if (edge.from instanceof Array) {
+//       edge.from = edge.from.map((el) => {
+//         replaceWithObject(el, nodes)
+//       })
+//     } else {
+//       edge.from = replaceWithObject(edge.from, nodes)
+//     }
+
+//     if (edge.to instanceof Array) {
+//       edge.to = edge.to.map((el) => {
+//         replaceWithObject(el, nodes)
+//       })
+//     } else {
+//       edge.to = replaceWithObject(edge.to, nodes)
+//     }    
+//   })
+// }
+
+// function replaceWithObject(id, nodes) {
+//   if (typeof(id) === 'string') {
+//     return nodes.find((node) => {
+//       return node.id === id
+//     })
+//   }
+
+//   return id
+// }
 
 
 /**
@@ -181,7 +269,6 @@ Graph.prototype.add = function (element) {
 
     //  remove edges is el is a node
     if (el.isNode()) {
-
       //  find associated edges first
       let edges = this.filter((el) => { 
         return (el.from && el.to) && (el.from.id == this[i].id || el.to.id == this[i].id)
@@ -255,20 +342,24 @@ Graph.prototype.elements = function () {
 
 /**
  * Find all the parents for a given node or id
- * @params id a Node or String id of a Node
+ *  Returns an array of objects
+ *
+ *  @params id a Node or String id of a Node
  */
 Graph.prototype.parents = function (id) {
   if (id instanceof Object) id = id.id
 
-  return Utils.unique(Utils.flatten(
-    this.edges().filter(el => el.to == id || el.to.id == id).map(el => el.from)
-  )).map(el => this.find(i => i.id == el))
+  return Utils.flatten(
+      this.edges().filter(el => el.to == id || el.to.id == id).map(el => el.from)
+    ).map(el => this.find(i => i.id == el.id))
 }
 
 
 /**
  * Find all the children for a given node or id
- * @params id a Node or String id of a Node
+ *  Returns an array of objects
+ *
+ *  @params id a Node or String id of a Node
  */
 Graph.prototype.children = function (id) {
   if (id instanceof Object) id = id.id
@@ -278,7 +369,7 @@ Graph.prototype.children = function (id) {
   }).map(el => el.to)
     .map(el => this.find(i => i == el || i.id == el))
 }
-},{"./element":2,"./utils":8}],4:[function(require,module,exports){
+},{"./element":3,"./utils":9}],5:[function(require,module,exports){
 const Utils = require('./utils')
 const MAP_URL = 'http://dave.kinkead.com.au/reasons'
 const reasons = []
@@ -356,7 +447,7 @@ function addReason(event) {
   
   reasons.push(selection)
 }
-},{"./utils":8}],5:[function(require,module,exports){
+},{"./utils":9}],6:[function(require,module,exports){
 'use strict'
 
 const Graph = require('./graph')
@@ -391,7 +482,7 @@ function Mapper (elementID) {
 
 
 /**
- * Populates a Graph with Reasons and Relations.
+ * Populates a Graph with nodes and edges.
  *
  * @params elements   the elements to render
  */
@@ -407,7 +498,7 @@ Mapper.prototype.render = function (elements) {
 Mapper.prototype.export = function () {
   return this.graph.map(element => element.export())
 }
-},{"./graph":3,"./ui":7,"./view":9}],6:[function(require,module,exports){
+},{"./graph":4,"./ui":8,"./view":10}],7:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
 //  Copyright (c) 2017 University of Queensland
 //  Available under the MIT license
@@ -426,46 +517,23 @@ module.exports = {
     return new Highlighter(dom)
   }
 }
-},{"./highlighter":4,"./mapper":5}],7:[function(require,module,exports){
+},{"./highlighter":5,"./mapper":6}],8:[function(require,module,exports){
 'use strict'
 
 module.exports = {}
-},{}],8:[function(require,module,exports){
-module.exports = {
-
-  //  build a DOM element
-  buildNode: function (type, options, attributes) {
-    const node = document.createElement(type)
-    for (var key in options) {
-      node[key] = options[key]
-    }
-    for (var key in attributes) {
-      node.setAttribute(key, attributes[key])
-    }
-    return node
-  },
-
-  intersection: function (array1, array2) {
-    return array1.filter(function(n) {
-      return array2.indexOf(n) !== -1;
-    })
-  },
-
-  unique: require('array-unique'),
-  flatten: require('array-flatten'),
-  diff: require('array-difference')
-}
-},{"array-difference":10,"array-flatten":11,"array-unique":12}],9:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
+arguments[4][2][0].apply(exports,arguments)
+},{"array-difference":11,"array-flatten":12,"array-unique":13,"dup":2}],10:[function(require,module,exports){
 'use strict'
 
-// const Reason = require('./reason')
-// const Relation = require('./relation')
 const Element = require('./Element')
 const Utils = require('./utils')
 
 const maxWidth = 200
 const padding = 10
 const fontSize = 16
+
+let graph = {}
 
 /**
  * Singleton View module to render a canvas.
@@ -476,7 +544,7 @@ module.exports = (function () {
    * Initialise the view for this argument map instance 
    *  by appending a HTML canvas element.
    *
-   *  @params argument  The @argument map to provide a view for
+   *  @params mapper  The argument map to provide a view for
    */
   function init (argument) {
     let domBB = argument.DOM.getBoundingClientRect()
@@ -485,7 +553,7 @@ module.exports = (function () {
       {id: 'reasons-'+argument.DOM.id}, 
       {width: domBB.width, height: domBB.height}
     )
-    
+
     argument.DOM.appendChild(canvas)
     argument.context = canvas.getContext('2d')
   }
@@ -495,6 +563,7 @@ module.exports = (function () {
    * Render an argument map instance
    */
   function draw (argument) {
+    graph = argument.graph
 
     argument.graph.elements().map((el) => {
       if (el.isNode()) draw_node(el, argument.context)
@@ -592,7 +661,11 @@ function draw_edge (edge, context) {
 function locate (edge) {
 
   //  find the weighted center point
-  let elements = Utils.flatten([edge.from, edge.to])
+  let ids = Utils.flatten([edge.from, edge.to])
+  let elements = graph.filter((el) => {
+    return ids.includes(el.id)
+  })
+
   edge.center = elements.map((el) => {
       return {x: (el.x1+(el.width)/2), y: (el.y1+(el.height )/2)}
     }).reduce((acc, el) => {
@@ -600,6 +673,7 @@ function locate (edge) {
     })
   edge.center.x = parseInt(edge.center.x/(elements.length))
   edge.center.y = parseInt(edge.center.y/(elements.length))
+
 
   //  create paths between from and to elements
   if (edge.from instanceof Array) {
@@ -689,7 +763,7 @@ function pointOfIntersection (from, rect, buffer) {
 
   return {x: distance * Math.cos(angle), y: distance * Math.sin(angle)}
 }
-},{"./Element":1,"./utils":8}],10:[function(require,module,exports){
+},{"./Element":1,"./utils":9}],11:[function(require,module,exports){
 (function(global) {
 
 	var indexOf = Array.prototype.indexOf || function(elem) {
@@ -737,7 +811,7 @@ function pointOfIntersection (from, rect, buffer) {
 
 }(this));
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict'
 
 /**
@@ -847,7 +921,7 @@ function flattenDownDepth (array, result, depth) {
   return result
 }
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /*!
  * array-unique <https://github.com/jonschlinkert/array-unique>
  *
@@ -892,5 +966,5 @@ module.exports.immutable = function uniqueImmutable(arr) {
   return module.exports(newArr);
 };
 
-},{}]},{},[6])(6)
+},{}]},{},[7])(7)
 });
