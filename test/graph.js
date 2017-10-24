@@ -79,18 +79,19 @@ describe('Graph', () => {
       graph.edges().should.have.length(3)
     })    
 
-    // it('should add conjoined edge to the graph when new edges share the same child', () => {
-    //   const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
-    //   graph.edges().length.should.equal(2)
-    //   graph.add({from: map.a, to: map.b})
-    //   graph.edges().length.should.equal(1)
-    // })
+    it('should add conjoined edge to the graph when new edges share the same child', () => {
+      const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
+      graph.edges().length.should.equal(2)
+      graph.add({from: map.a, to: map.b})
+      graph.edges().length.should.equal(1)
+      graph.edges()[0].from.should.haveTheSameItemsAs(['a', 'b'])
+    })
 
-    // it('should conjoin shared edge to the graph', () => {
-    //   const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
-    //   graph.add({from: map.a, to: map.b})
-    //   graph.edges().length.should.equal(1)
-    // })
+    it('should conjoin shared edge to the graph', () => {
+      const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
+      graph.add({from: map.a, to: map.b})
+      graph.edges().length.should.equal(1)
+    })
   })
 
   describe('#remove', () => {
@@ -99,11 +100,16 @@ describe('Graph', () => {
       graph.remove(map.b).should.have.length(3)
     })
 
-    // it('should remove an complex element from the graph', () => {
-    //   const graph = new Graph([map.a, map.b, map.c, {from: [map.a, map.b], to: map.c}])
-    //   graph.remove(map.a).should.have.length(3)
-    //   graph.edges()[0].from.should.equal(map.b)
-    // })    
+    it('should remove any dependent edges from the graph', () => {
+      const graph = new Graph([map.a, map.b, map.c, {from: map.a, to: map.c}])
+      graph.remove(map.c).should.haveTheSameItemsAs([map.a, map.b])
+    })
+
+    it('should remove an complex element from the graph', () => {
+      const graph = new Graph([map.a, map.b, map.c, {from: [map.a, map.b], to: map.c}])
+      graph.remove(map.a).should.have.length(3)
+      graph.edges()[0].from.should.haveTheSameItemsAs([map.b.id])
+    })    
   })  
 
   describe('#focus', () => {
@@ -127,27 +133,27 @@ describe('Graph', () => {
     })
   })
 
-  // describe('#parents', () => {
-  //   it('should find all the parents of a node', () => {
-  //     const graph = new Graph([map.a, map.b, map.c, map.d, map.ac, map.bc, map.cd])
-  //     graph.parents('d').should.be.instanceof(Array)
-  //     graph.parents('d').should.have.length(1)
-  //     graph.parents('d').should.haveTheSameItemsAs([map.c])
-  //   })
+  describe('#parents', () => {
+    it('should find all the parents of a node', () => {
+      const graph = new Graph([map.a, map.b, map.c, map.d, map.ac, map.bc, map.cd])
+      graph.parents('d').should.be.instanceof(Array)
+      graph.parents('d').should.have.length(1)
+      graph.parents('d').should.haveTheSameItemsAs([map.c])
+    })
 
-  //   it('should find all the parents of a conjoined node', () => {
-  //     const graph = new Graph([map.a, map.b, map.c, {from: ['a', 'b'], to: 'c'}])
-  //     graph.parents('c').should.have.length(1)
-  //     graph.parents('d').should.haveTheSameItemsAs([map.c])
-  //   })    
-  // })  
+    it('should find all the parents of a conjoined node', () => {
+      const graph = new Graph([map.a, map.b, map.c, {from: ['a', 'b'], to: 'c'}])
+      graph.parents('c').should.have.length(2)
+      graph.parents('c').should.haveTheSameItemsAs([map.a, map.b])
+    })    
+  })  
 
   describe('#children', () => {
     it('should find all the children of a node id', () => {
       const graph = new Graph([map.a, map.b, map.c, map.d, map.ac, map.bc, map.cd])
       graph.children('b').should.be.instanceof(Array)
       graph.children('b').should.have.length(1)
-      graph.children('b')[0].id.should.be.equal(map.c.id)
+      graph.children('b').should.haveTheSameItemsAs([map.c])
     })
 
     it('should find all the children of a node', () => {

@@ -40,6 +40,10 @@ describe('Element', () => {
       el.from.should.haveTheSameItemsAs(['a', 'b'])
     })
 
+    it('should transform an edge from: id to from: [id]', () => {
+      Element.mixin({from: 'a', to: 'b'}).from.should.haveTheSameItemsAs(['a']) 
+    })
+
     it('should generate a default ID if none are supplied', () => {
       Element.mixin({text: 'no id'}).id.should.be.instanceOf(String)
     })
