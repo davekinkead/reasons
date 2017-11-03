@@ -11,6 +11,7 @@ const map = {
     bc: {id: 'bc', from: 'b', to: 'c'}, 
     ca: {id: 'ca', from: 'c', to: 'a'}, 
     cd: {id: 'cd', from: 'c', to: 'd'},
+    abc: {id: 'abc', from: ['a', 'b'], to: 'c'}
   }
 
 describe('Graph', () => {
@@ -107,10 +108,22 @@ describe('Graph', () => {
     })
 
     it('should remove an complex element from the graph', () => {
-      const graph = new Graph([map.a, map.b, map.c, {from: [map.a, map.b], to: map.c}])
+      const graph = new Graph([map.a, map.b, map.c, map.abc])
       graph.remove(map.a).should.have.length(3)
       graph.edges()[0].from.should.haveTheSameItemsAs([map.b.id])
     })    
+
+    it('should remove both conclusion and conjoined edges when conclusion is removed', () => {
+      const graph = new Graph([map.a, map.b, map.c, {from: ['a', 'b'], to: 'c'}])
+      graph.remove(map.c)
+      graph.elements().should.haveTheSameItemsAs([map.a, map.b])
+    })
+
+    it('should only remove an isolated node when that node is deleted', () => {
+      const graph = new Graph([map.a, map.b, map.c, map.d, {from: ['a', 'b'], to: 'c'}])
+      graph.remove(map.d)
+      graph.edges()[0].from.should.haveTheSameItemsAs([map.a.id, map.b.id])
+    })
   })  
 
   describe('#focus', () => {

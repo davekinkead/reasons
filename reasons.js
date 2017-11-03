@@ -264,23 +264,32 @@ Graph.prototype.add = function (element) {
     if (el.isNode()) {
 
       //  find associated edges first
-      let edges = this.edges().filter(edge => edge.to == el.id || edge.from.includes(el.id))
+      let edgesTo = this.edges().filter(edge => edge.to == el.id)
+      let edgesFrom = this.edges().filter(edge => edge.from.includes(el.id))
 
       //  determine if any associated edge is conjoined
-      let conjoined = edges.filter(edge => edge.from.length > 1)
+      let conjoined = edgesFrom.filter(edge => edge.from.length > 1)
 
       //  remove the node
       this.splice(i, 1)
 
       //  and then the associated edges
-      edges.forEach((edge) => {
-        this.splice(this.indexOf(edge), 1)
+      edgesTo.forEach((edge) => {
+        if (this.indexOf(edge) > -1)
+          this.splice(this.indexOf(edge), 1)
+      })
+
+      edgesFrom.forEach((edge) => {
+        if (this.indexOf(edge) > -1)
+          this.splice(this.indexOf(edge), 1)
       })
 
       //  also remove node from any complex relations
-      this.edges().filter(e => e.from instanceof Array).map((e) => {
-        e.from.splice(e.from.indexOf(el), 1)
-        if (e.from.length ==1) e.from = e.from[0]
+      edgesFrom.filter(e => e.from instanceof Array).map((e) => {
+        if (e.from.indexOf(el) > -1) 
+          e.from.splice(e.from.indexOf(el), 1)
+        if (e.from.length === 1) 
+          e.from = e.from[0]
       })
 
       //  and now modify the conjoined edges and add them back
@@ -533,6 +542,7 @@ module.exports = {
 function addEventListeners (argumentMap) {
   let mouseDown = false
   let selected = null
+  let dragging = null
   let dirty = false
 
   argumentMap.DOM.addEventListener('dblclick', (event) => {
@@ -565,13 +575,18 @@ function addEventListeners (argumentMap) {
 
     //  Identify the selected element
     selected = detect(argumentMap, event).collision
+
+    //  Set this element as draggable
+    dragging = selected
   })
 
   argumentMap.DOM.addEventListener('mousemove', (event) => {
 
     //  Drag any selected elements
-    if (selected) {
-      selected.move(getPosition(event))
+    if (dragging) {
+
+      //  TODO: add a moveBy function for smother drag
+      dragging.move(getPosition(event))
       dirty = true
     }
 
@@ -583,9 +598,28 @@ function addEventListeners (argumentMap) {
   })
 
   argumentMap.DOM.addEventListener('mouseup', (event) => {
-    selected = null
+    dragging = null
   })
 
+  window.addEventListener('keydown', (event) => {
+
+    //  Delete a selected element on `backspace` or `delete`
+    if (event.keyCode == 8 || event.keyCode == 46) {
+
+      //  Removed the selected element from the graph
+      if (selected) {
+        argumentMap.graph.remove(selected)
+        dirty = true
+      }
+    }
+
+
+    //  Redraw the map
+    if (dirty) {
+      View.draw(argumentMap)
+      dirty = false
+    }
+  })
 }
 
 function detect(argumentMap, event) {
