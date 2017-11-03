@@ -13,12 +13,14 @@ module.exports = {
 
 
 /**
- * Mixes in the behaviour of an Element to an Object
+ * Mixes in specific behaviour of an Element to an Object
  */
 function mixin(element) {
   element.isEdge = isEdge
   element.isNode = isNode
   element.export = save
+  element.collides = collides
+  element.move = move
   init(element)
   return element
 }
@@ -70,6 +72,32 @@ function isEdge () {
  */
 function isNode () {
   return (this.isEdge()) ? false : true
+}
+
+/**
+ * Determines if an point is withing the boundaries of an element
+ */
+function collides (el) {
+  if (this.isEdge()) {
+    return false
+  } else {
+    //  when the element has an x,y value
+    return (el.x > this.x1 && el.x < this.x2 && el.y > this.y1 && el.y < this.y2) ? true : false
+  }
+}
+
+/**
+ * Increases the x & y values of an element
+ */
+function move (pos) {
+  if (this.isNode()) {
+    // this.x = x
+    this.x1 = pos.x
+    this.x2 = parseInt(this.width + pos.x)
+    // this.y = y
+    this.y1 = pos.y
+    this.y2 = parseInt(this.height + pos.y)
+  }
 }
 
 
@@ -152,11 +180,10 @@ module.exports = Graph
  * @param elements  the elements (nodes & edges) to consitute the graph
  */
 function Graph(elements) {
-
   //  sort the elements so nodes are added before edges
   if (elements instanceof Array) {
     elements.sort((a,b) => {
-      return a.to ? -1: 1 
+      return a.to ? 1: -1 
     }).forEach(el => this.add(el))
   }
 }
@@ -188,6 +215,7 @@ Graph.prototype.add = function (element) {
     //  and a new edge is added from A to B or vice versa
     //  then the relationships should be merged [A,B] -> D
     //  and C -> D kept unchanged  
+    // console.log(this.children(element.from[0]))
     let commonChildren = Utils.intersection(
       Utils.flatten(element.from.map(e => this.children(e))), 
       this.children(element.to)
@@ -202,11 +230,11 @@ Graph.prototype.add = function (element) {
           this.remove(edge)
 
         if (edge.from.includes(element.to)) {
-          this.push({
+          this.push(Element.mixin({
             from: Utils.flatten([edge.from, element.from]),
             to: edge.to,
             type: edge.type
-          })
+          }))
           this.remove(edge)
         }
       })
@@ -227,7 +255,6 @@ Graph.prototype.add = function (element) {
   let i = this.indexOf(el)
 
   if (i > -1) {
-
     if (el.isNode()) {
 
       //  find associated edges first
@@ -441,9 +468,13 @@ function Mapper (elementID) {
   //  get the DOM element
   this.DOM = document.querySelector(elementID)
 
-  //  attach the canvas to the HTML if the reference was valid
-  if (this.DOM)
+  //  attach the canvas and event listeners to the HTML if the reference was valid
+  if (this.DOM) {
     View.init(this)
+    UI.addEventListeners(this)
+  }
+
+
 }
 
 
@@ -453,6 +484,7 @@ function Mapper (elementID) {
  * @params elements   the elements to render
  */
 Mapper.prototype.render = function (elements) {
+  // console.log(elements)
   this.graph = new Graph(elements)
   View.draw(this)
 }
@@ -486,8 +518,81 @@ module.exports = {
 },{"./highlighter":5,"./mapper":6}],8:[function(require,module,exports){
 'use strict'
 
-module.exports = {}
-},{}],9:[function(require,module,exports){
+const View = require('./view')
+
+module.exports = {
+  addEventListeners
+}
+
+function addEventListeners (argumentMap) {
+  let mouseDown = false
+  let selected = null
+  let dirty = false
+
+  argumentMap.DOM.addEventListener('dblclick', (event) => {
+
+    const {position, collision} = detect(argumentMap, event)
+
+    if (collision) {
+
+      //  Double clicks on nodes or edges trigger edit mode
+      console.log('overlay here')
+
+    } else {
+
+      //  Double clicks on bare maps create new reasons
+      argumentMap.graph.add({x: position.x, y: position.y})
+    }
+
+    //  Redraw the map
+    View.draw(argumentMap)
+  })
+
+  argumentMap.DOM.addEventListener('mousedown', (event) => {
+
+    //  Identify the selected element
+    selected = detect(argumentMap, event).collision
+  })
+
+  argumentMap.DOM.addEventListener('mousemove', (event) => {
+
+    //  Drag any selected elements
+    if (selected) {
+      selected.move(getPosition(event))
+      dirty = true
+    }
+
+    if (dirty) {
+      console.log(selected)
+      View.draw(argumentMap)
+      dirty = false
+    }
+  })
+
+  argumentMap.DOM.addEventListener('mouseup', (event) => {
+    selected = null
+  })
+
+}
+
+function detect(argumentMap, event) {
+  return {
+    position: getPosition(event), 
+    collision: argumentMap.graph.elements().find(el => el.collides(getPosition(event)))
+  }
+}
+
+
+/**
+ * Private: Returns the x,y position of an event
+ */
+function getPosition(event) {
+  return {
+    x: parseInt(event.x || event.clientX),
+    y: parseInt(event.y || event.clientY)
+  }
+}
+},{"./view":10}],9:[function(require,module,exports){
 arguments[4][2][0].apply(exports,arguments)
 },{"array-difference":11,"array-flatten":12,"array-unique":13,"dup":2}],10:[function(require,module,exports){
 'use strict'
@@ -500,6 +605,7 @@ const padding = 10
 const fontSize = 16
 
 let graph = {}
+
 
 /**
  * Singleton View module to render a canvas.
@@ -531,11 +637,9 @@ module.exports = (function () {
   function draw (argument) {
     graph = argument.graph
 
-    argument.graph.elements().map((el) => {
-      if (el.isNode()) draw_node(el, argument.context)
-      if (el.isEdge()) draw_edge(el, argument.context)
-    })
-
+    //  draw edges before nodes
+    graph.edges().forEach(el => draw_edge(el, argument.context))
+    graph.nodes().forEach(el => draw_node(el, argument.context))
   }
 
   return {
@@ -546,6 +650,9 @@ module.exports = (function () {
 })();
 
 
+/**
+ * Private: Draws a node on the canvas
+ */
 function draw_node (node, context) {
 
   //  word wrap the text 
@@ -583,6 +690,9 @@ function draw_node (node, context) {
   })  
 }
 
+/**
+ * Private: Draws an edge on the canvas
+ */
 function draw_edge (edge, context) {
   locate(edge)
 
@@ -623,15 +733,20 @@ function draw_edge (edge, context) {
     context.fillRect(edge.intersection.x, edge.intersection.y, 10, 10)
 }
 
-//  Returns a list of `paths` between nodes for this relation
+
+/**
+ * Private: Returns a list of `paths` between nodes for this relation
+ *  Requires reference to @graph from outside of function
+ */
 function locate (edge) {
 
-  //  find the weighted center point
+  //  collect all the nodes involved
   let ids = Utils.flatten([edge.from, edge.to])
   let elements = graph.filter((el) => {
     return ids.includes(el.id)
   })
 
+  //  find the weighted center point of those nodes
   edge.center = elements.map((el) => {
       return {x: (el.x1+(el.width)/2), y: (el.y1+(el.height )/2)}
     }).reduce((acc, el) => {
@@ -640,42 +755,28 @@ function locate (edge) {
   edge.center.x = parseInt(edge.center.x/(elements.length))
   edge.center.y = parseInt(edge.center.y/(elements.length))
 
+  //  create pairs from from-points to center to to-point
+  edge.paths = edge.from.map((node) => {
+    let el = elements.find(e => e.id == node)
+    return {
+      x1: parseInt(el.x1+(el.x2-el.x1)/2),
+      y1: parseInt(el.y1+(el.y2-el.y1)/2),
+      x2: parseInt(edge.center.x),
+      y2: parseInt(edge.center.y)
+    }
+  })
 
-  //  create paths between from and to elements
-  if (edge.from instanceof Array) {
+  //  move the 'to' point back down the path to just outside the node.
+  let to = elements.find(e => e.id == edge.to)
+  let offset = pointOfIntersection(edge.center, to, 5)
 
-    //  create pairs from from-points to center to to-point
-    edge.paths = edge.from.map((el) => {
-      return {
-        x1: parseInt(el.x1+(el.x2-el.x1)/2),
-        y1: parseInt(el.y1+(el.y2-el.y1)/2),
-        x2: parseInt(edge.center.x),
-        y2: parseInt(edge.center.y)
-      }
-    })
-
-    //  move the 'to' point back down the path to just outside the node.
-    let offset = pointOfIntersection(edge.center, edge.to, 5)
-
-    // get offset x,y from rectangle intersect
-    edge.paths.push({
-      x1: parseInt(edge.center.x),
-      y1: parseInt(edge.center.y),
-      x2: parseInt(edge.to.x1+(edge.to.x2-edge.to.x1)/2)-offset.x,
-      y2: parseInt(edge.to.y1+(edge.to.y2-edge.to.y1)/2)+offset.y 
-    })
-  } else {
-
-    //  when only a single from element exists
-    let offset = pointOfIntersection(edge.center, edge.to, 5)
-
-    edge.paths = [{
-      x1: parseInt(edge.from.x1+(edge.from.x2-edge.from.x1)/2),
-      y1: parseInt(edge.from.y1+(edge.from.y2-edge.from.y1)/2),
-      x2: parseInt(edge.to.x1+(edge.to.x2-edge.to.x1)/2)-offset.x,
-      y2: parseInt(edge.to.y1+(edge.to.y2-edge.to.y1)/2)+offset.y 
-    }]
-  }
+  // get offset x,y from rectangle intersect
+  edge.paths.push({
+    x1: parseInt(edge.center.x),
+    y1: parseInt(edge.center.y),
+    x2: parseInt(to.x1 + (to.x2 - to.x1)/2) - offset.x,
+    y2: parseInt(to.y1 + (to.y2 - to.y1)/2) + offset.y 
+  })
 }
 
 function resize (node) {
@@ -715,7 +816,6 @@ function arrowify(path) {
 }
 
 //  determines the intersection x,y from a point to center of rectangle
-//  TODO: Add tests
 function pointOfIntersection (from, rect, buffer) {
   let center = {x: rect.x1 + rect.width/2, y: rect.y1 + rect.height/2}
 

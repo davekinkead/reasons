@@ -94,4 +94,59 @@ describe('Element', () => {
       el.export().from.should.haveTheSameItemsAs([reasons.a.id, reasons.b.id])
     })    
   }) 
+
+  describe('#isNode', () => {
+    it('should return true for nodes', () => {
+      const el = Element.mixin({text: 'balh, blah'})
+      el.isNode().should.be.true()  
+    })
+
+    it('should return false for edges', () => {
+      const el = Element.mixin({from: 'a', to: 'b'})
+      el.isNode().should.be.false()  
+    })
+  })
+
+  describe('#isEdge', () => {
+    it('should return true for edges', () => {
+      const el = Element.mixin({text: 'balh, blah'})
+      el.isEdge().should.be.false()  
+    })
+
+    it('should return false for nodes', () => {
+      const el = Element.mixin({from: 'a', to: 'b'})
+      el.isEdge().should.be.true()  
+    })    
+  })  
+
+  describe('#collides', () => {
+    it('returns true when x,y are inside a nodes boundaries', () => {
+      const el = Element.mixin(reasons.b)
+      el.collides({x: (el.x2-el.x1), y: (el.y2-el.y1)}).should.be.true()
+    })
+
+    it('returns false when x,y are outside a nodes boundaries', () => {
+      const el = Element.mixin(reasons.b)
+      el.collides({x: (el.x2+el.x1), y: (el.y2+el.y1)}).should.be.false()      
+    })
+
+    it('returns true when x,y are inside an edges boundaries', () => {
+
+    })   
+
+    it('returns false when x,y are outside an edges boundaries', () => {
+
+    })        
+  })   
+
+  describe('#move', () => {
+    it('should move node coordinates by the corresponding amount', () => {
+      const el = Element.mixin(reasons.a)
+      el.move({x: 100, y: 100})
+      el.x1.should.be.equal(100)
+      el.y1.should.be.equal(100)
+      el.x2.should.be.equal(100+el.width)
+      el.y2.should.be.equal(100+el.height)    
+    })
+  })
 })

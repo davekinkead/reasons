@@ -87,10 +87,11 @@ describe('Graph', () => {
       graph.edges()[0].from.should.haveTheSameItemsAs(['a', 'b'])
     })
 
-    it('should conjoin shared edge to the graph', () => {
+    it('should conjoin shared edge to the graph from ids', () => {
       const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
-      graph.add({from: map.a, to: map.b})
+      graph.add({from: map.a.id, to: map.b.id})
       graph.edges().length.should.equal(1)
+      graph.edges()[0].from.should.haveTheSameItemsAs([map.a.id, map.b.id])
     })
   })
 
