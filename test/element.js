@@ -122,12 +122,12 @@ describe('Element', () => {
   describe('#collides', () => {
     it('returns true when x,y are inside a nodes boundaries', () => {
       const el = Element.mixin(reasons.b)
-      el.collides({x: (el.x2-el.x1), y: (el.y2-el.y1)}).should.be.true()
+      el.collides({x: el.x, y: el.y}).should.be.true()
     })
 
     it('returns false when x,y are outside a nodes boundaries', () => {
       const el = Element.mixin(reasons.b)
-      el.collides({x: (el.x2+el.x1), y: (el.y2+el.y1)}).should.be.false()      
+      el.collides({x: (el.x + el.width), y: (el.y + el.height)}).should.be.false()      
     })
 
     it('returns true when x,y are inside an edges boundaries', () => {
@@ -143,10 +143,8 @@ describe('Element', () => {
     it('should move node coordinates by the corresponding amount', () => {
       const el = Element.mixin(reasons.a)
       el.move({x: 100, y: 100})
-      el.x1.should.be.equal(100)
-      el.y1.should.be.equal(100)
-      el.x2.should.be.equal(100+el.width)
-      el.y2.should.be.equal(100+el.height)    
+      el.x1.should.be.equal(100 - el.width/2)
+      el.y2.should.be.equal(100 + el.height/2) 
     })
   })
 })

@@ -51,10 +51,7 @@ function init (element) {
     element.text = element.text || 'A reason'
     element.width = maxWidth
     element.height = fontSize * 3.5
-    element.x1 = element.x || 0
-    element.y1 = element.y || 0
-    element.x2 = element.x1 + element.width
-    element.y2 = element.y1 + element.height
+    locate(element, {x: element.x || 0, y: element.y || 0})
   }
 }
 
@@ -89,14 +86,11 @@ function collides (el) {
 /**
  * Increases the x & y values of an element
  */
-function move (pos) {
+function move (position) {
   if (this.isNode()) {
-    // this.x = x
-    this.x1 = pos.x
-    this.x2 = parseInt(this.width + pos.x)
-    // this.y = y
-    this.y1 = pos.y
-    this.y2 = parseInt(this.height + pos.y)
+    this.x = position.x
+    this.y = position.y
+    locate(this, position)
   }
 }
 
@@ -120,9 +114,21 @@ function save () {
     return {
       id: this.id, 
       text: this.text,
-      x: this.x1,
-      y: this.y1
+      x: parseInt(this.x1 + this.width/2),
+      y: parseInt(this.y1 + this.height/2)
     }    
+  }
+}
+
+/**
+ * Helper function to set position values
+ */
+function locate (element, position) {
+  if (element.isNode()) {
+    element.x1 = parseInt(position.x - element.width/2)
+    element.x2 = parseInt(position.x + element.width/2)
+    element.y1 = parseInt(position.y - element.height/2)
+    element.y2 = parseInt(position.y + element.height/2)
   }
 }
 
@@ -536,12 +542,16 @@ function addEventListeners (argumentMap) {
     if (collision) {
 
       //  Double clicks on nodes or edges trigger edit mode
+      //  TODO: Add overlay to edit node
+
+      //  TODO: Add overlay to edit edge
       console.log('overlay here')
 
     } else {
 
       //  Double clicks on bare maps create new reasons
       argumentMap.graph.add({x: position.x, y: position.y})
+      dirty = true
     }
 
     //  Redraw the map
