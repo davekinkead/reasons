@@ -545,7 +545,10 @@ function addEventListeners (argumentMap) {
     }
 
     //  Redraw the map
-    View.draw(argumentMap)
+    if (dirty) {
+      View.draw(argumentMap)
+      dirty = false
+    }
   })
 
   argumentMap.DOM.addEventListener('mousedown', (event) => {
@@ -562,8 +565,8 @@ function addEventListeners (argumentMap) {
       dirty = true
     }
 
+    //  Redraw the map
     if (dirty) {
-      console.log(selected)
       View.draw(argumentMap)
       dirty = false
     }
@@ -635,9 +638,10 @@ module.exports = (function () {
    * Render an argument map instance
    */
   function draw (argument) {
-    graph = argument.graph
+    clear(argument)
 
     //  draw edges before nodes
+    graph = argument.graph
     graph.edges().forEach(el => draw_edge(el, argument.context))
     graph.nodes().forEach(el => draw_node(el, argument.context))
   }
@@ -648,6 +652,15 @@ module.exports = (function () {
   }
 
 })();
+
+
+/**
+ *  Private: Clear the canvas before drawing
+ */
+function clear (argument) {
+  let domBB = argument.DOM.getBoundingClientRect()
+  argument.context.clearRect(0, 0, domBB.width, domBB.height)
+} 
 
 
 /**
