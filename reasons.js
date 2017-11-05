@@ -534,16 +534,22 @@ module.exports = {
 'use strict'
 
 const View = require('./view')
+const Utils = require('./utils')
+
 
 module.exports = {
   addEventListeners
 }
 
 function addEventListeners (argumentMap) {
+
+  //  encapuslate event state in the argumentMap
+  argumentMap.flags = {}
+  argumentMap.flags.dirty = false
+  argumentMap.flags.editing = true
   let mouseDown = false
   let selected = null
   let dragging = null
-  let dirty = false
 
   argumentMap.DOM.addEventListener('dblclick', (event) => {
 
@@ -552,22 +558,19 @@ function addEventListeners (argumentMap) {
     if (collision) {
 
       //  Double clicks on nodes or edges trigger edit mode
-      //  TODO: Add overlay to edit node
-
-      //  TODO: Add overlay to edit edge
-      console.log('overlay here')
+      addOverlay(argumentMap, collision)
 
     } else {
 
-      //  Double clicks on bare maps create new reasons
+      //  Double clicks on a bare map creates a new node
       argumentMap.graph.add({x: position.x, y: position.y})
-      dirty = true
+      argumentMap.flags.dirty = true
     }
 
     //  Redraw the map
-    if (dirty) {
+    if (argumentMap.flags.dirty) {
       View.draw(argumentMap)
-      dirty = false
+      argumentMap.flags.dirty = false
     }
   })
 
@@ -587,13 +590,13 @@ function addEventListeners (argumentMap) {
 
       //  TODO: add a moveBy function for smother drag
       dragging.move(getPosition(event))
-      dirty = true
+      argumentMap.flags.dirty = true
     }
 
     //  Redraw the map
-    if (dirty) {
+    if (argumentMap.flags.dirty) {
       View.draw(argumentMap)
-      dirty = false
+      argumentMap.flags.dirty = false
     }
   })
 
@@ -603,25 +606,36 @@ function addEventListeners (argumentMap) {
 
   window.addEventListener('keydown', (event) => {
 
+    //  Escape key
+    if (argumentMap.flags.editing && event.keyCode == 27) removeOverlay(argumentMap)
+
+    //  Return key
+    if (argumentMap.flags.editing && event.keyCode == 13) {
+      submitOverlay(argumentMap)
+    }
+
     //  Delete a selected element on `backspace` or `delete`
     if (event.keyCode == 8 || event.keyCode == 46) {
 
       //  Removed the selected element from the graph
-      if (selected) {
+      if (selected && !argumentMap.flags.editing) {
         argumentMap.graph.remove(selected)
-        dirty = true
+        argumentMap.flags.dirty = true
       }
     }
 
-
     //  Redraw the map
-    if (dirty) {
+    if (argumentMap.flags.dirty) {
       View.draw(argumentMap)
-      dirty = false
+      argumentMap.flags.dirty = false
     }
   })
 }
 
+
+/**
+ * Private: Returns mouse event and hovered element
+ */
 function detect(argumentMap, event) {
   return {
     position: getPosition(event), 
@@ -639,7 +653,50 @@ function getPosition(event) {
     y: parseInt(event.y || event.clientY)
   }
 }
-},{"./view":10}],9:[function(require,module,exports){
+
+//  Overlays a text box to edit a node or edge
+function addOverlay(argumentMap, element) {
+
+  //  set the 
+  argumentMap.flags.editing = true
+
+  //  Create background layer
+  let overlay = Utils.buildNode('div', {id: 'reason-overlay'})
+  overlay.setAttribute('style', 'position:absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75);')
+
+  // Create text input field
+  let input = Utils.buildNode('input', {id: 'edit-reason-input'}, {value: element.text || element.type})
+  input.setAttribute('style', 'position:absolute; top: 45%; bottom: 50%; left: 25%; right: 50%; width:50%; padding: 1rem;')
+  input.setAttribute('data-element', element.id)
+
+  //  Append to the DOM
+  overlay.appendChild(input)
+  document.body.appendChild(overlay)
+
+  //  Highlight text on element creation
+  input.select()
+}
+
+//  Update the graph from the overlay and remove it
+function submitOverlay (argumentMap) {
+  let input = document.querySelector('#edit-reason-input')
+  let el = argumentMap.graph.elements().find(el => el.id == input.getAttribute('data-element') )
+
+  if (el.isNode()) {
+    el.text = input.value
+  } else {
+    el.type = input.value
+  }
+  removeOverlay(argumentMap)
+}
+
+//  Remove overlay
+function removeOverlay (argumentMap) {
+  argumentMap.flags.editing = false
+  argumentMap.flags.dirty = true
+  document.querySelector('#reason-overlay').remove()  
+}
+},{"./utils":9,"./view":10}],9:[function(require,module,exports){
 arguments[4][2][0].apply(exports,arguments)
 },{"array-difference":11,"array-flatten":12,"array-unique":13,"dup":2}],10:[function(require,module,exports){
 'use strict'

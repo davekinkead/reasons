@@ -1,17 +1,19 @@
 Feature Roadmap
 
-0.1.0
+1.0.0
 
 Map
 
   - Relations
-    - [x] Add divergent reasons
+    - [] Add divergent reasons
     - [] Conjoining reasons should only join on dropped reasons
     - [] Add independent conjoined argument chains
     - [] Permit multiple relations between nodes
   - UX
-    - [x] Automatically highlight reason text on node creation
-    - [x] Hover over relation text should tigger edit
+    - [] focused element should be on top
+    - [] focused element visual affordances
+    - [] Automatically highlight reason text on node creation
+    - [] Hover over relation text should tigger edit
     - [] Automatically scale to view port
     - [] Add zoom in/out functionality map
     - [] Add params option for line, overlay, background colour etc
@@ -20,16 +22,17 @@ Map
     - [] Add multiple node selection for dragging  
     - [] Touch UI
   - Data
-    - [x] Changes to canvas events should update graph object
-    - [x] Render map from existing x,y coordinates
+    - [] Changes to canvas events should update graph object
+    - [] Render map from existing x,y coordinates
   - Hot Keys
-    - [x] Add backspace and delete key codes for Windows
+    - [] Add backspace and delete key codes for Windows
     - [] Tab to different elements
     - [] Return to edit selected element
     - [] Add undo / redo hot keys
-    - [x] Escape to cancel overlay
+    - [] Escape to cancel overlay
 
   - [] Add build process to include Safari
+
   
 Highlighter
 
