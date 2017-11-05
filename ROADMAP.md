@@ -12,6 +12,7 @@ Map
   - UX
     - [] focused element should be on top
     - [] focused element visual affordances
+    - [] Add edit overlays for edges
     - [] Automatically highlight reason text on node creation
     - [] Hover over relation text should tigger edit
     - [] Automatically scale to view port
