@@ -20,13 +20,13 @@ Feature Roadmap
   - [X] Edges: Permit multiple relations between nodes
 
   - [X] Compatibility: Chrome on OSX 
-  - [] Compatibility: Chrome on Windows 
   - [X] Compatibility: Firefox on OSX  
-  - [] Compatibility: Firefox on Windows  
   - [X] Compatibility: Safari on OSX
+  - [] Compatibility: Firefox on Windows  
+  - [] Compatibility: Chrome on Windows
 
   - [X] Data: Changes to canvas events should update graph object
-  - [] Data: Render map from existing x,y coordinates
+  - [X] Data: Render map from existing x,y coordinates
 
 Future
 
