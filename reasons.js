@@ -505,6 +505,7 @@ Mapper.prototype.render = function (elements) {
   // console.log(elements)
   this.graph = new Graph(elements)
   View.draw(this)
+  return this
 }
 
 
@@ -571,11 +572,7 @@ function addEventListeners (argumentMap) {
       argumentMap.flags.dirty = true
     }
 
-    //  Redraw the map
-    if (argumentMap.flags.dirty) {
-      View.draw(argumentMap)
-      argumentMap.flags.dirty = false
-    }
+    redraw(argumentMap)
   })
 
   argumentMap.DOM.addEventListener('mousedown', (event) => {
@@ -591,7 +588,7 @@ function addEventListeners (argumentMap) {
 
   argumentMap.DOM.addEventListener('mousemove', (event) => {
 
-    //  Hover is true if the mouse is moved whilst over an element
+    //  Set element hover flag on mouseover
     const mouse = getPosition(event)
     argumentMap.graph.forEach((el) => {
       if (el.collides(mouse)) {
@@ -603,22 +600,18 @@ function addEventListeners (argumentMap) {
       }
     })
 
-    //  Drag any selected elements
+    //  Specify a node as the drag target when clicked
     if (dragging) {
       dragging.move(getPosition(event))
       argumentMap.flags.dirty = true
     }
 
-    //  Redraw the map
-    if (argumentMap.flags.dirty) {
-      View.draw(argumentMap)
-      argumentMap.flags.dirty = false
-    }
+    redraw(argumentMap)
   })
 
   argumentMap.DOM.addEventListener('mouseup', (event) => {
 
-    //  Check for node drop
+    //  Check for node drop and add a new edge to the graph if required
     if (dragging) {
       const target = argumentMap.graph.nodes().find(el => dragging.collides(el) && dragging.id !== el.id)
       if (target) {
@@ -630,12 +623,8 @@ function addEventListeners (argumentMap) {
 
     //  No longer dragging a node
     dragging = null
-    
-    //  Redraw the map
-    if (argumentMap.flags.dirty) {
-      View.draw(argumentMap)
-      argumentMap.flags.dirty = false
-    }
+
+    redraw(argumentMap)
   })
 
   window.addEventListener('keydown', (event) => {
@@ -671,13 +660,18 @@ function addEventListeners (argumentMap) {
 /**
  * Private: Redraws the canvas if dirty
  */
-
+function redraw (argumentMap) {
+  if (argumentMap.flags.dirty) {
+    View.draw(argumentMap)
+    argumentMap.flags.dirty = false
+  }
+}
 
 
 /**
  * Private: Returns mouse event and hovered element
  */
-function detect(argumentMap, event) {
+function detect (argumentMap, event) {
   return {
     position: getPosition(event), 
     collision: argumentMap.graph.elements().find(el => el.collides(getPosition(event)))
@@ -688,15 +682,17 @@ function detect(argumentMap, event) {
 /**
  * Private: Returns the x,y position of an event
  */
-function getPosition(event) {
+function getPosition (event) {
   return {
     x: parseInt(event.x || event.clientX),
     y: parseInt(event.y || event.clientY)
   }
 }
 
-//  Overlays a text box to edit a node or edge
-function addOverlay(argumentMap, element) {
+/**
+ * Private: Overlays a text box to edit a node or edge
+ */
+function addOverlay (argumentMap, element) {
 
   //  set the 
   argumentMap.flags.editing = true
@@ -718,7 +714,10 @@ function addOverlay(argumentMap, element) {
   input.select()
 }
 
-//  Update the graph from the overlay and remove it
+
+/**
+ * Private: Updates the graph from the overlay and removes it
+ */
 function submitOverlay (argumentMap) {
   let input = document.querySelector('#edit-reason-input')
   let el = argumentMap.graph.elements().find(el => el.id == input.getAttribute('data-element') )
@@ -731,7 +730,10 @@ function submitOverlay (argumentMap) {
   removeOverlay(argumentMap)
 }
 
-//  Remove overlay
+
+/**
+ * Private: Removes the overlay
+ */
 function removeOverlay (argumentMap) {
   argumentMap.flags.editing = false
   argumentMap.flags.dirty = true
@@ -814,7 +816,7 @@ function draw_node (node, context) {
   let text = wordWrap(node.text, context)
 
   //  recalculate the height
-  let height = text.length * fontSize + fontSize * 2.5
+  node.height = text.length * fontSize + fontSize * 2.5
   resize(node)
 
   //  clear a white rectangle for background
@@ -934,10 +936,12 @@ function locate (edge) {
   })
 }
 
+
 function resize (node) {
   node.x2 = node.x1 + node.width
   node.y2 = node.y1 + node.height
 }
+
 
 function wordWrap(text, context) {
   let words = text.split(' ')

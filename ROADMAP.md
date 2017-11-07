@@ -2,28 +2,41 @@ Feature Roadmap
 
 1.0.0
 
-Map
-
-  - [] Edges: Add divergent reasons
-  - [] Edges: Conjoining reasons should only join on dropped reasons
-  - [] Edges: Add independent conjoined argument chains
-  - [] Edges: Permit multiple relations between nodes
-
+  - [X] UX: Double click canvas to add node
   - [X] UX: Automatically highlight reason text on node creation
+  - [X] UX: Double click node to edit text
+  - [] UX: Double click edge to edit text
+  - [X] UX: Drag node to move position
+  - [X] UX: Dragging node updates edges
+  - [X] UX: Drop node on node to create edge
+  - [X] UX: Automatically adjust node size from text
   - [] UX: Focused element should be on top
   - [] UX: Focused element visual affordances
-  - [] UX: Add edit overlays for edges
-  - [] UX: Hover over relation text should tigger focus
+  - [] UX: Hover over edge text should tigger focus
+
+  - [X] Edges: Add divergent reasons
+  - [X] Edges: Conjoining reasons should only join on dropped reasons
+  - [X] Edges: Add independent conjoined argument chains
+  - [X] Edges: Permit multiple relations between nodes
+
+  - [X] Compatibility: Chrome on OSX 
+  - [] Compatibility: Chrome on Windows 
+  - [X] Compatibility: Firefox on OSX  
+  - [] Compatibility: Firefox on Windows  
+  - [X] Compatibility: Safari on OSX
+
+  - [] Data: Changes to canvas events should update graph object
+  - [] Data: Render map from existing x,y coordinates
+
+Future
+
   - [] UX: Automatically scale to view port
   - [] UX: Add zoom in/out functionality map
   - [] UX: Add params option for line, overlay, background colour etc
   - [] UX: Add automatic padding when dropping node
   - [] UX: Node line type selector (solid/dotted) 
   - [] UX: Add multiple node selection for dragging  
-  - [] UX: Touch UI
-
-  - [] Data :Changes to canvas events should update graph object
-  - [] Data :Render map from existing x,y coordinates
+  - [] UX: Automatic layout options
 
   - [] Hot Keys: Add backspace and delete key codes for Windows
   - [] Hot Keys: Tab to different elements
@@ -31,19 +44,5 @@ Map
   - [] Hot Keys: Add undo / redo hot keys
   - [] Hot Keys: Escape to cancel overlay
 
-  - [] Add build process to include Safari
-
-Highlighter
-
-  - [] replace premise/conclusion with 'save'
-  - [] display already highlighted text
-  - [] delete already highlight text
-
-Tests
-
-  - [x] graph.js
-  - [] map.js
-  - [] highlighter.js
-  - [] reason.js
-  - [] relation.js
-  - [] utils.js
+  - [] Compatibility: Touch UI for iOS
+  - [] Compatibility: Touch UI for Android

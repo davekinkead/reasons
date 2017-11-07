@@ -36,7 +36,7 @@
     const graph = buildGraphFromSession()
 
     //  Invoke the Reasons.js API
-    const map = Reasons.mapper('#content').render(graph)
+    const argMap = Reasons.mapper('#content').render(graph)
 
     function buildGraphFromSession () {
       const session = sessionStorage.getItem('reasons')
@@ -73,7 +73,7 @@
 
     //  Save the argument map
     function save() {
-      console.log(map.export())
+      console.log(argMap.export())
       // const graphs = JSON.parse(localStorage.getItem('reasons')) || []
       // graphs.push(map)
       // localStorage.setItem('reasons', JSON.stringify(graphs))

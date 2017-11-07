@@ -19,29 +19,33 @@ const G = [
 describe('Mapper', () => {
 
   describe('#new', () => {
-    it('creates a map with a valid DOM reference', () => {
+    it('should create a map with a valid DOM reference', () => {
       M.should.be.instanceOf(Mapper)
     })
 
-    it('returns null for invalid DOM references', () => {
+    it('return null for invalid DOM references', () => {
       (new Mapper('#nosuchref')).should.be.null
     })
   })
 
   describe('#render', () => {
-    it('populates the graph in the argument map', () => {
+    it('should populate the graph in the argument map', () => {
       M.render(G)
       M.graph.length.should.equal(G.length)
+    })
+
+    it('should return a reference of the graph', () => {
+      const m = M.render(G)
+      m.should.be.instanceOf(Mapper)
     })
   })
 
   describe('#export', () => {
-    it('exports the graph as an array from the argument map', () => {
+    it('should export the graph as an array from the argument map', () => {
       M.render(G)
       M.export()
       M.export().should.be.instanceOf(Array)
       M.export().length.should.equal(G.length)
     })
-
   })
 })
