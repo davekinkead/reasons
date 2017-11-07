@@ -412,10 +412,10 @@ const reasons = []
 
 module.exports = Highlighter
 
-function Highlighter (dom) {
+function Highlighter (dom, args={}) {
   if (!(this instanceof Highlighter)) return new Highlighter(dom)
 
-  buildToolTip()
+  buildToolTip(args)
 
   //  Event listener for text highlight
   const target = document.querySelector(dom)
@@ -435,26 +435,21 @@ function Highlighter (dom) {
   })
 }
 
-function buildToolTip () {
+function buildToolTip (args) {
 
   const tooltip = Utils.buildNode('div', {id: 'tooltip'}, {style: 'display:none;'})
   document.body.appendChild(tooltip)
 
-  const premise = Utils.buildNode('img', {name: 'premise', title: 'Premise', src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAANlBMVEUAAABERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERER5ECNjAAAAEXRSTlMAAQYUIyYtLjlLVVZxoLzt7xYSs+QAAABUSURBVCjPzZA5EsAgDMSW+0oA//+zDDCksZt0qFupsoGDzaUkDYahSeXBr0A8hKtCbCRQNTqJJMieyu+Q8crBQrmweLbYw5tbn3hwyzce1Ly0x28PkhUQ+2QwVtEAAAAASUVORK5CYII="})
-  premise.setAttribute('style', 'padding:5px;')
-  premise.addEventListener('click', addReason)
+  const reason = Utils.buildNode('img', {name: 'reason', title: 'Add reason', src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAulBMVEUAAAAzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMPBiuWAAAAPXRSTlMAAQIEBQcLDxASEx8hJykvMTU2PUJDS1VWWVxmZ21vcHR3e4OFjo+SmJuqwczO09XX3N7g4unr7fP1+fv9w3a8WAAAALdJREFUKFO9jtkCgVAQhiciJGtRiFD2Nck67/9azlrnlgv/1TfzzTkzAD+kMwtJ5oMSYWNIOQwswj6KXHUwXrKwQXtLxi6MMj6CnjG6EObFX0RBFYEiYKMISxV6dM8EOKdc8DS4YCluFQGE+5I9RdAbbFlMEGPJTSJMwdoFcSW4liKmmuhHZKhFoect6R0O7dZdPya8p2zy+/jjM+OHwYYYT/lHCeVDhXH59tyNq2LZApN1Wyz7Mh9XIkV0Nq93/gAAAABJRU5ErkJggg=="})
+  reason.setAttribute('style', 'padding:5px;')
+  reason.addEventListener('click', addReason)
 
-  const objection = Utils.buildNode('img', {name: 'objection', title: 'Objection', src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAgVBMVEUAAABERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERER4EtaNAAAAKnRSTlMAAQMFBgcJDEdLWFlbXF1odXeFiIuRkpSVl5itr7m6vsfIytXX4ubo6f1TzZtTAAAAr0lEQVQoz22Q1xaCQAxEZ6mKBStiwS7q/P8H+rAlAdmn5N6zJ5kAQPleGoQ3areRrVYkD8EUJJvIc3JvhFtTksoUrjsCH1eyNsLJBAuKEX4GTB26R6iuMTrGv1sMDBnH/0zgPXMXDhiZ+80Ux0T9qM0w12ba28qb2V8Oa+Yyt2PGsmcmW2+AVu2v8iSodC6z8/cEoqaT15pXDmfkDpXnQHTiRd1nzWfu61SfB6kBgB9Z7jbscyDPiwAAAABJRU5ErkJggg=="})
-  objection.setAttribute('style', 'padding:5px;')
-  objection.addEventListener('click', addReason)
+  const trash = Utils.buildNode('img', {name: 'trash', title: 'Delete reason', src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAP1BMVEUAAAAzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM12c1RAAAAFHRSTlMAAQUGN1FYXl9xdHuAzNPe7/H1+3a+Qu0AAABiSURBVChT5ZBLDoAgDAVfFb+g/Hr/s7qgRovKBZykCZlJWRQokE3MzMkSNDMLk/YUcg8AXQ56xbArD8fmdJ5f8K0APL181gxE16gAXPOv8HkSjYS99puEsQ6DBFrjXceFABz1gBh+m/xpHAAAAABJRU5ErkJggg=="})
+  trash.setAttribute('style', 'padding:5px;')
+  trash.addEventListener('click', addReason)
 
-  const conclusion = Utils.buildNode('img', {name: 'conclusion', title: 'Conclusion', src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAaVBMVEUAAABERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERdclAKAAAAInRSTlMAAQIDBQcLDhEUHCYnKSowQEFCQ2JjZGaOlNrg4u3x9/v9hyAg+QAAAHVJREFUKFO1y0kSgkAQRNEPKoo44Ag4Yef9D+mCDoKedvJ39TIKZm27jnsjs4+7ZA5xl75L3++SJL0XAFnu+6cEKB79zvrN8ZdkqtDzp2QXx1kNl6m4Og5nu3Sew0WTJj7+BA6nhI9L4FAnHOqEw7HdRP0P/QCyxRQBq+KXRQAAAABJRU5ErkJggg=="})
-  conclusion.setAttribute('style', 'padding:5px;')
-  conclusion.addEventListener('click', addReason)
-
-  tooltip.appendChild(premise)
-  tooltip.appendChild(objection)
-  tooltip.appendChild(conclusion)
+  tooltip.appendChild(reason)
+  tooltip.appendChild(trash)
 
   const button = Utils.buildNode('input', {id: 'create-map-button'}, {
     name: 'create-map-button',
@@ -464,7 +459,7 @@ function buildToolTip () {
 
   button.onclick = () => {
     sessionStorage.setItem('reasons', JSON.stringify(reasons))
-    window.open(MAP_URL, '_blank')  
+    window.open(args.url || MAP_URL, '_blank')  
   }
 
   document.body.appendChild(button)  
@@ -555,8 +550,8 @@ module.exports = {
     return new Mapper(dom)
   },
 
-  highlight: function(dom) {
-    return new Highlighter(dom)
+  highlight: function(dom, args) {
+    return new Highlighter(dom, args)
   }
 }
 },{"./highlighter":5,"./mapper":6}],8:[function(require,module,exports){

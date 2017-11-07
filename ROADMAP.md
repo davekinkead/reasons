@@ -13,6 +13,7 @@ Feature Roadmap
   - [X] UX: Focused element should be on top
   - [X] UX: Focused element visual affordances
   - [X] UX: Hover over edge text should tigger focus
+  - [] UX: Improve sharpness of canvas elements
 
   - [X] Edges: Add divergent reasons
   - [X] Edges: Conjoining reasons should only join on dropped reasons
@@ -27,6 +28,11 @@ Feature Roadmap
 
   - [X] Data: Changes to canvas events should update graph object
   - [X] Data: Render map from existing x,y coordinates
+
+  - [X] Highlighter: Specifiy target URL
+  - [X] Highlighter: Better icons
+  - [] Highlighter: Remember selections
+  - [] Highlighter: Delete selections
 
 Future
 
@@ -46,3 +52,6 @@ Future
 
   - [] Compatibility: Touch UI for iOS
   - [] Compatibility: Touch UI for Android
+
+  - [] Highlighter: Remember selections between sessions
+
