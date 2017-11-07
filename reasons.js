@@ -78,8 +78,11 @@ function collides (el) {
   if (this.isEdge()) {
     return false
   } else {
-    //  when the element has an x,y value
-    return (el.x > this.x1 && el.x < this.x2 && el.y > this.y1 && el.y < this.y2) ? true : false
+    //  is the element a node or x,y coordinate
+    if (el.isNode && el.isNode())
+      return (this.x2 < el.x1 || this.x1 > el.x2 || this.y1 > el.y2 || this.y2 < el.y1) ? false : true
+    else
+      return (el.x > this.x1 && el.x < this.x2 && el.y > this.y1 && el.y < this.y2) ? true : false      
   }
 }
 
@@ -546,10 +549,11 @@ function addEventListeners (argumentMap) {
   //  encapuslate event state in the argumentMap
   argumentMap.flags = {}
   argumentMap.flags.dirty = false
-  argumentMap.flags.editing = true
+  argumentMap.flags.editing = false
   let mouseDown = false
   let selected = null
   let dragging = null
+  let clickPos = null
 
   argumentMap.DOM.addEventListener('dblclick', (event) => {
 
@@ -577,7 +581,9 @@ function addEventListeners (argumentMap) {
   argumentMap.DOM.addEventListener('mousedown', (event) => {
 
     //  Identify the selected element
-    selected = detect(argumentMap, event).collision
+    const {position, collision} = detect(argumentMap, event)
+    selected = collision
+    clickPos = position
 
     //  Set this element as draggable
     dragging = selected
@@ -585,10 +591,20 @@ function addEventListeners (argumentMap) {
 
   argumentMap.DOM.addEventListener('mousemove', (event) => {
 
+    //  Hover is true if the mouse is moved whilst over an element
+    const mouse = getPosition(event)
+    argumentMap.graph.forEach((el) => {
+      if (el.collides(mouse)) {
+        argumentMap.flags.dirty = true
+        el.hovering = true
+      } else {
+        if (el.hovering === true) argumentMap.flags.dirty = true
+        el.hovering = false
+      }
+    })
+
     //  Drag any selected elements
     if (dragging) {
-
-      //  TODO: add a moveBy function for smother drag
       dragging.move(getPosition(event))
       argumentMap.flags.dirty = true
     }
@@ -601,7 +617,25 @@ function addEventListeners (argumentMap) {
   })
 
   argumentMap.DOM.addEventListener('mouseup', (event) => {
+
+    //  Check for node drop
+    if (dragging) {
+      const target = argumentMap.graph.nodes().find(el => dragging.collides(el) && dragging.id !== el.id)
+      if (target) {
+        argumentMap.graph.add({from: dragging, to: target})
+        dragging.move(clickPos)
+        argumentMap.flags.dirty = true
+      }
+    }
+
+    //  No longer dragging a node
     dragging = null
+    
+    //  Redraw the map
+    if (argumentMap.flags.dirty) {
+      View.draw(argumentMap)
+      argumentMap.flags.dirty = false
+    }
   })
 
   window.addEventListener('keydown', (event) => {
@@ -619,6 +653,7 @@ function addEventListeners (argumentMap) {
 
       //  Removed the selected element from the graph
       if (selected && !argumentMap.flags.editing) {
+        event.preventDefault()
         argumentMap.graph.remove(selected)
         argumentMap.flags.dirty = true
       }
@@ -631,6 +666,12 @@ function addEventListeners (argumentMap) {
     }
   })
 }
+
+
+/**
+ * Private: Redraws the canvas if dirty
+ */
+
 
 
 /**

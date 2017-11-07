@@ -4,9 +4,9 @@ const should = require('should')
 const Element = require('./../lib/element')
 
 const reasons = {
-  a: {id: 'a', text: 'blah blah A'},
+  a: {id: 'a', text: 'blah blah A', x: 0, y: 0},
   b: {id: 'b', text: 'blah blah B', x: 100, y: 50},
-  c: {id: 'c', text: 'blah blah C'},
+  c: {id: 'c', text: 'blah blah C', x: 500, y: 500},
   ab: {from: 'a', to: 'b', type: 'a relation'}  
 }
 
@@ -130,6 +130,16 @@ describe('Element', () => {
       el.collides({x: (el.x + el.width), y: (el.y + el.height)}).should.be.false()      
     })
 
+    it('returns true when any part of a node is inside another nodes boundaries', () => {
+      const el = Element.mixin({x:50, y: 50})
+      el.collides(reasons.a).should.be.true()
+    })
+
+    it('returns false when all parts of a node are outside another nodes boundaries', () => {
+      const el = Element.mixin({x:50, y: 50})
+      el.collides(reasons.c).should.be.false()
+    })
+
     it('returns true when x,y are inside an edges boundaries', () => {
 
     })   
@@ -141,7 +151,7 @@ describe('Element', () => {
 
   describe('#move', () => {
     it('should move node coordinates by the corresponding amount', () => {
-      const el = Element.mixin(reasons.a)
+      const el = Element.mixin({})
       el.move({x: 100, y: 100})
       el.x1.should.be.equal(100 - el.width/2)
       el.y2.should.be.equal(100 + el.height/2) 
