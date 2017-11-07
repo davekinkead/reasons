@@ -5,7 +5,7 @@ Feature Roadmap
   - [X] UX: Double click canvas to add node
   - [X] UX: Automatically highlight reason text on node creation
   - [X] UX: Double click node to edit text
-  - [] UX: Double click edge to edit text
+  - [x] UX: Double click edge to edit text
   - [X] UX: Drag node to move position
   - [X] UX: Dragging node updates edges
   - [X] UX: Drop node on node to create edge

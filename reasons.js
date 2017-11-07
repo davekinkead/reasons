@@ -76,7 +76,23 @@ function isNode () {
  */
 function collides (el) {
   if (this.isEdge()) {
-    return false
+    // this.locate()
+
+    //  Determine a hit for each of the paths
+    let hit = false
+    this.paths.forEach((path) => {
+      if (differenceOfVectors(el, path) < 0.05)
+        hit = true
+    })
+
+    //  Estimate collision of the label box
+    let width = this.type.length * 5
+    hit = (el.x < this.center.x - width || el.x > this.center.x + width || 
+            el.y < this.center.y - 10 ||  el.y > this.center.y +  10) ? false : true
+
+    //  otherwise
+    return hit
+
   } else {
     //  is the element a node or x,y coordinate
     if (el.isNode && el.isNode())
@@ -123,6 +139,7 @@ function save () {
   }
 }
 
+
 /**
  * Helper function to set position values
  */
@@ -135,6 +152,7 @@ function locate (element, position) {
   }
 }
 
+
 /**
  * Helper function to ensure permit edge references to both nodes and node.ids
  */
@@ -143,7 +161,14 @@ function locate (element, position) {
     return obj.map(el => el.id || el)
   } else {
     return obj.id || obj    
-  }
+  }  
+}
+
+//  Calculates the difference between 2 vectors el -> x1,y1 and el -> x2,y2
+//  TODO: Add tests
+function differenceOfVectors (point, path) {
+  return Math.abs((Math.atan2(point.y-path.y1, point.x-path.x1))
+        -(Math.atan2(path.y2-point.y, path.x2-point.x)))
 }
 },{"./Utils":2}],2:[function(require,module,exports){
 module.exports = {
