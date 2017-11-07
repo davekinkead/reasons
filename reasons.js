@@ -76,7 +76,6 @@ function isNode () {
  */
 function collides (el) {
   if (this.isEdge()) {
-    // this.locate()
 
     //  Determine a hit for each of the paths
     let hit = false
@@ -92,8 +91,8 @@ function collides (el) {
 
     //  otherwise
     return hit
-
   } else {
+
     //  is the element a node or x,y coordinate
     if (el.isNode && el.isNode())
       return (this.x2 < el.x1 || this.x1 > el.x2 || this.y1 > el.y2 || this.y2 < el.y1) ? false : true
@@ -164,8 +163,9 @@ function locate (element, position) {
   }  
 }
 
-//  Calculates the difference between 2 vectors el -> x1,y1 and el -> x2,y2
-//  TODO: Add tests
+/**
+ * Helper function to calculate the difference between 2 vectors el -> x1,y1 and el -> x2,y2
+ */
 function differenceOfVectors (point, path) {
   return Math.abs((Math.atan2(point.y-path.y1, point.x-path.x1))
         -(Math.atan2(path.y2-point.y, path.x2-point.x)))
@@ -609,6 +609,7 @@ function addEventListeners (argumentMap) {
 
     //  Set this element as draggable
     dragging = selected
+    argumentMap.graph.focus(dragging)
   })
 
   argumentMap.DOM.addEventListener('mousemove', (event) => {
