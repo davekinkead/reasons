@@ -493,7 +493,7 @@ module.exports = Mapper
 
 
 /**
- * The Map acts as the UI between the Graph data object and the browser DOM.
+ * The Mapper acts as the UI between the Graph data object and the browser DOM.
  * It is responsible for handling all mouse and keyboard events, and sending 
  * changes in the argument map to the Graph object.
  *
@@ -511,8 +511,6 @@ function Mapper (elementID) {
     View.init(this)
     UI.addEventListeners(this)
   }
-
-
 }
 
 
@@ -524,6 +522,7 @@ function Mapper (elementID) {
 Mapper.prototype.render = function (elements) {
   // console.log(elements)
   this.graph = new Graph(elements)
+  View.zero(this)
   View.draw(this)
   return this
 }
@@ -675,6 +674,17 @@ function addEventListeners (argumentMap) {
       argumentMap.flags.dirty = false
     }
   })
+
+  // window.addEventListener('wheel', (event) => {
+  //   View.zoom(argumentMap, event.deltaY)
+  // })
+
+  window.addEventListener('resize', (event) => {
+    argumentMap.flags.dirty = true
+    View.resize(argumentMap)
+    View.zero(argumentMap)
+    redraw(argumentMap)
+  })
 }
 
 
@@ -811,9 +821,52 @@ module.exports = (function () {
     graph.nodes().forEach(el => draw_node(el, argument.context))
   }
 
+  function zero (argument) {
+    //  find bb of nodes and DOM
+    let nodeBB = argument.graph.nodes().map((node) => {
+      return { x1: node.x1, x2: node.x2, y1: node.y1, y2: node.y2 }
+    }).reduce( (acc, cur) => {
+      return {
+        x1: Math.min(acc.x1, cur.x1), 
+        x2: Math.max(acc.x2, cur.x2), 
+        y1: Math.min(acc.y1, cur.y1), 
+        y2: Math.max(acc.y2, cur.y2), 
+      }
+    })
+
+    //  translate node position to centre of DOM
+    let mid = {
+        x: ((argument.DOM.clientWidth-argument.DOM.clientLeft)/2 + argument.DOM.clientLeft) 
+          - ((nodeBB.x2-nodeBB.x1)/2 + nodeBB.x1),
+        y: ((argument.DOM.clientHeight-argument.DOM.clientTop)/2 + argument.DOM.clientTop) 
+          - ((nodeBB.y2-nodeBB.y1)/2 + nodeBB.y1)
+      }
+
+    argument.graph.nodes().forEach((node) => {
+      node.x1 += mid.x
+      node.x2 += mid.x
+      node.y1 += mid.y
+      node.y2 += mid.y
+    })
+
+    // argument.context.translate(mid.x, mid.y)
+  }
+
+  function resize (argument) {
+    argument.DOM.children[1].width = argument.DOM.clientWidth - argument.DOM.clientLeft 
+    argument.DOM.children[1].height = argument.DOM.clientHeight - argument.DOM.clientTop 
+  }
+
+  function zoom (argument, deltaY) {
+    console.log(deltaY)
+  }
+
   return {
     init,
-    draw
+    draw,
+    zero,
+    resize,
+    zoom
   }
 
 })();
@@ -826,6 +879,10 @@ function clear (argument) {
   let domBB = argument.DOM.getBoundingClientRect()
   argument.context.clearRect(0, 0, domBB.width, domBB.height)
 } 
+
+function render (argument) {
+
+}
 
 
 /**
@@ -859,7 +916,7 @@ function draw_node (node, context) {
 
   //  set text box styles
   context.fillStyle = 'rgba(0,0,0,0.8)'
-  context.font = '16px sans-serif'
+  context.font = fontSize + 'px sans-serif'
   context.textAlign = 'center'
 
   //  add the text content

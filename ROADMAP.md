@@ -37,12 +37,15 @@ Feature Roadmap
 Future
 
   - [] UX: Automatically scale to view port
+  - [] UX: Autoscale for PNG
   - [] UX: Add zoom in/out functionality map
   - [] UX: Add params option for line, overlay, background colour etc
   - [] UX: Add automatic padding when dropping node
   - [] UX: Node line type selector (solid/dotted) 
   - [] UX: Add multiple node selection for dragging  
   - [] UX: Automatic layout options
+  - [] UX: Fix resolution of text
+  - [] UX: Fix text padding within node
 
   - [] Hot Keys: Add backspace and delete key codes for Windows
   - [] Hot Keys: Tab to different elements
