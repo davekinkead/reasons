@@ -647,25 +647,41 @@ function addEventListeners (argumentMap) {
     redraw(argumentMap)
   })
 
+
   window.addEventListener('keydown', (event) => {
 
-    //  Escape key
-    if (argumentMap.flags.editing && event.keyCode == 27) removeOverlay(argumentMap)
+    if (argumentMap.flags.editing) {
+      //  When in edit mode
 
-    //  Return key
-    if (argumentMap.flags.editing && event.keyCode == 13) {
-      submitOverlay(argumentMap)
-    }
+      //  Escape key
+      if (event.keyCode == 27) removeOverlay(argumentMap)
 
-    //  Delete a selected element on `backspace` or `delete`
-    if (event.keyCode == 8 || event.keyCode == 46) {
+      //  Return key
+      if (event.keyCode == 13) submitOverlay(argumentMap)
 
-      //  Removed the selected element from the graph
-      if (selected && !argumentMap.flags.editing) {
-        event.preventDefault()
-        argumentMap.graph.remove(selected)
-        argumentMap.flags.dirty = true
+    } else {
+      //  When not in edit mode
+
+      //  Redo
+      if (event.metaKey && event.keyCode == 89) {
+        console.log('redo')
       }
+
+      //  Undo
+      if (event.metaKey && event.keyCode == 90) {
+        console.log('undo')
+      }
+
+      //  Delete a selected element on `backspace` or `delete`
+      if (event.keyCode == 8 || event.keyCode == 46) {
+
+        //  Removed the selected element from the graph
+        if (selected) {
+          event.preventDefault()
+          argumentMap.graph.remove(selected)
+          argumentMap.flags.dirty = true
+        }
+      }      
     }
 
     //  Redraw the map
@@ -684,6 +700,10 @@ function addEventListeners (argumentMap) {
     View.resize(argumentMap)
     View.zero(argumentMap)
     redraw(argumentMap)
+  })
+
+  window.addEventListener('keyup', (event) => {
+
   })
 }
 
@@ -834,7 +854,6 @@ module.exports = (function () {
       }
     })
 
-    //  translate node position to centre of DOM
     let mid = {
         x: ((argument.DOM.clientWidth-argument.DOM.clientLeft)/2 + argument.DOM.clientLeft) 
           - ((nodeBB.x2-nodeBB.x1)/2 + nodeBB.x1),
@@ -842,14 +861,13 @@ module.exports = (function () {
           - ((nodeBB.y2-nodeBB.y1)/2 + nodeBB.y1)
       }
 
+    //  translate node position to centre of DOM
     argument.graph.nodes().forEach((node) => {
       node.x1 += mid.x
       node.x2 += mid.x
       node.y1 += mid.y
       node.y2 += mid.y
     })
-
-    // argument.context.translate(mid.x, mid.y)
   }
 
   function resize (argument) {
@@ -879,10 +897,6 @@ function clear (argument) {
   let domBB = argument.DOM.getBoundingClientRect()
   argument.context.clearRect(0, 0, domBB.width, domBB.height)
 } 
-
-function render (argument) {
-
-}
 
 
 /**
