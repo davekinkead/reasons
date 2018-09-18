@@ -200,8 +200,9 @@ arguments[4][1][0].apply(exports,arguments)
 },{"./Utils":2,"dup":1}],4:[function(require,module,exports){
 'use strict'
 
-const Utils = require('./utils')
+const Utils   = require('./utils')
 const Element = require('./element')
+const future  = []
 
 module.exports = Graph
 
@@ -241,7 +242,7 @@ Graph.prototype.add = function (element) {
   Element.mixin(element)
 
   if (element.isNode()) {
-    this.unshift(element)
+    this.push(element)
   } else {
 
     //  Edges can connect independent or conjoined reasons. 
@@ -336,21 +337,43 @@ Graph.prototype.add = function (element) {
 
 
 /**
- * Moves an element to the front of the Graph.  Useful for assiting with
- * layouts.
+ * Moves an element to the front of the Graph and sets the focused flag.
+ * Useful for assiting with layouts.
  *
  * @param el an element to focus
  */
  Graph.prototype.focus = function (el) {
   let index = this.indexOf(el)
+
   if (index > -1) {
     this.push(this.splice(index, 1)[0])
   }
+
+  this.forEach(function (e) {
+    e.focused = (e === el) ? true : false
+  })
 
   //  permit chaining during tests
   return this
 }
 
+
+/**
+ * Unsets the focused flag of an element
+ */
+Graph.prototype.unfocus = function () {
+  this.forEach(function (el) {
+    el.focused = false
+  })
+}
+
+
+/**
+ * Returns the last element of the array
+ */
+Graph.prototype.last = function () {
+  return this[this.length - 1]
+}
 
 /**
  * Returns an array of all the Graph's edges
@@ -556,13 +579,15 @@ module.exports = {
 },{"./highlighter":5,"./mapper":6}],8:[function(require,module,exports){
 'use strict'
 
-const View = require('./view')
-const Utils = require('./utils')
+const View    = require('./view')
+const Utils   = require('./utils')
+const History = []
 
 
 module.exports = {
   addEventListeners
 }
+
 
 function addEventListeners (argumentMap) {
 
@@ -575,50 +600,75 @@ function addEventListeners (argumentMap) {
   let dragging = null
   let clickPos = null
 
+
+  //  Double click creates or edits element
   argumentMap.DOM.addEventListener('dblclick', (event) => {
 
     const {position, collision} = detect(argumentMap, event)
 
     if (collision) {
-
-      //  Double clicks on nodes or edges trigger edit mode
+      //  Double click on nodes or edges trigger edit mode
       addOverlay(argumentMap, collision)
-
     } else {
-
       //  Double clicks on a bare map creates a new node
       argumentMap.graph.add({x: position.x, y: position.y})
+      selected = argumentMap.graph.last()
+      argumentMap.graph.focus(selected)
       argumentMap.flags.dirty = true
     }
 
     redraw(argumentMap)
   })
 
+
+   // Single click on an element selects it
+  // argumentMap.DOM.addEventListener('click', (event) => {
+
+  //   const {position, collision} = detect(argumentMap, event)
+
+  //   if (collision) {
+  //     selected = collision
+  //     argumentMap.graph.focus(selected)
+  //     argumentMap.flags.dirty = true
+  //   } else {
+  //     argumentMap.graph.unfocus()
+  //   }
+
+  //   redraw(argumentMap)
+  // })
+
+
+  //  Draging an element selects and moves it
+  //  Selecting nothing unfocuses the graph
   argumentMap.DOM.addEventListener('mousedown', (event) => {
 
-    //  Identify the selected element
     const {position, collision} = detect(argumentMap, event)
-    selected = collision
-    clickPos = position
 
-    //  Set this element as draggable
-    dragging = selected
-    argumentMap.graph.focus(dragging)
+    if (collision) {
+      selected = collision
+      argumentMap.graph.focus(selected)      
+      argumentMap.flags.dirty = true
+      clickPos = position
+      dragging = selected
+    }
+
+    redraw(argumentMap)
   })
 
+  //  Move a selected element
   argumentMap.DOM.addEventListener('mousemove', (event) => {
 
     //  Set element hover flag on mouseover
-    const mouse = getPosition(event)
-    argumentMap.graph.forEach((el) => {
-      if (el.collides(mouse)) {
-        argumentMap.flags.dirty = true
-        el.hovering = true
-      } else {
-        if (el.hovering === true) argumentMap.flags.dirty = true
-        el.hovering = false
-      }
-    })
+    // const mouse = getPosition(event)
+    //   argumentMap.graph.forEach((el) => {
+    //     if (el.collides(mouse)) {
+    //       // argumentMap.flags.dirty = true
+    //       el.hovering = true
+    //     } else {
+    //       // if (el.hovering === true) argumentMap.flags.dirty = true
+    //       el.hovering = false
+    //     }
+    //   })
 
     //  Specify a node as the drag target when clicked
     if (dragging) {
@@ -629,7 +679,11 @@ function addEventListeners (argumentMap) {
     redraw(argumentMap)
   })
 
+
+  //  Release a drag action and add an edge if needed
   argumentMap.DOM.addEventListener('mouseup', (event) => {
+
+    const {position, collision} = detect(argumentMap, event)
 
     //  Check for node drop and add a new edge to the graph if required
     if (dragging) {
@@ -639,10 +693,14 @@ function addEventListeners (argumentMap) {
         dragging.move(clickPos)
         argumentMap.flags.dirty = true
       }
+      
+      dragging = null
+    } else if (!collision) {
+      selected = null
+      argumentMap.graph.unfocus()
+      argumentMap.flags.dirty = true
     }
 
-    //  No longer dragging a node
-    dragging = null
 
     redraw(argumentMap)
   })
@@ -662,14 +720,14 @@ function addEventListeners (argumentMap) {
     } else {
       //  When not in edit mode
 
-      //  Redo
-      if (event.metaKey && event.keyCode == 89) {
-        console.log('redo')
+      //  Undo ⌘-z
+      if (event.metaKey && event.keyCode == 90) {
+
       }
 
-      //  Undo
-      if (event.metaKey && event.keyCode == 90) {
-        console.log('undo')
+      //  Redo ⌘-y
+      if (event.metaKey && event.keyCode == 89) {
+        console.log('redo')
       }
 
       //  Delete a selected element on `backspace` or `delete`
@@ -684,26 +742,18 @@ function addEventListeners (argumentMap) {
       }      
     }
 
-    //  Redraw the map
+    //  Redraw the map  
     if (argumentMap.flags.dirty) {
       View.draw(argumentMap)
       argumentMap.flags.dirty = false
     }
   })
 
-  // window.addEventListener('wheel', (event) => {
-  //   View.zoom(argumentMap, event.deltaY)
-  // })
-
   window.addEventListener('resize', (event) => {
     argumentMap.flags.dirty = true
     View.resize(argumentMap)
     View.zero(argumentMap)
     redraw(argumentMap)
-  })
-
-  window.addEventListener('keyup', (event) => {
-
   })
 }
 
@@ -713,8 +763,10 @@ function addEventListeners (argumentMap) {
  */
 function redraw (argumentMap) {
   if (argumentMap.flags.dirty) {
+    // History.push(argumentMap.graph)
     View.draw(argumentMap)
     argumentMap.flags.dirty = false
+    // console.log(Math.random())
   }
 }
 
@@ -919,7 +971,7 @@ function draw_node (node, context) {
   let rgb = '0,0,0'
   let opacity = 0.5
   if (node.hovering) opacity = 0.75
-  if (node.selected) opacity = 0.9
+  if (node.focused) opacity = 0.9
   context.strokeStyle = 'rgba('+rgb+','+opacity+')'
   context.lineJoin = "round"
   context.lineWidth = cornerRadius
@@ -949,7 +1001,7 @@ function draw_edge (edge, context) {
   let rgb = '0,0,0'
   let opacity = 0.5
   if (edge.hovering) opacity = 0.75
-  if (edge.selected) opacity = 0.9
+  if (edge.focused) opacity = 0.9
   context.strokeStyle = 'rgba('+rgb+','+opacity+')'
   context.lineWidth = 4
 
