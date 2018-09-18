@@ -202,7 +202,6 @@ arguments[4][1][0].apply(exports,arguments)
 
 const Utils   = require('./utils')
 const Element = require('./element')
-const future  = []
 
 module.exports = Graph
 
@@ -581,7 +580,9 @@ module.exports = {
 
 const View    = require('./view')
 const Utils   = require('./utils')
+const Graph   = require('./graph')
 const History = []
+let   Future  = []
 
 module.exports = {
   addEventListeners
@@ -591,14 +592,13 @@ module.exports = {
 function addEventListeners (argumentMap) {
 
   //  encapuslate event state in the argumentMap
-  argumentMap.flags = {}
-  argumentMap.flags.dirty = false
-  argumentMap.flags.editing = false
+  argumentMap.altered = true
+  argumentMap.editMode = false
+  argumentMap.dirty = false
   let mouseDown = false
   let selected = null
   let dragging = null
   let clickPos = null
-
 
   //  Double click creates or edits element
   argumentMap.DOM.addEventListener('dblclick', (event) => {
@@ -613,7 +613,7 @@ function addEventListeners (argumentMap) {
       argumentMap.graph.add({x: position.x, y: position.y})
       selected = argumentMap.graph.last()
       argumentMap.graph.focus(selected)
-      argumentMap.flags.dirty = true
+      argumentMap.altered = true
     }
 
     redraw(argumentMap)
@@ -629,7 +629,7 @@ function addEventListeners (argumentMap) {
     if (collision) {
       selected = collision
       argumentMap.graph.focus(selected)      
-      argumentMap.flags.dirty = true
+      argumentMap.dirty = true
       clickPos = position
       dragging = selected
     }
@@ -646,10 +646,10 @@ function addEventListeners (argumentMap) {
 
     argumentMap.graph.forEach((el) => {
       if (el.collides(mouse)) {
-        if (!el.hovering) argumentMap.flags.dirty = true
+        if (!el.hovering) argumentMap.dirty = true
         el.hovering = true
       } else {
-        if (el.hovering) argumentMap.flags.dirty = true
+        if (el.hovering) argumentMap.dirty = true
         el.hovering = false
       }
     })
@@ -657,7 +657,7 @@ function addEventListeners (argumentMap) {
     //  Specify a node as the drag target when clicked
     if (dragging) {
       dragging.move(getPosition(event))
-      argumentMap.flags.dirty = true
+      argumentMap.dirty = true
     }
 
     redraw(argumentMap)
@@ -669,20 +669,20 @@ function addEventListeners (argumentMap) {
 
     const {position, collision} = detect(argumentMap, event)
 
+    //  Check for node drop and add a new edge to the graph if required
     if (dragging) {
-      //  Check for node drop and add a new edge to the graph if required
       const target = argumentMap.graph.nodes().find(el => dragging.collides(el) && dragging.id !== el.id)
       if (target) {
         argumentMap.graph.add({from: dragging, to: target})
         dragging.move(clickPos)
-        argumentMap.flags.dirty = true
       }
 
+      argumentMap.altered = true
       dragging = null
     } else if (!collision) {
       selected = null
       argumentMap.graph.unfocus()
-      argumentMap.flags.dirty = true
+      argumentMap.dirty = true
     }
 
     redraw(argumentMap)
@@ -691,7 +691,7 @@ function addEventListeners (argumentMap) {
 
   window.addEventListener('keydown', (event) => {
 
-    if (argumentMap.flags.editing) {
+    if (argumentMap.editMode) {
       //  Escape key
       if (event.keyCode == 27) removeOverlay(argumentMap)
 
@@ -704,17 +704,29 @@ function addEventListeners (argumentMap) {
         event.preventDefault()
         selected = argumentMap.graph[0]
         argumentMap.graph.focus(selected)
-        argumentMap.flags.dirty = true
+        argumentMap.altered = true
       }
 
       //  Undo `⌘-z`
       if (event.metaKey && event.keyCode == 90) {
-        console.log('undo here')
+
+        //  Store for redo
+        save(Future, argumentMap)
+
+        const last = History.pop()
+        if (last) {
+          argumentMap.graph = new Graph(JSON.parse(last))
+          argumentMap.dirty = true
+        }
       }
 
-      //  Redo `⌘-y`
+      //  TODO: Redo `⌘-y`
       if (event.metaKey && event.keyCode == 89) {
-        console.log('redo here')
+        const next = Future.pop()
+        if (next) {
+          argumentMap.graph = new Graph(JSON.parse(next))
+          argumentMap.altered = true
+        }
       }
 
       //  Edit selected element on `enter`
@@ -726,7 +738,7 @@ function addEventListeners (argumentMap) {
       if (selected && (event.keyCode == 8 || event.keyCode == 46)) {
         event.preventDefault()
         argumentMap.graph.remove(selected)
-        argumentMap.flags.dirty = true
+        argumentMap.dirty = true
       }      
     }
 
@@ -735,7 +747,7 @@ function addEventListeners (argumentMap) {
 
 
   window.addEventListener('resize', (event) => {
-    argumentMap.flags.dirty = true
+    argumentMap.altered = true
     View.resize(argumentMap)
     View.zero(argumentMap)
     redraw(argumentMap)
@@ -744,15 +756,29 @@ function addEventListeners (argumentMap) {
 
 
 /**
- * Private: Redraws the canvas if dirty
+ * Private: Redraws the canvas if changes have occured
  */
 function redraw (argumentMap) {
-  if (argumentMap.flags.dirty) {
-    // History.push(argumentMap.graph)
+  if (argumentMap.altered || argumentMap.dirty) {
+    if (argumentMap.altered) {
+      save(History, argumentMap)
+      Future = []
+    }
+
     View.draw(argumentMap)
-    argumentMap.flags.dirty = false
-    // console.log(Math.random())
+    argumentMap.altered = false
+    argumentMap.dirty = false
   }
+}
+
+
+function save (store, argumentMap) {
+  //  Save a serialized copy of the graph
+  store.push(JSON.stringify(
+    argumentMap.graph.map(function (element) { 
+      return element.export() 
+    })
+  ))
 }
 
 
@@ -783,7 +809,7 @@ function getPosition (event) {
 function addOverlay (argumentMap, element) {
 
   //  set the 
-  argumentMap.flags.editing = true
+  argumentMap.editMode = true
 
   //  Create background layer
   let overlay = Utils.buildNode('div', {id: 'reason-overlay'})
@@ -823,11 +849,11 @@ function submitOverlay (argumentMap) {
  * Private: Removes the overlay
  */
 function removeOverlay (argumentMap) {
-  argumentMap.flags.editing = false
-  argumentMap.flags.dirty = true
+  argumentMap.editMode = false
+  argumentMap.altered = true
   document.querySelector('#reason-overlay').remove()  
 }
-},{"./utils":9,"./view":10}],9:[function(require,module,exports){
+},{"./graph":4,"./utils":9,"./view":10}],9:[function(require,module,exports){
 arguments[4][2][0].apply(exports,arguments)
 },{"array-difference":11,"array-flatten":12,"array-unique":13,"dup":2}],10:[function(require,module,exports){
 'use strict'
