@@ -637,20 +637,22 @@ function addEventListeners (argumentMap) {
     redraw(argumentMap)
   })
 
-  //  Move a selected element
+  //  Move a selected element on drag
+  //  Highlight a hovered element
   argumentMap.DOM.addEventListener('mousemove', (event) => {
 
-    //  Set element hover flag on mouseover
-    // const mouse = getPosition(event)
-    //   argumentMap.graph.forEach((el) => {
-    //     if (el.collides(mouse)) {
-    //       // argumentMap.flags.dirty = true
-    //       el.hovering = true
-    //     } else {
-    //       // if (el.hovering === true) argumentMap.flags.dirty = true
-    //       el.hovering = false
-    //     }
-    //   })
+    // Set element hover flag on mouseover
+    const mouse = getPosition(event)
+
+    argumentMap.graph.forEach((el) => {
+      if (el.collides(mouse)) {
+        if (!el.hovering) argumentMap.flags.dirty = true
+        el.hovering = true
+      } else {
+        if (el.hovering) argumentMap.flags.dirty = true
+        el.hovering = false
+      }
+    })
 
     //  Specify a node as the drag target when clicked
     if (dragging) {
@@ -697,7 +699,7 @@ function addEventListeners (argumentMap) {
       if (event.keyCode == 13) submitOverlay(argumentMap)
 
     } else {
-      //  Tab 
+      //  Focus on `Tab`
       if (!event.metaKey && event.keyCode == 9) {
         event.preventDefault()
         selected = argumentMap.graph[0]
@@ -705,12 +707,12 @@ function addEventListeners (argumentMap) {
         argumentMap.flags.dirty = true
       }
 
-      //  Undo ⌘-z
+      //  Undo `⌘-z`
       if (event.metaKey && event.keyCode == 90) {
         console.log('undo here')
       }
 
-      //  Redo ⌘-y
+      //  Redo `⌘-y`
       if (event.metaKey && event.keyCode == 89) {
         console.log('redo here')
       }
@@ -723,11 +725,7 @@ function addEventListeners (argumentMap) {
       }      
     }
 
-    //  Redraw the map  
-    if (argumentMap.flags.dirty) {
-      View.draw(argumentMap)
-      argumentMap.flags.dirty = false
-    }
+    redraw(argumentMap)
   })
 
 
@@ -748,7 +746,7 @@ function redraw (argumentMap) {
     // History.push(argumentMap.graph)
     View.draw(argumentMap)
     argumentMap.flags.dirty = false
-    // console.log(Math.random())
+    console.log(Math.random())
   }
 }
 
