@@ -583,7 +583,6 @@ const View    = require('./view')
 const Utils   = require('./utils')
 const History = []
 
-
 module.exports = {
   addEventListeners
 }
@@ -619,23 +618,6 @@ function addEventListeners (argumentMap) {
 
     redraw(argumentMap)
   })
-
-
-   // Single click on an element selects it
-  // argumentMap.DOM.addEventListener('click', (event) => {
-
-  //   const {position, collision} = detect(argumentMap, event)
-
-  //   if (collision) {
-  //     selected = collision
-  //     argumentMap.graph.focus(selected)
-  //     argumentMap.flags.dirty = true
-  //   } else {
-  //     argumentMap.graph.unfocus()
-  //   }
-
-  //   redraw(argumentMap)
-  // })
 
 
   //  Draging an element selects and moves it
@@ -685,22 +667,21 @@ function addEventListeners (argumentMap) {
 
     const {position, collision} = detect(argumentMap, event)
 
-    //  Check for node drop and add a new edge to the graph if required
     if (dragging) {
+      //  Check for node drop and add a new edge to the graph if required
       const target = argumentMap.graph.nodes().find(el => dragging.collides(el) && dragging.id !== el.id)
       if (target) {
         argumentMap.graph.add({from: dragging, to: target})
         dragging.move(clickPos)
         argumentMap.flags.dirty = true
       }
-      
+
       dragging = null
     } else if (!collision) {
       selected = null
       argumentMap.graph.unfocus()
       argumentMap.flags.dirty = true
     }
-
 
     redraw(argumentMap)
   })
@@ -709,8 +690,6 @@ function addEventListeners (argumentMap) {
   window.addEventListener('keydown', (event) => {
 
     if (argumentMap.flags.editing) {
-      //  When in edit mode
-
       //  Escape key
       if (event.keyCode == 27) removeOverlay(argumentMap)
 
@@ -718,27 +697,29 @@ function addEventListeners (argumentMap) {
       if (event.keyCode == 13) submitOverlay(argumentMap)
 
     } else {
-      //  When not in edit mode
+      //  Tab 
+      if (!event.metaKey && event.keyCode == 9) {
+        event.preventDefault()
+        selected = argumentMap.graph[0]
+        argumentMap.graph.focus(selected)
+        argumentMap.flags.dirty = true
+      }
 
       //  Undo ⌘-z
       if (event.metaKey && event.keyCode == 90) {
-
+        console.log('undo here')
       }
 
       //  Redo ⌘-y
       if (event.metaKey && event.keyCode == 89) {
-        console.log('redo')
+        console.log('redo here')
       }
 
       //  Delete a selected element on `backspace` or `delete`
-      if (event.keyCode == 8 || event.keyCode == 46) {
-
-        //  Removed the selected element from the graph
-        if (selected) {
-          event.preventDefault()
-          argumentMap.graph.remove(selected)
-          argumentMap.flags.dirty = true
-        }
+      if (selected && (event.keyCode == 8 || event.keyCode == 46)) {
+        event.preventDefault()
+        argumentMap.graph.remove(selected)
+        argumentMap.flags.dirty = true
       }      
     }
 
@@ -748,6 +729,7 @@ function addEventListeners (argumentMap) {
       argumentMap.flags.dirty = false
     }
   })
+
 
   window.addEventListener('resize', (event) => {
     argumentMap.flags.dirty = true
