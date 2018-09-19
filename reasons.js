@@ -720,11 +720,12 @@ function addEventListeners (argumentMap) {
         }
       }
 
-      //  TODO: Redo `⌘-y`
+      //  Redo `⌘-y`
       if (event.metaKey && event.keyCode == 89) {
 
+        //  Store for undo
         save(History, argumentMap)
-        
+
         const next = Future.pop()
         if (next) {
           argumentMap.graph = new Graph(JSON.parse(next))
@@ -765,7 +766,7 @@ function redraw (argumentMap) {
   if (argumentMap.altered || argumentMap.dirty) {
     if (argumentMap.altered) {
       save(History, argumentMap)
-      Future = []
+      Future = [] //  Reset the redo buffer
     }
 
     View.draw(argumentMap)
@@ -775,13 +776,16 @@ function redraw (argumentMap) {
 }
 
 
+//  Save a serialized copy of the graph
 function save (store, argumentMap) {
-  //  Save a serialized copy of the graph
-  store.push(JSON.stringify(
-    argumentMap.graph.map(function (element) { 
-      return element.export() 
-    })
-  ))
+  const last = (store.length == 0) ? JSON.stringify([]) : store[store.length-1]
+  const current = JSON.stringify(
+      argumentMap.graph.map(function (element) { 
+        return element.export() 
+      })
+    )
+
+  if (current !== last) store.push(current)
 }
 
 
