@@ -722,10 +722,13 @@ function addEventListeners (argumentMap) {
 
       //  TODO: Redo `⌘-y`
       if (event.metaKey && event.keyCode == 89) {
+
+        save(History, argumentMap)
+        
         const next = Future.pop()
         if (next) {
           argumentMap.graph = new Graph(JSON.parse(next))
-          argumentMap.altered = true
+          argumentMap.dirty = true
         }
       }
 
