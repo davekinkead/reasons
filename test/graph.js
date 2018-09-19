@@ -129,7 +129,22 @@ describe('Graph', () => {
   describe('#focus', () => {
     it('should move the desired element to the front of the array', () => {
       const graph = new Graph([map.a, map.b, map.c])
-      graph.focus(map.b).elements()[2].id.should.equal(map.b.id)
+      graph.focus(map.b).should.equal(map.b)
+    })
+
+    it('should set the focused property of the specified element', () => {
+      const graph = new Graph([map.a, map.b, map.c])
+      graph.focus(map.b).focused.should.equal(true)
+      graph.elements()[0].focused.should.equal(false)
+    })
+  })
+
+  describe('#unfocus', () => {
+    it('should unfocus all elements', () => {
+      const graph = new Graph([map.a, map.b, map.c])
+      graph.unfocus().elements().forEach((el) => {
+        el.focused.should.equal(false)
+      })
     })
   })
 

@@ -4,3 +4,6 @@ npm-debug.log
 deprecated/*
 _site/*
 test.html
+
+# Temp
+**/highlighter.*
