@@ -1,4 +1,8 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Reasons = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+//  Reasons.js by Dave Kinkead
+//  Copyright (c) 2017-2018 University of Queensland
+//  Available under the MIT license
+
 'use strict'
 
 const Utils = require('./Utils')
@@ -173,6 +177,10 @@ function differenceOfVectors (point, path) {
         -(Math.atan2(path.y2-point.y, path.x2-point.x)))
 }
 },{"./Utils":2}],2:[function(require,module,exports){
+//  Reasons.js by Dave Kinkead
+//  Copyright (c) 2017-2018 University of Queensland
+//  Available under the MIT license
+
 module.exports = {
 
   //  build a DOM element
@@ -200,6 +208,10 @@ module.exports = {
 },{"array-difference":11,"array-flatten":12,"array-unique":13}],3:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
 },{"./Utils":2,"dup":1}],4:[function(require,module,exports){
+//  Reasons.js by Dave Kinkead
+//  Copyright (c) 2017-2018 University of Queensland
+//  Available under the MIT license
+
 'use strict'
 
 const Utils   = require('./utils')
@@ -433,6 +445,10 @@ Graph.prototype.children = function (id) {
     .map(el => this.find(i => i == el || i.id == el)))
 }
 },{"./element":3,"./utils":9}],5:[function(require,module,exports){
+//  Reasons.js by Dave Kinkead
+//  Copyright (c) 2017-2018 University of Queensland
+//  Available under the MIT license
+
 const Utils = require('./utils')
 const MAP_URL = 'http://dave.kinkead.com.au/reasons'
 const reasons = []
@@ -506,6 +522,10 @@ function addReason(event) {
   reasons.push(selection)
 }
 },{"./utils":9}],6:[function(require,module,exports){
+//  Reasons.js by Dave Kinkead
+//  Copyright (c) 2017-2018 University of Queensland
+//  Available under the MIT license
+
 'use strict'
 
 const Graph = require('./graph')
@@ -563,7 +583,7 @@ Mapper.prototype.export = function () {
 }
 },{"./graph":4,"./ui":8,"./view":10}],7:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017 University of Queensland
+//  Copyright (c) 2017-2018 University of Queensland
 //  Available under the MIT license
 
 //  Reasons.js API
@@ -581,6 +601,10 @@ module.exports = {
   }
 }
 },{"./highlighter":5,"./mapper":6}],8:[function(require,module,exports){
+//  Reasons.js by Dave Kinkead
+//  Copyright (c) 2017-2018 University of Queensland
+//  Available under the MIT license
+
 'use strict'
 
 const View    = require('./view')
@@ -876,6 +900,10 @@ function removeOverlay (argumentMap) {
 },{"./graph":4,"./utils":9,"./view":10,"keycode":14}],9:[function(require,module,exports){
 arguments[4][2][0].apply(exports,arguments)
 },{"array-difference":11,"array-flatten":12,"array-unique":13,"dup":2}],10:[function(require,module,exports){
+//  Reasons.js by Dave Kinkead
+//  Copyright (c) 2017-2018 University of Queensland
+//  Available under the MIT license
+
 'use strict'
 
 const Element = require('./Element')
