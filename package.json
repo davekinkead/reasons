@@ -12,7 +12,6 @@
   },
   "devDependencies": {
     "browserify": "^14.4.0",
-    "canvas-prebuilt": "^1.6.5-prerelease.1",
     "jsdom": "^11.0.0",
     "mocha": "^3.5.0",
     "npm": "^4.6.1",
