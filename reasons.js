@@ -21,8 +21,8 @@ function mixin(element) {
   element.export = save
   element.collides = collides
   element.move = move
-  init(element)
-  return element
+
+  return init(element)
 }
 
 
@@ -53,6 +53,8 @@ function init (element) {
     element.height = fontSize * 3.5
     locate(element, {x: element.x || 0, y: element.y || 0})
   }
+
+  return element
 }
 
 
@@ -353,7 +355,7 @@ Graph.prototype.add = function (element) {
   })
 
   //  permit chaining during tests
-  return this
+  return el
 }
 
 
@@ -364,6 +366,9 @@ Graph.prototype.unfocus = function () {
   this.forEach(function (el) {
     el.focused = false
   })
+
+  //  permit chaining during tests
+  return this
 }
 
 

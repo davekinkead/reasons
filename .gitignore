@@ -5,3 +5,6 @@ deprecated/*
 _site/*
 test.html
 package-lock.json
+
+# Temp
+**/highlighter.*
