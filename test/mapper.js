@@ -17,7 +17,6 @@ const G = [
 ]
 
 describe('Mapper', () => {
-
   describe('#new', () => {
     it('should create a map with a valid DOM reference', () => {
       M.should.be.instanceOf(Mapper)
@@ -43,7 +42,6 @@ describe('Mapper', () => {
   describe('#export', () => {
     it('should export the graph as an array from the argument map', () => {
       M.render(G)
-      M.export()
       M.export().should.be.instanceOf(Array)
       M.export().length.should.equal(G.length)
     })
