@@ -1,5 +1,6 @@
 /* Due to changes in the JSDOM library, the following patch is necessary
- *  to mock the HTML Canvas for testing
+ *  to mock the HTML Canvas for testing.  
+ *  See https://github.com/jsdom/jsdom/issues/1782
  */
 
 module.exports = function() {
