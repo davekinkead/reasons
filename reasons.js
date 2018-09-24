@@ -1,4 +1,8 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Reasons = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Reasons = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+//  Reasons.js by Dave Kinkead
+//  Copyright (c) 2017-2018 University of Queensland
+//  Available under the MIT license
+
 'use strict'
 
 const Utils = require('./Utils')
@@ -21,8 +25,8 @@ function mixin(element) {
   element.export = save
   element.collides = collides
   element.move = move
-  init(element)
-  return element
+
+  return init(element)
 }
 
 
@@ -53,6 +57,8 @@ function init (element) {
     element.height = fontSize * 3.5
     locate(element, {x: element.x || 0, y: element.y || 0})
   }
+
+  return element
 }
 
 
@@ -171,6 +177,10 @@ function differenceOfVectors (point, path) {
         -(Math.atan2(path.y2-point.y, path.x2-point.x)))
 }
 },{"./Utils":2}],2:[function(require,module,exports){
+//  Reasons.js by Dave Kinkead
+//  Copyright (c) 2017-2018 University of Queensland
+//  Available under the MIT license
+
 module.exports = {
 
   //  build a DOM element
@@ -195,9 +205,13 @@ module.exports = {
   flatten: require('array-flatten'),
   diff: require('array-difference')
 }
-},{"array-difference":11,"array-flatten":12,"array-unique":13}],3:[function(require,module,exports){
+},{"array-difference":10,"array-flatten":11,"array-unique":12}],3:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
 },{"./Utils":2,"dup":1}],4:[function(require,module,exports){
+//  Reasons.js by Dave Kinkead
+//  Copyright (c) 2017-2018 University of Queensland
+//  Available under the MIT license
+
 'use strict'
 
 const Utils   = require('./utils')
@@ -353,7 +367,7 @@ Graph.prototype.add = function (element) {
   })
 
   //  permit chaining during tests
-  return this
+  return el
 }
 
 
@@ -364,6 +378,9 @@ Graph.prototype.unfocus = function () {
   this.forEach(function (el) {
     el.focused = false
   })
+
+  //  permit chaining during tests
+  return this
 }
 
 
@@ -427,80 +444,11 @@ Graph.prototype.children = function (id) {
   }).map(el => el.to)
     .map(el => this.find(i => i == el || i.id == el)))
 }
-},{"./element":3,"./utils":9}],5:[function(require,module,exports){
-const Utils = require('./utils')
-const MAP_URL = 'http://dave.kinkead.com.au/reasons'
-const reasons = []
+},{"./element":3,"./utils":8}],5:[function(require,module,exports){
+//  Reasons.js by Dave Kinkead
+//  Copyright (c) 2017-2018 University of Queensland
+//  Available under the MIT license
 
-module.exports = Highlighter
-
-function Highlighter (dom, args={}) {
-  if (!(this instanceof Highlighter)) return new Highlighter(dom)
-
-  buildToolTip(args)
-
-  //  Event listener for text highlight
-  const target = document.querySelector(dom)
-  target.addEventListener('mouseup', (event) => {
-    const selection = document.getSelection()
-    const tooltip = document.querySelector('#tooltip')
-    
-    if (selection.focusOffset - selection.anchorOffset > 0) {
-      const offset = window.scrollY
-      const rect = selection.getRangeAt(0).getBoundingClientRect()
-
-      //  set some default styling
-      tooltip.setAttribute('style', 'position:absolute; display:block; top:'+(rect.top+offset-40)+'px; left:'+(rect.left+rect.width/2-tooltip.offsetWidth/2)+'px; background-color:#FFF; border-radius: 3px; box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2); height: 34px;')
-    } else {
-      tooltip.setAttribute('style', 'display:none;')
-    }
-  })
-}
-
-function buildToolTip (args) {
-
-  const tooltip = Utils.buildNode('div', {id: 'tooltip'}, {style: 'display:none;'})
-  document.body.appendChild(tooltip)
-
-  const reason = Utils.buildNode('img', {name: 'reason', title: 'Add reason', src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAulBMVEUAAAAzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMPBiuWAAAAPXRSTlMAAQIEBQcLDxASEx8hJykvMTU2PUJDS1VWWVxmZ21vcHR3e4OFjo+SmJuqwczO09XX3N7g4unr7fP1+fv9w3a8WAAAALdJREFUKFO9jtkCgVAQhiciJGtRiFD2Nck67/9azlrnlgv/1TfzzTkzAD+kMwtJ5oMSYWNIOQwswj6KXHUwXrKwQXtLxi6MMj6CnjG6EObFX0RBFYEiYKMISxV6dM8EOKdc8DS4YCluFQGE+5I9RdAbbFlMEGPJTSJMwdoFcSW4liKmmuhHZKhFoect6R0O7dZdPya8p2zy+/jjM+OHwYYYT/lHCeVDhXH59tyNq2LZApN1Wyz7Mh9XIkV0Nq93/gAAAABJRU5ErkJggg=="})
-  reason.setAttribute('style', 'padding:5px;')
-  reason.addEventListener('click', addReason)
-
-  const trash = Utils.buildNode('img', {name: 'trash', title: 'Delete reason', src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAP1BMVEUAAAAzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM12c1RAAAAFHRSTlMAAQUGN1FYXl9xdHuAzNPe7/H1+3a+Qu0AAABiSURBVChT5ZBLDoAgDAVfFb+g/Hr/s7qgRovKBZykCZlJWRQokE3MzMkSNDMLk/YUcg8AXQ56xbArD8fmdJ5f8K0APL181gxE16gAXPOv8HkSjYS99puEsQ6DBFrjXceFABz1gBh+m/xpHAAAAABJRU5ErkJggg=="})
-  trash.setAttribute('style', 'padding:5px;')
-  trash.addEventListener('click', addReason)
-
-  tooltip.appendChild(reason)
-  tooltip.appendChild(trash)
-
-  const button = Utils.buildNode('input', {id: 'create-map-button'}, {
-    name: 'create-map-button',
-    type: 'submit',
-    value: 'Create Map'
-  })
-
-  button.onclick = () => {
-    sessionStorage.setItem('reasons', JSON.stringify(reasons))
-    window.open(args.url || MAP_URL, '_blank')  
-  }
-
-  document.body.appendChild(button)  
-}
-
-function addReason(event) {
-
-  document.querySelector('#create-map-button').setAttribute('style', 'position:fixed;bottom:2rem;right:2rem;padding:1rem;border:1px solid #CCC;border-radius:3px;display:block')
-  document.querySelector('#tooltip').setAttribute('style', 'display:none')
-
-  const paragraph = document.getSelection()
-  const selection = {
-    type: event.target.name,
-    text: paragraph.anchorNode.nodeValue.substring(paragraph.anchorOffset, paragraph.focusOffset)
-  }
-  
-  reasons.push(selection)
-}
-},{"./utils":9}],6:[function(require,module,exports){
 'use strict'
 
 const Graph = require('./graph')
@@ -515,11 +463,8 @@ module.exports = Mapper
 
 
 /**
- * The Mapper acts as the UI between the Graph data object and the browser DOM.
- * It is responsible for handling all mouse and keyboard events, and sending 
- * changes in the argument map to the Graph object.
- *
- * The Map contains references to @graph (the data) and @DOM (the DOM object)
+ * The Mapper acts as the interface between the Graph data object and the browser DOM.
+ * It contains references to @graph (the data) and @DOM (the DOM object)
  *
  * @params elementID  the element id to append the map canvas to
  */
@@ -556,26 +501,26 @@ Mapper.prototype.render = function (elements) {
 Mapper.prototype.export = function () {
   return this.graph.map(element => element.export())
 }
-},{"./graph":4,"./ui":8,"./view":10}],7:[function(require,module,exports){
+},{"./graph":4,"./ui":7,"./view":9}],6:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017 University of Queensland
+//  Copyright (c) 2017-2018 University of Queensland
 //  Available under the MIT license
 
-//  Reasons.js API
-
+/**
+ * The Reasons.js API.  This module forms the top level wrapper
+ */
 const Mapper = require('./mapper')
-const Highlighter = require('./highlighter')
 
 module.exports = {
   mapper: function (dom) {
     return new Mapper(dom)
-  },
-
-  highlight: function(dom, args) {
-    return new Highlighter(dom, args)
   }
 }
-},{"./highlighter":5,"./mapper":6}],8:[function(require,module,exports){
+},{"./mapper":5}],7:[function(require,module,exports){
+//  Reasons.js by Dave Kinkead
+//  Copyright (c) 2017-2018 University of Queensland
+//  Available under the MIT license
+
 'use strict'
 
 const View    = require('./view')
@@ -868,9 +813,13 @@ function removeOverlay (argumentMap) {
   argumentMap.altered = true
   document.querySelector('#reason-overlay').remove()  
 }
-},{"./graph":4,"./utils":9,"./view":10,"keycode":14}],9:[function(require,module,exports){
+},{"./graph":4,"./utils":8,"./view":9,"keycode":13}],8:[function(require,module,exports){
 arguments[4][2][0].apply(exports,arguments)
-},{"array-difference":11,"array-flatten":12,"array-unique":13,"dup":2}],10:[function(require,module,exports){
+},{"array-difference":10,"array-flatten":11,"array-unique":12,"dup":2}],9:[function(require,module,exports){
+//  Reasons.js by Dave Kinkead
+//  Copyright (c) 2017-2018 University of Queensland
+//  Available under the MIT license
+
 'use strict'
 
 const Element = require('./Element')
@@ -957,16 +906,12 @@ module.exports = (function () {
     argument.DOM.children[1].height = argument.DOM.clientHeight - argument.DOM.clientTop 
   }
 
-  function zoom (argument, deltaY) {
-    console.log(deltaY)
-  }
 
   return {
     init,
     draw,
     zero,
-    resize,
-    zoom
+    resize
   }
 
 })();
@@ -1015,6 +960,7 @@ function draw_node (node, context) {
     context.fillText(line, node.x1 + node.width/2, node.y1  + (i+2) * fontSize)
   })  
 }
+
 
 /**
  * Private: Draws an edge on the canvas
@@ -1155,7 +1101,7 @@ function pointOfIntersection (from, rect, buffer) {
 
   return {x: distance * Math.cos(angle), y: distance * Math.sin(angle)}
 }
-},{"./Element":1,"./utils":9}],11:[function(require,module,exports){
+},{"./Element":1,"./utils":8}],10:[function(require,module,exports){
 (function(global) {
 
 	var indexOf = Array.prototype.indexOf || function(elem) {
@@ -1203,7 +1149,7 @@ function pointOfIntersection (from, rect, buffer) {
 
 }(this));
 
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict'
 
 /**
@@ -1313,7 +1259,7 @@ function flattenDownDepth (array, result, depth) {
   return result
 }
 
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /*!
  * array-unique <https://github.com/jonschlinkert/array-unique>
  *
@@ -1358,7 +1304,7 @@ module.exports.immutable = function uniqueImmutable(arr) {
   return module.exports(newArr);
 };
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 // Source: http://jsfiddle.net/vWx8V/
 // http://stackoverflow.com/questions/5603195/full-list-of-javascript-keycodes
 
@@ -1535,5 +1481,5 @@ for (var alias in aliases) {
   codes[alias] = aliases[alias]
 }
 
-},{}]},{},[7])(7)
+},{}]},{},[6])(6)
 });

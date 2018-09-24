@@ -24,32 +24,30 @@ describe('View', () => {
       M.DOM.should.be.class('HTMLDivElement')
       M.DOM.id.should.equal('target')
       M.DOM.childNodes[0].should.be.class('HTMLCanvasElement')
-    })    
-
-    it('shoud create a 2D context from the canvas', () => {
-      M.context.should.be.class('CanvasRenderingContext2D')
     })
   })
 
   describe('#draw', () => {
     it('shoud set x & y variables for nodes', () => {
-      M.graph.nodes()[0].x1.should.be.greaterThanOrEqual(0)
-      M.graph.nodes()[0].y2.should.be.greaterThanOrEqual(0)
+      const C = M.graph.nodes()[2]
+      C.x1.should.be.instanceOf(Number)
+      C.y2.should.be.instanceOf(Number)
     })
 
     it('shoud set x & y variables for edge center', () => {
-      M.graph.edges()[0].center.x.should.be.greaterThanOrEqual(0)
-      M.graph.edges()[0].center.y.should.be.greaterThanOrEqual(0)
+      const E = M.graph.edges()[0]
+      E.center.x.should.be.instanceOf(Number)
+      E.center.y.should.be.instanceOf(Number)
     })
 
     it('shoud set x & y variables for edge paths', () => {
-      M.graph.edges()[0].paths[0].x1.should.be.greaterThanOrEqual(0)
-      M.graph.edges()[0].paths[0].y2.should.be.greaterThanOrEqual(0)
+      const E = M.graph.edges()[0]
+      E.paths[0].x1.should.be.instanceOf(Number)
+      E.paths[0].y2.should.be.instanceOf(Number)
     })
 
     it('should set three paths for a conjoined graph', () => {
       M.graph.edges()[0].paths.length.should.equal(3)
-      M.graph.edges()[0].paths[2].y2.should.be.greaterThanOrEqual(0)
     })
   })
 })

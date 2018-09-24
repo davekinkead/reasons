@@ -6,7 +6,7 @@ permalink: /
 
 # Reasons.js
 
-<script src="reasons.js"></script>
+<script src="reasons.min.js"></script>
 <script>
 
    //  Variables for some randomized defaults
@@ -58,8 +58,6 @@ permalink: /
     //  Save the argument map
     function save() {
       console.log(argMap.export())
-      // const graphs = JSON.parse(localStorage.getItem('reasons')) || []
-      // graphs.push(map)
-      // localStorage.setItem('reasons', JSON.stringify(graphs))
+
     }
 </script>

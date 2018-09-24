@@ -7,6 +7,7 @@ const Mapper = require('./../lib/mapper')
 const JSDOM = require('jsdom').JSDOM
 global.window = (new JSDOM('<!DOCTYPE html><div id="target"></div>')).window
 global.document = window.document
+window.HTMLCanvasElement.prototype.getContext = require('./mock-canvas')
 
 const M = new Mapper('#target')
 const G = [
@@ -17,7 +18,6 @@ const G = [
 ]
 
 describe('Mapper', () => {
-
   describe('#new', () => {
     it('should create a map with a valid DOM reference', () => {
       M.should.be.instanceOf(Mapper)
@@ -43,7 +43,6 @@ describe('Mapper', () => {
   describe('#export', () => {
     it('should export the graph as an array from the argument map', () => {
       M.render(G)
-      M.export()
       M.export().should.be.instanceOf(Array)
       M.export().length.should.equal(G.length)
     })

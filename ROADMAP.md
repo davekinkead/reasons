@@ -1,8 +1,9 @@
 # Feature Roadmap
 
-## Future
+## Future / Maybe
 
   - [] UX: Improve sharpness of canvas elements
+  - [] UX: Fix resolution of text
   - [] UX: Automatically scale to view port
   - [] UX: Autoscale for PNG
   - [] UX: Add zoom in/out functionality map
@@ -11,7 +12,6 @@
   - [] UX: Node line type selector (solid/dotted) 
   - [] UX: Add multiple node selection for dragging  
   - [] UX: Automatic layout options
-  - [] UX: Fix resolution of text
   - [] UX: Fix text padding within node
 
   - [] Compatibility: Touch UI for iOS
@@ -23,7 +23,9 @@
   - [] Highlighter: Delete selections
   - [] Highlighter: Remember selections between sessions
 
-## 0.1.0
+  - [] Scaffolder: Export graph structure to docx/rtf
+
+## 1.0.0
 
   - [X] UX: Double click canvas to add node
   - [X] UX: Automatically highlight reason text on node creation

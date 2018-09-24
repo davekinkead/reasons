@@ -15,10 +15,14 @@ describe('Element', () => {
     it('should compose behaviour into a plain JS Object', () => {
       Element.mixin(reasons.a)
       reasons.a.isNode().should.equal(true)
-    })    
+    })
+
+    it('should return the element it composes', () => {
+      Element.mixin(reasons.a).should.equal(reasons.a)
+    })
   })
 
-  describe('#new', () => {
+  describe('#init', () => {
     it('should create a new node', () => {
       Element.mixin(reasons.a).isNode().should.equal(true)
     })    
@@ -63,7 +67,7 @@ describe('Element', () => {
     })
   }) 
 
-  describe('#export', () => {
+  describe('#save', () => {
     it('should export a node as {id, text, x, y} in JSON', () => {
       const el = Element.mixin(reasons.b)
       const json = JSON.parse(JSON.stringify(el.export()))

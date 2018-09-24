@@ -34,32 +34,6 @@ describe('Graph', () => {
     })
   })
 
-  describe('#edges', () => {
-    it('should return all the edges', () => {
-      const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
-      graph.edges().should.be.instanceof(Array)
-      graph.edges().should.have.length(2)
-    })
-
-    it('should expose an edges to: propery as an id string', () => {
-      const graph = new Graph([map.a, map.b, map.ab])
-      graph.edges()[0].to.should.equal(map.b.id)
-    })
-  })
-
-  describe('#nodes', () => {
-    it('should return all the nodes', () => {
-      const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
-      graph.nodes().should.be.instanceof(Array)
-      graph.nodes().should.have.length(3)
-    })
-
-    it('should expose an edges from: propery as an array of id strings', () => {
-      const graph = new Graph([map.a, map.b, map.ab])
-      graph.edges()[0].from.should.haveTheSameItemsAs([map.a.id])      
-    })
-  })  
-
   describe('#add', () => {
     it('should add a new node to the graph', () => {
       const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
@@ -129,9 +103,57 @@ describe('Graph', () => {
   describe('#focus', () => {
     it('should move the desired element to the front of the array', () => {
       const graph = new Graph([map.a, map.b, map.c])
-      graph.focus(map.b).elements()[2].id.should.equal(map.b.id)
+      graph.focus(map.b).should.equal(map.b)
+    })
+
+    it('should set the focused property of the specified element', () => {
+      const graph = new Graph([map.a, map.b, map.c])
+      graph.focus(map.b).focused.should.equal(true)
+      graph.elements()[0].focused.should.equal(false)
     })
   })
+
+  describe('#unfocus', () => {
+    it('should unfocus all elements', () => {
+      const graph = new Graph([map.a, map.b, map.c])
+      graph.unfocus().elements().forEach((el) => {
+        el.focused.should.equal(false)
+      })
+    })
+  })
+
+  describe('#last', () => {
+    it('should return the last element', () => {
+      const graph = new Graph([map.a, map.b, map.c])
+      graph.last().should.equal(map.c)      
+    })
+  })
+
+  describe('#edges', () => {
+    it('should return all the edges', () => {
+      const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
+      graph.edges().should.be.instanceof(Array)
+      graph.edges().should.have.length(2)
+    })
+
+    it('should expose an edges to: propery as an id string', () => {
+      const graph = new Graph([map.a, map.b, map.ab])
+      graph.edges()[0].to.should.equal(map.b.id)
+    })
+  })
+
+  describe('#nodes', () => {
+    it('should return all the nodes', () => {
+      const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
+      graph.nodes().should.be.instanceof(Array)
+      graph.nodes().should.have.length(3)
+    })
+
+    it('should expose an edges from: propery as an array of id strings', () => {
+      const graph = new Graph([map.a, map.b, map.ab])
+      graph.edges()[0].from.should.haveTheSameItemsAs([map.a.id])      
+    })
+  })    
 
   describe('#elements', () => {
     it('should return all the elements', () => {
