@@ -1,6 +1,6 @@
-s# Reasons
+# Reasons
 
-*Reasons* is a digital argument mapping suite designed for modern web browsers. 
+*Reasons* is a digital argument mapping library designed for modern web browsers. 
 
 Argument mapping is the process of visually representating the logical structure of arguments.  Argument maps are an important pedagogical tool in the analysis of argumentation and have been associated with substantial increases in student cognative gains.
 
@@ -26,19 +26,20 @@ An argument map is just a directed graph representing the logical structure of a
     </script>
     
 
-[Demonstration](http://dave.kinkead.com.au/reasons/)
+[Demonstration](http://reasons.io/)
 
 
-### Compatibility
+### Browser Compatibility
 
-Reasons has been tested in the following browsers:
+Reasons relies on the HTML5 Canvas library.  It has been tested and works on the following browsers:
 
   - [X] Chrome on OSX (60+)
   - [X] Firefox on OSX (54+)
   - [X] Safari on OSX (11+)
-  - [x] Chrome on Windows 
-  - [x] Firefox on Windows 
+  - [X] Chrome on Windows 
+  - [X] Firefox on Windows 
+  - [X] Safari iOS (View only)
+  - [ ] Safari iOS (Touch)
   - [ ] Internet Explorer on Windows  
-  - [ ] Safari iOS
   - [ ] Chrome on Android
 
