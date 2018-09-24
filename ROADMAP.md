@@ -23,6 +23,8 @@
   - [] Highlighter: Delete selections
   - [] Highlighter: Remember selections between sessions
 
+  - [] Scaffolder: Export graph structure to docx/rtf
+
 ## 0.1.0
 
   - [X] UX: Double click canvas to add node

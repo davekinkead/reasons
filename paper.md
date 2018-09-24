@@ -34,9 +34,14 @@ Digital argument mapping as an educational tool has been validated by van Gelder
 
 Unfortunately, argument mapping is rarely used outside of philosophy classes owing either to a lack of instructor expertise or availability of tools appropriate to non-philosophical pedagogies.  Current digital argument mapping tools are either desktop software, limiting their ability to be integrated into online courseware, or propriety and tighly coupled, limiting their access and extensibility.
 
-`Reasons` seeks to bridge this gap by offering an open-source, loosely-coupled, web-based argument mapping library that can be integrated into a range of online coursewares and websites.  The javascript library can be embedded into any HTML page and allows uses to create, edit, share, and export argument maps (see http://reasons.io for an example).  The API allows for a wide range of integrations that map to thinking pedagogy workflows such as importing from text highlighting tools (identification -> analysis) and exporting to essay scaffolds (evaluation -> synthesis)
+`Reasons` seeks to bridge this gap by offering an open-source, loosely-coupled, web-based argument mapping library that can be integrated into a range of online coursewares and websites.  The javascript library can be embedded into any HTML page and allows uses to create, edit, share, and export argument maps (see http://reasons.io for an example).  The API allows is designed to permit the integration of the three stages of informal logical analysis -- identification of truth claims within arguments, the analysis of logical structure, and synthesis of logcial structure into writen form.
 
 Development has been funded by a University of Queensland Teaching Innovation Grant and the software forms a key component of the UQ Critical Thinking Project's research program into digital and critical thinking pedagogies.
+
+`Reasons.js` - a javascript library for digital argument mapping (https://github.com/davekinkead/reasons)
+
+`Reasons.io` - a hosted argument mapping platform using `reasons.js` (http://reasons.io)
+
 
 
 # References

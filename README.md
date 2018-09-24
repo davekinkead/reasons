@@ -1,18 +1,16 @@
 # Reasons
 
-*Reasons* is a digital argument mapping library designed for modern web browsers. 
+`Reasons` is a digital argument mapping library designed for modern web browsers. 
 
 Argument mapping is the process of visually representating the logical structure of arguments.  Argument maps are an important pedagogical tool in the analysis of argumentation and have been associated with substantial increases in student cognative gains.
 
-
-## Usage
-
-*Reasons* is designed to seemlessly integrate digital argument mapping into existing teaching pedagogies.  It's a loosely-coupled front-end library that can be used is a wide variety of web-based environments and Learning Management Systems (LMS) and integrates three stages of informal logical analysis -- identification of truth claims within arguments, the analysis of logical structure, and synthesis of logcial structure into writen form.
+Argument mapping forms the middle of the three stages of informal logical analysis -- identification of truth claims within arguments, the analysis of logical structure, and synthesis of logcial structure into writen form. `Reasons` is designed to seemlessly integrate these stages into existing teaching pedagogies. 
 
 
-### Argument Mapper
+## Embedding
 
-An argument map is just a directed graph representing the logical structure of an argument.  The `Mapper` module consists of a data structure (the graph) and a rendering engine (HTML Canvas).  The graph consists of an array of nodes containing propositional statements and edges linking them together.
+Download the library and add a reference to it and any initial data just before the `</body>` tag of a HTML page.
+
 
     <script src="reasons.js"></script>
     <script>
@@ -24,14 +22,51 @@ An argument map is just a directed graph representing the logical structure of a
         ]
       Reasons.mapper('#element').render(graph)
     </script>
-    
-
-[Demonstration](http://reasons.io/)
 
 
-### Browser Compatibility
+`Reasons` needs to know the target `#element` of the DOM in which to render the argument map.  The optional `graph` is just an array of nodes and edges representing the logical structure of an argument.  `Nodes` and `edges` are plain javascript objects representing propositional claims and inferential support.
 
-Reasons relies on the HTML5 Canvas library.  It has been tested and works on the following browsers:
+Saving an argument map is left as an implementation detail.  `Mapper.export()` will return a `Graph` array from the map's current state.
+
+
+## Usage
+
+Reasons relies on a few simple commands to edit an argument map:
+
+  - Double clicking on an empty canvas will create a new reason node.  
+
+  - Dragging one reason onto another creates an inferential connection.  Dragging reasons that share an inferential connection onto one another will create a conjoined reason.
+
+  - Double clicking on an element will open the edit dialog.  `Return` or `Esc` will close the 
+dialog.
+
+  - A single click or `Tab` will select an element.  `Delete` or `Backspace` will remove that element.
+
+  - `Ctrl z` or `⌘ z` will undo an action.  `Ctrl y` or `⌘ y` will redo it.
+
+  - `Ctrl +` or `⌘ +` will zoom in. `Ctrl -` or `⌘ -` will zoom out. 
+
+
+[Click for a demonstration](http://reasons.io/) 
+
+
+## Development & Testing
+
+
+Clone the repo and install the dependencies.
+
+
+    $ git clone https://github.com/davekinkead/reasons.git
+    $ npm install
+
+
+Running test requires additional dev dependencies including [JSDOM](https://github.com/jsdom/jsdom) and [Canvas](https://github.com/node-gfx/node-canvas-prebuilt).
+
+
+## Browser Compatibility
+
+`Reasons` relies on the HTML5 Canvas library - as such, it will not work on legacy browsers.  Touch events will be added in future releases.  It has been tested and works on the following browsers:
+
 
   - [X] Chrome on OSX (60+)
   - [X] Firefox on OSX (54+)
