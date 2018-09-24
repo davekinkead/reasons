@@ -12,9 +12,11 @@
   },
   "devDependencies": {
     "browserify": "^14.4.0",
+    "canvas-prebuilt": "^2.0.0-alpha.14",
     "jsdom": "^11.0.0",
-    "mocha": "^3.5.0",
-    "npm": "^4.6.1",
+    "mocha": "^5.2.0",
+    "npm": "^6.4.1",
+    "request": "^2.88.0",
     "should": "^11.2.1",
     "yamljs": "^0.2.10"
   },
