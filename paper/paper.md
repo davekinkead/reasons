@@ -22,6 +22,7 @@ affiliations:
   - name: University of Queensland Critical Thinking Project
     index: 1
 date: 25 September 2018
+bibliography: paper.bib
 ---
 
 # Summary

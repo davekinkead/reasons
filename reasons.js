@@ -506,7 +506,9 @@ Mapper.prototype.export = function () {
 //  Copyright (c) 2017-2018 University of Queensland
 //  Available under the MIT license
 
-//  Reasons.js API
+/**
+ * The Reasons.js API.  This module forms the top level wrapper
+ */
 const Mapper = require('./mapper')
 
 module.exports = {
