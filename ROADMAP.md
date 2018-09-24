@@ -25,7 +25,7 @@
 
   - [] Scaffolder: Export graph structure to docx/rtf
 
-## 0.1.0
+## 1.0.0
 
   - [X] UX: Double click canvas to add node
   - [X] UX: Automatically highlight reason text on node creation

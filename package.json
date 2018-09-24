@@ -18,10 +18,12 @@
     "npm": "^6.4.1",
     "request": "^2.88.0",
     "should": "^11.2.1",
+    "uglify-es": "^3.3.9",
     "yamljs": "^0.2.10"
   },
   "scripts": {
     "build": "browserify lib/reasons.js -s Reasons -o reasons.js",
+    "minify": "uglifyjs reasons.js -o reasons.min.js",
     "test": "npm run build && mocha"
   },
   "repository": {

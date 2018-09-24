@@ -2,26 +2,35 @@
 
 `Reasons` is a digital argument mapping library designed for modern web browsers. 
 
-Argument mapping is the process of visually representating the logical structure of arguments.  Argument maps are an important pedagogical tool in the analysis of argumentation and have been associated with substantial increases in student cognative gains.
+Argument mapping is the process of visually representating the logical structure of arguments.  Argument maps are an important pedagogical tool in the analysis of argumentation and have been [associated with substantial increases in student cognative gains](https://www.pdcnet.org/teachphil/content/teachphil_2004_0027_0002_0095_0116).
 
-Argument mapping forms the middle of the three stages of informal logical analysis -- identification of truth claims within arguments, the analysis of logical structure, and synthesis of logcial structure into writen form. `Reasons` is designed to seemlessly integrate these stages into existing teaching pedagogies. 
+Argument mapping forms the middle of the three stages of informal logical analysis - identification of truth claims within arguments, the analysis of logical structure, and synthesis of logcial structure into writen form. `Reasons` is designed to seemlessly integrate these stages into existing teaching pedagogies. 
 
 
-## Embedding
+## Embedding Reasons
 
 Download the library and add a reference to it and any initial data just before the `</body>` tag of a HTML page.
 
 
-    <script src="reasons.js"></script>
-    <script>
-      let graph = [
-          {id: 'p1', text: "Circular arguments work"},
-          {id: 'c1', text: "Circular arguments work"},
-          {from: 'p1', to: 'c1', type: "because"},
-          {from: 'c1', to: 'p1', type: "because"}
-        ]
-      Reasons.mapper('#element').render(graph)
-    </script>
+```html
+<html>
+<body>
+
+  ...
+
+  <script src="reasons.js"></script>
+  <script>
+    let graph = [
+        {id: 'p1', text: "Circular arguments work"},
+        {id: 'c1', text: "Circular arguments work"},
+        {from: 'p1', to: 'c1', type: "because"},
+        {from: 'c1', to: 'p1', type: "because"}
+      ]
+    Reasons.mapper('#element').render(graph)
+  </script>
+</body>
+</html>
+```
 
 
 `Reasons` needs to know the target `#element` of the DOM in which to render the argument map.  The optional `graph` is just an array of nodes and edges representing the logical structure of an argument.  `Nodes` and `edges` are plain javascript objects representing propositional claims and inferential support.
@@ -29,7 +38,7 @@ Download the library and add a reference to it and any initial data just before 
 Saving an argument map is left as an implementation detail.  `Mapper.export()` will return a `Graph` array from the map's current state.
 
 
-## Usage
+## Using Reasons
 
 Reasons relies on a few simple commands to edit an argument map:
 
