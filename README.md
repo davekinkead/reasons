@@ -15,6 +15,7 @@ Download the library and add a reference to it and any initial data just before 
 ```html
 <html>
 <body>
+  <div id="element"></div>
 
   ...
 
@@ -33,7 +34,7 @@ Download the library and add a reference to it and any initial data just before 
 ```
 
 
-`Reasons` needs to know the target `#element` of the DOM in which to render the argument map.  The optional `graph` is just an array of nodes and edges representing the logical structure of an argument.  `Nodes` and `edges` are plain javascript objects representing propositional claims and inferential support.
+`Reasons` needs to know the target `#element` of the DOM in which to render the argument map. You could use `body` to append the map to the HTML body tag or `#id` to append it to a specific element id.  The optional `graph` is just an array of nodes and edges representing the logical structure of an argument.  `Nodes` and `edges` are plain javascript objects representing propositional claims and inferential support.
 
 Saving an argument map is left as an implementation detail.  `Mapper.export()` will return a `Graph` array from the map's current state.
 
