@@ -98,3 +98,9 @@ Then:
   - [ ] Internet Explorer on Windows  
   - [ ] Chrome on Android
 
+
+## Contributing & Support
+
+We gladly accept feature requests and bug fixes.  If you have questions or problems, please [open an issue](https://github.com/davekinkead/reasons/issues).
+
+Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests to us.
