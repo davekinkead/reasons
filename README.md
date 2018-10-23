@@ -70,7 +70,17 @@ Clone the repo and install the dependencies.
     $ npm install
 
 
-Running test requires additional dev dependencies including [JSDOM](https://github.com/jsdom/jsdom) and [Canvas](https://github.com/node-gfx/node-canvas-prebuilt).
+Running the tests requires additional dev dependencies listed in the [package.json](/package.json) file under dev-dependencies including [JSDOM](https://github.com/jsdom/jsdom) and [Canvas](https://github.com/node-gfx/node-canvas-prebuilt).
+.  You will need to install all these using the command:
+
+  
+    $ npm install mocha --save-dev
+    $ npm install jsdom --save-dev
+      ...
+
+Then:
+
+    $ npm test
 
 
 ## Browser Compatibility
