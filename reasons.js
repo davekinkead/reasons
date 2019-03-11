@@ -294,9 +294,6 @@ Graph.prototype.add = function (element) {
       this.push(element)  
     }
   }
-
-    console.log(this)
-
 }
 
 
