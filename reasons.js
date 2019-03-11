@@ -1,6 +1,6 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Reasons = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017-2018 University of Queensland
+//  Copyright 2017-2019 University of Queensland
 //  Available under the MIT license
 
 'use strict'
@@ -178,7 +178,7 @@ function differenceOfVectors (point, path) {
 }
 },{"./Utils":2}],2:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017-2018 University of Queensland
+//  Copyright 2017-2019 University of Queensland
 //  Available under the MIT license
 
 module.exports = {
@@ -209,7 +209,7 @@ module.exports = {
 arguments[4][1][0].apply(exports,arguments)
 },{"./Utils":2,"dup":1}],4:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017-2018 University of Queensland
+//  Copyright 2017-2019 University of Queensland
 //  Available under the MIT license
 
 'use strict'
@@ -258,12 +258,17 @@ Graph.prototype.add = function (element) {
     this.push(element)
   } else {
 
+    //  Sanity check to ensure that edges only join nodes
+    let to = this.find((el) => el.id == element.to)
+    if (to && to.isEdge()) {
+      return false
+    }
+
     //  Edges can connect independent or conjoined reasons. 
     //  If A B & C both already support D
     //  and a new edge is added from A to B or vice versa
     //  then the relationships should be merged [A,B] -> D
-    //  and C -> D kept unchanged  
-    // console.log(this.children(element.from[0]))
+    //  and C -> D kept unchanged      
     let commonChildren = Utils.intersection(
       Utils.flatten(element.from.map(e => this.children(e))), 
       this.children(element.to)
@@ -446,7 +451,7 @@ Graph.prototype.children = function (id) {
 }
 },{"./element":3,"./utils":8}],5:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017-2018 University of Queensland
+//  Copyright 2017-2019 University of Queensland
 //  Available under the MIT license
 
 'use strict'
@@ -503,7 +508,7 @@ Mapper.prototype.export = function () {
 }
 },{"./graph":4,"./ui":7,"./view":9}],6:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017-2018 University of Queensland
+//  Copyright 2017-2019 University of Queensland
 //  Available under the MIT license
 
 /**
@@ -518,7 +523,7 @@ module.exports = {
 }
 },{"./mapper":5}],7:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017-2018 University of Queensland
+//  Copyright 2017-2019 University of Queensland
 //  Available under the MIT license
 
 'use strict'
@@ -817,7 +822,7 @@ function removeOverlay (argumentMap) {
 arguments[4][2][0].apply(exports,arguments)
 },{"array-difference":10,"array-flatten":11,"array-unique":12,"dup":2}],9:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017-2018 University of Queensland
+//  Copyright 2017-2019 University of Queensland
 //  Available under the MIT license
 
 'use strict'
@@ -832,6 +837,7 @@ const fontSize     = 16
 const cornerRadius = 4
 const rgbFocused   = '81,36,122'
 const rgbDefault   = '0,0,0'
+
 
 let graph = {}
 
@@ -857,6 +863,8 @@ module.exports = (function () {
 
     argument.DOM.appendChild(canvas)
     argument.context = canvas.getContext('2d')
+    argument.context.pixelRatio = window.devicePixelRatio
+
   }
 
 

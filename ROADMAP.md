@@ -2,8 +2,10 @@
 
 ## Future / Maybe
 
+  - [] UX: Prohibit duplication connections
   - [] UX: Improve sharpness of canvas elements
   - [] UX: Fix resolution of text
+  - [] UX: Automatically assign layout
   - [] UX: Automatically scale to view port
   - [] UX: Autoscale for PNG
   - [] UX: Add zoom in/out functionality map

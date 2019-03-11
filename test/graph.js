@@ -204,6 +204,6 @@ describe('Graph', () => {
       graph.children(map.a).should.be.instanceof(Array)
       graph.children(map.a).should.haveTheSameItemsAs([map.c])
     })
-  })  
+  })
 })
 
