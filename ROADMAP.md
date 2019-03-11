@@ -2,7 +2,6 @@
 
 ## Future / Maybe
 
-  - [] UX: Prohibit duplication connections
   - [] UX: Improve sharpness of canvas elements
   - [] UX: Fix resolution of text
   - [] UX: Automatically assign layout
@@ -31,6 +30,8 @@
 
   - [] Bug: Fix undo bug on Windows
   - [X] Bug: Prevent edges being added to other edges
+  
+  - [X] UX: Prohibit duplication connections
 
 ## 1.0.0
 

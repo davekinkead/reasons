@@ -74,6 +74,12 @@ describe('Graph', () => {
       graph.add({from: map.a.id, to: map.ac.id})
       graph.edges().length.should.equal(2)
     })
+
+    it('should prevent duplicate edges', () => {
+      const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
+      graph.add({from: map.a.id, to: map.c.id})
+      graph.edges().length.should.equal(2)
+    })
   })
 
   describe('#remove', () => {
@@ -209,6 +215,14 @@ describe('Graph', () => {
       var graph = new Graph([map.a, map.b, map.c, {from: [map.a, map.b], to: map.c}])
       graph.children(map.a).should.be.instanceof(Array)
       graph.children(map.a).should.haveTheSameItemsAs([map.c])
+    })
+  })
+
+  describe('#hasDuplicate', () => {
+    it('should prevent duplicate edges', () => {
+      var graph = new Graph([map.a, map.b, map.c, map.ab])
+      graph.hasDuplicate({from: map.a.id, to: map.b.id}).should.equal(true)
+      graph.hasDuplicate({from: map.a.id, to: map.c.id}).should.equal(false)
     })
   })
 })
