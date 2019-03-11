@@ -75,6 +75,12 @@ describe('Graph', () => {
       graph.edges().length.should.equal(2)
     })
 
+    it('should prevent edges being added to nodes', () => {
+      const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
+      graph.add({from: [map.ac.id], to: map.a})
+      graph.edges().length.should.equal(2)      
+    })
+
     it('should prevent duplicate edges', () => {
       const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
       graph.add({from: map.a.id, to: map.c.id})

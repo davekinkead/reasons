@@ -3,6 +3,7 @@
 ## Future / Maybe
 
   - [] UX: Improve sharpness of canvas elements
+  - [] UX: Increase edge text target area
   - [] UX: Fix resolution of text
   - [] UX: Fix text padding within node
   - [] UX: Automatically scale to view port

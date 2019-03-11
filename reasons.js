@@ -259,8 +259,7 @@ Graph.prototype.add = function (element) {
   } else {
 
     //  Sanity check to ensure that edges only join nodes
-    let to = this.find((el) => el.id == element.to)
-    if (to && to.isEdge() || this.hasDuplicate(element)) {
+    if (this.hasDuplicate(element) || this.isFromEdge(element) || this.isToEdge(element)) {
       return false
     }
 
@@ -295,6 +294,9 @@ Graph.prototype.add = function (element) {
       this.push(element)  
     }
   }
+
+    console.log(this)
+
 }
 
 
@@ -469,6 +471,37 @@ Graph.prototype.hasDuplicate = function (el) {
     })
   }
   return dupe
+}
+
+
+/**
+ * Determine if the proposed Edge is from an Edge
+ *  Returns boolean
+ *
+ *  @params edge object
+ */
+Graph.prototype.isFromEdge = function (element) {
+  var fromEdge = false
+  element.from.forEach((el) => {
+    var match = this.edges().find((e) => e.id == el)
+    if (match) fromEdge = true
+  })
+
+  return fromEdge
+}
+
+
+/**
+ * Determine if the proposed Edge is to an Edge
+ *  Returns boolean
+ *
+ *  @params edge object
+ */
+Graph.prototype.isToEdge = function (element) {
+  let to = this.find((el) => el.id == element.to)
+  if (to && to.isEdge()) {
+    return true
+  }
 }
 },{"./element":3,"./utils":8}],5:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
@@ -871,7 +904,7 @@ const cornerRadius = 4
 const rgbFocused   = '81,36,122'
 const rgbDefault   = '0,0,0'
 
-
+let dpr = 1
 let graph = {}
 
 
@@ -887,6 +920,8 @@ module.exports = (function () {
    *  @params mapper  The argument map to provide a view for
    */
   function init (argument) {
+    dpr = window.devicePixelRatio || 1
+
     let domBB = argument.DOM.getBoundingClientRect()
     let canvas = Utils.buildNode(
       'canvas', 
@@ -895,7 +930,8 @@ module.exports = (function () {
     )
 
     argument.DOM.appendChild(canvas)
-    argument.context = canvas.getContext('2d')
+    argument.context = canvas.getContext('2d', {alpha: true})
+    // argument.context.scale(dpr ,dpr)
   }
 
 
@@ -941,10 +977,9 @@ module.exports = (function () {
   }
 
   function resize (argument) {
-    argument.DOM.children[1].width = argument.DOM.clientWidth - argument.DOM.clientLeft 
-    argument.DOM.children[1].height = argument.DOM.clientHeight - argument.DOM.clientTop 
+    argument.DOM.children[1].width = (argument.DOM.clientWidth - argument.DOM.clientLeft) 
+    argument.DOM.children[1].height = (argument.DOM.clientHeight - argument.DOM.clientTop) 
   }
-
 
   return {
     init,
@@ -952,8 +987,7 @@ module.exports = (function () {
     zero,
     resize
   }
-
-})();
+})()
 
 
 /**
@@ -976,7 +1010,7 @@ function draw_node (node, context) {
   const opacity = (node.focused) ? 0.9 : (node.hovering) ? 0.75 : 0.5
 
   //  recalculate the height
-  node.height = text.length * fontSize + fontSize * 2.5
+  node.height = (text.length * fontSize + fontSize * 2.5) 
   resize(node)
 
   //  clear a white rectangle for background
