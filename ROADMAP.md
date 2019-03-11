@@ -27,6 +27,11 @@
 
   - [] Scaffolder: Export graph structure to docx/rtf
 
+## 1.0.1
+
+  - [] Bug: Fix undo bug on Windows
+  - [X] Bug: Prevent edges being added to other edges
+
 ## 1.0.0
 
   - [X] UX: Double click canvas to add node

@@ -68,6 +68,12 @@ describe('Graph', () => {
       graph.edges().length.should.equal(1)
       graph.edges()[0].from.should.haveTheSameItemsAs([map.a.id, map.b.id])
     })
+
+    it('should prevent nodes being added to edges', () => {
+      const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
+      graph.add({from: map.a.id, to: map.ac.id})
+      graph.edges().length.should.equal(2)
+    })
   })
 
   describe('#remove', () => {

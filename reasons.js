@@ -863,8 +863,6 @@ module.exports = (function () {
 
     argument.DOM.appendChild(canvas)
     argument.context = canvas.getContext('2d')
-    argument.context.pixelRatio = window.devicePixelRatio
-
   }
 
 
