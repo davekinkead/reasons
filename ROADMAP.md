@@ -35,6 +35,7 @@
 
   - [X] UX: Clicking outside text area closes edit modal
   - [X] UX: Prohibit duplication connections
+  - [X] UX: Tab wont add to history
 
 ## 1.0.0
 

@@ -596,7 +596,7 @@ function addEventListeners (argumentMap) {
   //  encapuslate event state in the argumentMap
   argumentMap.altered = true
   argumentMap.editMode = false
-  argumentMap.dirty = false
+  argumentMap.dirty = false     //  for when changes shouldnt be added to history
   let mouseDown = false
   let selected = null
   let dragging = null
@@ -715,7 +715,7 @@ function addEventListeners (argumentMap) {
         event.preventDefault()
         selected = argumentMap.graph[0]
         argumentMap.graph.focus(selected)
-        argumentMap.altered = true
+        argumentMap.dirty = true
       }
 
       //  Undo `⌘-z`
