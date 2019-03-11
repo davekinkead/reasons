@@ -36,6 +36,7 @@
   - [X] UX: Clicking outside text area closes edit modal
   - [X] UX: Prohibit duplication connections
   - [X] UX: Tab wont add to history
+  - [X] UX: Multi reason intersection moved closer to conclusion
 
 ## 1.0.0
 

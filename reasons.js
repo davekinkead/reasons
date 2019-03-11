@@ -1086,14 +1086,24 @@ function locate (edge) {
     return ids.includes(el.id)
   })
 
+  //  find the mid point between the connected nodes
+  let coords = elements.map((el) => {
+    return {x: (el.x1+(el.width)/2), y: (el.y1+(el.height )/2)}
+  })
+
+  edge.center = {
+    x: Math.max(...coords.map(el => el.x)) - (Math.max(...coords.map(el => el.x)) - Math.min(...coords.map(el => el.x)))/2,
+    y: Math.max(...coords.map(el => el.y)) - (Math.max(...coords.map(el => el.y)) - Math.min(...coords.map(el => el.y)))/2
+  }
+
   //  find the weighted center point of those nodes
-  edge.center = elements.map((el) => {
-      return {x: (el.x1+(el.width)/2), y: (el.y1+(el.height )/2)}
-    }).reduce((acc, el) => {
-      return {x: acc.x + el.x, y: acc.y + el.y}
-    })
-  edge.center.x = parseInt(edge.center.x/(elements.length))
-  edge.center.y = parseInt(edge.center.y/(elements.length))
+  // edge.center = elements.map((el) => {
+  //     return {x: (el.x1+(el.width)/2), y: (el.y1+(el.height )/2)}
+  //   }).reduce((acc, el) => {
+  //     return {x: acc.x + el.x, y: acc.y + el.y}
+  //   })
+  // edge.center.x = parseInt(edge.center.x/(elements.length))
+  // edge.center.y = parseInt(edge.center.y/(elements.length))
 
   //  create pairs from from-points to center to to-point
   edge.paths = edge.from.map((node) => {
