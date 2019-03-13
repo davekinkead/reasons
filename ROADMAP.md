@@ -3,16 +3,18 @@
 ## Future / Maybe
 
   - [] UX: Improve sharpness of canvas elements
+  - [] UX: Increase edge text target area
   - [] UX: Fix resolution of text
-  - [] UX: Automatically scale to view port
-  - [] UX: Autoscale for PNG
-  - [] UX: Add zoom in/out functionality map
-  - [] UX: Add params option for line, overlay, background colour etc
-  - [] UX: Add automatic padding when dropping node
-  - [] UX: Node line type selector (solid/dotted) 
-  - [] UX: Add multiple node selection for dragging  
-  - [] UX: Automatic layout options
   - [] UX: Fix text padding within node
+  - [] UX: Automatically scale to view port
+  - [] UX: Add zoom in/out functionality map
+  - [] UX: Autoscale for PNG
+  - [] UX: Add automatic padding when dropping node
+  - [] UX: Automatic layout options
+  - [] UX: Automatically assign layout
+  - [] UX: Add multiple node selection for dragging  
+  - [] UX: Node line type selector (solid/dotted) 
+  - [] UX: Add params option for line, overlay, background colour etc
 
   - [] Compatibility: Touch UI for iOS
   - [] Compatibility: Touch UI for Android
@@ -24,6 +26,17 @@
   - [] Highlighter: Remember selections between sessions
 
   - [] Scaffolder: Export graph structure to docx/rtf
+
+## 1.0.1
+
+  - [] Bug: Fix undo bug on Windows
+  - [X] Bug: Prevent edges being added to other edges
+  - [X] Bug: Fix backspace preventDefault issue
+
+  - [X] UX: Clicking outside text area closes edit modal
+  - [X] UX: Prohibit duplication connections
+  - [X] UX: Tab wont add to history
+  - [X] UX: Multi reason intersection moved closer to conclusion
 
 ## 1.0.0
 

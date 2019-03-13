@@ -15,6 +15,7 @@ Download the library and add a reference to it and any initial data just before 
 ```html
 <html>
 <body>
+  <div id="element"></div>
 
   ...
 
@@ -33,7 +34,7 @@ Download the library and add a reference to it and any initial data just before 
 ```
 
 
-`Reasons` needs to know the target `#element` of the DOM in which to render the argument map.  The optional `graph` is just an array of nodes and edges representing the logical structure of an argument.  `Nodes` and `edges` are plain javascript objects representing propositional claims and inferential support.
+`Reasons` needs to know the target `#element` of the DOM in which to render the argument map. You could use `body` to append the map to the HTML body tag or `#id` to append it to a specific element id.  The optional `graph` is just an array of nodes and edges representing the logical structure of an argument.  `Nodes` and `edges` are plain javascript objects representing propositional claims and inferential support.
 
 Saving an argument map is left as an implementation detail.  `Mapper.export()` will return a `Graph` array from the map's current state.
 
@@ -69,7 +70,17 @@ Clone the repo and install the dependencies.
     $ npm install
 
 
-Running test requires additional dev dependencies including [JSDOM](https://github.com/jsdom/jsdom) and [Canvas](https://github.com/node-gfx/node-canvas-prebuilt).
+Running the tests requires additional dev dependencies listed in the [package.json](/package.json) file under dev-dependencies including [JSDOM](https://github.com/jsdom/jsdom) and [Canvas](https://github.com/node-gfx/node-canvas-prebuilt).
+.  You will need to install all these using the command:
+
+  
+    $ npm install mocha --save-dev
+    $ npm install jsdom --save-dev
+      ...
+
+Then:
+
+    $ npm test
 
 
 ## Browser Compatibility
@@ -87,3 +98,9 @@ Running test requires additional dev dependencies including [JSDOM](https://gith
   - [ ] Internet Explorer on Windows  
   - [ ] Chrome on Android
 
+
+## Contributing & Support
+
+We gladly accept feature requests and bug fixes.  If you have questions or problems, please [open an issue](https://github.com/davekinkead/reasons/issues).
+
+Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests to us.

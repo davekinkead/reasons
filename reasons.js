@@ -1,6 +1,6 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Reasons = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017-2018 University of Queensland
+//  Copyright 2017-2019 University of Queensland
 //  Available under the MIT license
 
 'use strict'
@@ -178,7 +178,7 @@ function differenceOfVectors (point, path) {
 }
 },{"./Utils":2}],2:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017-2018 University of Queensland
+//  Copyright 2017-2019 University of Queensland
 //  Available under the MIT license
 
 module.exports = {
@@ -209,7 +209,7 @@ module.exports = {
 arguments[4][1][0].apply(exports,arguments)
 },{"./Utils":2,"dup":1}],4:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017-2018 University of Queensland
+//  Copyright 2017-2019 University of Queensland
 //  Available under the MIT license
 
 'use strict'
@@ -258,12 +258,16 @@ Graph.prototype.add = function (element) {
     this.push(element)
   } else {
 
+    //  Sanity check to ensure that edges only join nodes
+    if (this.hasDuplicate(element) || this.isFromEdge(element) || this.isToEdge(element)) {
+      return false
+    }
+
     //  Edges can connect independent or conjoined reasons. 
     //  If A B & C both already support D
     //  and a new edge is added from A to B or vice versa
     //  then the relationships should be merged [A,B] -> D
-    //  and C -> D kept unchanged  
-    // console.log(this.children(element.from[0]))
+    //  and C -> D kept unchanged      
     let commonChildren = Utils.intersection(
       Utils.flatten(element.from.map(e => this.children(e))), 
       this.children(element.to)
@@ -444,9 +448,61 @@ Graph.prototype.children = function (id) {
   }).map(el => el.to)
     .map(el => this.find(i => i == el || i.id == el)))
 }
+
+
+/**
+ * Determine if the proposed element is a dupliucate
+ *  Returns boolean
+ *
+ *  @params edge object
+ */
+Graph.prototype.hasDuplicate = function (el) {
+  Element.mixin(el)
+  let dupe = false
+
+  if (el.isEdge()) {
+    this.edges().forEach((edge) => {
+      if (el.to === edge.to && el.from.toString() === edge.from.toString()) {
+        dupe = true
+      }
+    })
+  }
+  return dupe
+}
+
+
+/**
+ * Determine if the proposed Edge is from an Edge
+ *  Returns boolean
+ *
+ *  @params edge object
+ */
+Graph.prototype.isFromEdge = function (element) {
+  var fromEdge = false
+  element.from.forEach((el) => {
+    var match = this.edges().find((e) => e.id == el)
+    if (match) fromEdge = true
+  })
+
+  return fromEdge
+}
+
+
+/**
+ * Determine if the proposed Edge is to an Edge
+ *  Returns boolean
+ *
+ *  @params edge object
+ */
+Graph.prototype.isToEdge = function (element) {
+  let to = this.find((el) => el.id == element.to)
+  if (to && to.isEdge()) {
+    return true
+  }
+}
 },{"./element":3,"./utils":8}],5:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017-2018 University of Queensland
+//  Copyright 2017-2019 University of Queensland
 //  Available under the MIT license
 
 'use strict'
@@ -503,7 +559,7 @@ Mapper.prototype.export = function () {
 }
 },{"./graph":4,"./ui":7,"./view":9}],6:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017-2018 University of Queensland
+//  Copyright 2017-2019 University of Queensland
 //  Available under the MIT license
 
 /**
@@ -518,7 +574,7 @@ module.exports = {
 }
 },{"./mapper":5}],7:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017-2018 University of Queensland
+//  Copyright 2017-2019 University of Queensland
 //  Available under the MIT license
 
 'use strict'
@@ -540,7 +596,7 @@ function addEventListeners (argumentMap) {
   //  encapuslate event state in the argumentMap
   argumentMap.altered = true
   argumentMap.editMode = false
-  argumentMap.dirty = false
+  argumentMap.dirty = false     //  for when changes shouldnt be added to history
   let mouseDown = false
   let selected = null
   let dragging = null
@@ -635,6 +691,15 @@ function addEventListeners (argumentMap) {
   })
 
 
+  //  Close modal if click occurs outside text box
+  window.addEventListener('click', (event) => {
+    
+    if (argumentMap.editMode && event.target.id === 'reason-overlay') {
+      removeOverlay(argumentMap)
+    }
+  })
+
+
   window.addEventListener('keydown', (event) => {
 
     if (argumentMap.editMode) {
@@ -650,7 +715,7 @@ function addEventListeners (argumentMap) {
         event.preventDefault()
         selected = argumentMap.graph[0]
         argumentMap.graph.focus(selected)
-        argumentMap.altered = true
+        argumentMap.dirty = true
       }
 
       //  Undo `⌘-z`
@@ -689,11 +754,14 @@ function addEventListeners (argumentMap) {
       }
 
       //  Delete a selected element on `backspace` or `delete`
-      if (selected && (Keycode.isEventKey(event, 'delete') || Keycode.isEventKey(event, 'backspace'))) {
-        event.preventDefault()
-        argumentMap.graph.remove(selected)
-        argumentMap.dirty = true
-      }      
+      if (Keycode.isEventKey(event, 'delete') || Keycode.isEventKey(event, 'backspace')) {
+        if (!argumentMap.editMode) event.preventDefault()
+
+        if (selected) {
+          argumentMap.graph.remove(selected)
+          argumentMap.dirty = true          
+        }
+      }
     }
 
     redraw(argumentMap)
@@ -817,7 +885,7 @@ function removeOverlay (argumentMap) {
 arguments[4][2][0].apply(exports,arguments)
 },{"array-difference":10,"array-flatten":11,"array-unique":12,"dup":2}],9:[function(require,module,exports){
 //  Reasons.js by Dave Kinkead
-//  Copyright (c) 2017-2018 University of Queensland
+//  Copyright 2017-2019 University of Queensland
 //  Available under the MIT license
 
 'use strict'
@@ -833,6 +901,7 @@ const cornerRadius = 4
 const rgbFocused   = '81,36,122'
 const rgbDefault   = '0,0,0'
 
+let dpr = 1
 let graph = {}
 
 
@@ -848,6 +917,8 @@ module.exports = (function () {
    *  @params mapper  The argument map to provide a view for
    */
   function init (argument) {
+    dpr = window.devicePixelRatio || 1
+
     let domBB = argument.DOM.getBoundingClientRect()
     let canvas = Utils.buildNode(
       'canvas', 
@@ -856,7 +927,8 @@ module.exports = (function () {
     )
 
     argument.DOM.appendChild(canvas)
-    argument.context = canvas.getContext('2d')
+    argument.context = canvas.getContext('2d', {alpha: true})
+    // argument.context.scale(dpr ,dpr)
   }
 
 
@@ -902,10 +974,9 @@ module.exports = (function () {
   }
 
   function resize (argument) {
-    argument.DOM.children[1].width = argument.DOM.clientWidth - argument.DOM.clientLeft 
-    argument.DOM.children[1].height = argument.DOM.clientHeight - argument.DOM.clientTop 
+    argument.DOM.children[1].width = (argument.DOM.clientWidth - argument.DOM.clientLeft) 
+    argument.DOM.children[1].height = (argument.DOM.clientHeight - argument.DOM.clientTop) 
   }
-
 
   return {
     init,
@@ -913,8 +984,7 @@ module.exports = (function () {
     zero,
     resize
   }
-
-})();
+})()
 
 
 /**
@@ -937,7 +1007,7 @@ function draw_node (node, context) {
   const opacity = (node.focused) ? 0.9 : (node.hovering) ? 0.75 : 0.5
 
   //  recalculate the height
-  node.height = text.length * fontSize + fontSize * 2.5
+  node.height = (text.length * fontSize + fontSize * 2.5) 
   resize(node)
 
   //  clear a white rectangle for background
@@ -990,8 +1060,8 @@ function draw_edge (edge, context) {
   context.stroke()
 
   //  text stroke
-  let textWidth = context.measureText(edge.type).width + 5
-  context.clearRect(edge.center.x-textWidth/2, edge.center.y-15, textWidth, 20)
+  let textWidth = context.measureText(edge.type).width + padding
+  context.clearRect(edge.center.x-textWidth/2, edge.center.y-15, textWidth, 25)
 
   //  label
   context.fillStyle = 'rgba('+rgb+',0.8)'
@@ -1016,14 +1086,24 @@ function locate (edge) {
     return ids.includes(el.id)
   })
 
+  //  find the mid point between the connected nodes
+  let coords = elements.map((el) => {
+    return {x: (el.x1+(el.width)/2), y: (el.y1+(el.height )/2)}
+  })
+
+  edge.center = {
+    x: Math.max(...coords.map(el => el.x)) - (Math.max(...coords.map(el => el.x)) - Math.min(...coords.map(el => el.x)))/2,
+    y: Math.max(...coords.map(el => el.y)) - (Math.max(...coords.map(el => el.y)) - Math.min(...coords.map(el => el.y)))/2
+  }
+
   //  find the weighted center point of those nodes
-  edge.center = elements.map((el) => {
-      return {x: (el.x1+(el.width)/2), y: (el.y1+(el.height )/2)}
-    }).reduce((acc, el) => {
-      return {x: acc.x + el.x, y: acc.y + el.y}
-    })
-  edge.center.x = parseInt(edge.center.x/(elements.length))
-  edge.center.y = parseInt(edge.center.y/(elements.length))
+  // edge.center = elements.map((el) => {
+  //     return {x: (el.x1+(el.width)/2), y: (el.y1+(el.height )/2)}
+  //   }).reduce((acc, el) => {
+  //     return {x: acc.x + el.x, y: acc.y + el.y}
+  //   })
+  // edge.center.x = parseInt(edge.center.x/(elements.length))
+  // edge.center.y = parseInt(edge.center.y/(elements.length))
 
   //  create pairs from from-points to center to to-point
   edge.paths = edge.from.map((node) => {

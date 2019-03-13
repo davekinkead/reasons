@@ -68,6 +68,24 @@ describe('Graph', () => {
       graph.edges().length.should.equal(1)
       graph.edges()[0].from.should.haveTheSameItemsAs([map.a.id, map.b.id])
     })
+
+    it('should prevent nodes being added to edges', () => {
+      const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
+      graph.add({from: map.a.id, to: map.ac.id})
+      graph.edges().length.should.equal(2)
+    })
+
+    it('should prevent edges being added to nodes', () => {
+      const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
+      graph.add({from: [map.ac.id], to: map.a})
+      graph.edges().length.should.equal(2)      
+    })
+
+    it('should prevent duplicate edges', () => {
+      const graph = new Graph([map.a, map.b, map.c, map.ac, map.bc])
+      graph.add({from: map.a.id, to: map.c.id})
+      graph.edges().length.should.equal(2)
+    })
   })
 
   describe('#remove', () => {
@@ -204,6 +222,14 @@ describe('Graph', () => {
       graph.children(map.a).should.be.instanceof(Array)
       graph.children(map.a).should.haveTheSameItemsAs([map.c])
     })
-  })  
+  })
+
+  describe('#hasDuplicate', () => {
+    it('should prevent duplicate edges', () => {
+      var graph = new Graph([map.a, map.b, map.c, map.ab])
+      graph.hasDuplicate({from: map.a.id, to: map.b.id}).should.equal(true)
+      graph.hasDuplicate({from: map.a.id, to: map.c.id}).should.equal(false)
+    })
+  })
 })
 
