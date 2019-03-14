@@ -6,7 +6,6 @@ permalink: /
 
 # Reasons.js
 
-<script src="reasons.min.js"></script>
 <script>
 
    //  Variables for some randomized defaults

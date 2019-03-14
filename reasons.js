@@ -586,6 +586,7 @@ const Keycode = require('keycode')
 const History = []
 let   Future  = []
 
+
 module.exports = {
   addEventListeners
 }
@@ -601,6 +602,7 @@ function addEventListeners (argumentMap) {
   let selected = null
   let dragging = null
   let clickPos = null
+  let metaKeyPressed = false
 
   //  Double click creates or edits element
   argumentMap.DOM.addEventListener('dblclick', (event) => {
@@ -704,24 +706,28 @@ function addEventListeners (argumentMap) {
 
     if (argumentMap.editMode) {
       //  Escape key
-      if (Keycode.isEventKey(event, 'escape')) removeOverlay(argumentMap)
+      if (Keycode.isEventKey(event, 'Escape')) removeOverlay(argumentMap)
 
       //  Return key
-      if (Keycode.isEventKey(event, 'enter')) submitOverlay(argumentMap)
+      if (Keycode.isEventKey(event, 'Enter')) submitOverlay(argumentMap)
 
     } else {
+      // this is a hack to get multiple presses working on windows
+      // if removing it, ensure you remove it from the keyup event too
+      if (isMetaKey(event)) metaKeyPressed = true
+
       //  Focus on `Tab`
-      if (!event.metaKey && Keycode.isEventKey(event, 'tab')) {
+      if (!isMetaKey(event) && Keycode.isEventKey(event, 'tab')) {
         event.preventDefault()
         selected = argumentMap.graph[0]
         argumentMap.graph.focus(selected)
         argumentMap.dirty = true
       }
 
+
       //  Undo `⌘-z`
-      if (
-        (event.metaKey || Keycode.isEventKey(event, 'control') || Keycode.isEventKey(event, 'command'))
-         && Keycode.isEventKey(event, 'z')) {
+      if (metaKeyPressed && Keycode.isEventKey(event, 'z')) {
+        event.preventDefault()
 
         //  Store for redo
         save(Future, argumentMap)
@@ -734,9 +740,8 @@ function addEventListeners (argumentMap) {
       }
 
       //  Redo `⌘-y`
-      if (
-        (event.metaKey || Keycode.isEventKey(event, 'control') || Keycode.isEventKey(event, 'command'))
-         && Keycode.isEventKey(event, 'y')) {
+      if (metaKeyPressed && Keycode.isEventKey(event, 'y')) {
+        event.preventDefault()
 
         //  Store for undo
         save(History, argumentMap)
@@ -749,12 +754,12 @@ function addEventListeners (argumentMap) {
       }
 
       //  Edit selected element on `enter`
-      if (selected && Keycode.isEventKey(event, 'enter')) {
+      if (selected && Keycode.isEventKey(event, 'Enter')) {
         addOverlay(argumentMap, selected)
       }
 
       //  Delete a selected element on `backspace` or `delete`
-      if (Keycode.isEventKey(event, 'delete') || Keycode.isEventKey(event, 'backspace')) {
+      if (Keycode.isEventKey(event, 'Delete') || Keycode.isEventKey(event, 'Backspace')) {
         if (!argumentMap.editMode) event.preventDefault()
 
         if (selected) {
@@ -765,6 +770,12 @@ function addEventListeners (argumentMap) {
     }
 
     redraw(argumentMap)
+  })
+
+  window.addEventListener('keyup', (event) => {
+
+    //  remove the metakey flag
+    if (isMetaKey(event)) metaKeyPressed = false
   })
 
 
@@ -880,6 +891,19 @@ function removeOverlay (argumentMap) {
   argumentMap.editMode = false
   argumentMap.altered = true
   document.querySelector('#reason-overlay').remove()  
+}
+
+function isMetaKey (event) {
+  return (
+    event.metaKey ||
+    Keycode.isEventKey(event, 'Alt') ||
+    Keycode.isEventKey(event, 'Meta') ||
+    Keycode.isEventKey(event, 'Command') ||
+    Keycode.isEventKey(event, 'Control') ||
+    Keycode.isEventKey(event, 'Win') ||
+    Keycode.isEventKey(event, 'ControlLeft') ||
+    Keycode.isEventKey(event, 'ControlRight')
+  ) ? true : false
 }
 },{"./graph":4,"./utils":8,"./view":9,"keycode":13}],8:[function(require,module,exports){
 arguments[4][2][0].apply(exports,arguments)
