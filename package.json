@@ -5,17 +5,17 @@
   "main": "reasons.js",
   "dependencies": {
     "array-difference": "0.0.1",
-    "array-flatten": "^2.1.1",
+    "array-flatten": "^2.1.2",
     "array-intersection": "^0.1.2",
     "array-unique": "^0.3.2",
     "keycode": "^2.2.0"
   },
   "devDependencies": {
-    "browserify": "^14.4.0",
+    "browserify": "^16.2.3",
     "canvas-prebuilt": "^2.0.0-alpha.14",
     "jsdom": "^11.0.0",
     "mocha": "^5.2.0",
-    "npm": "^6.4.1",
+    "npm": "^6.9.0",
     "request": "^2.88.0",
     "should": "^11.2.1",
     "uglify-es": "^3.3.9",
