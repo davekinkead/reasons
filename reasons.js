@@ -947,7 +947,7 @@ module.exports = (function () {
     let canvas = Utils.buildNode(
       'canvas', 
       {id: 'reasons-'+argument.DOM.id}, 
-      {width: domBB.width, height: domBB.height}
+      {width: domBB.width, height: domBB.height || window.innerHeight }
     )
 
     argument.DOM.appendChild(canvas)

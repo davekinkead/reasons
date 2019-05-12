@@ -143,7 +143,7 @@ describe('Graph', () => {
   describe('#last', () => {
     it('should return the last element', () => {
       const graph = new Graph([map.a, map.b, map.c])
-      graph.last().should.equal(map.c)      
+      graph.last().should.equal(map.a)      
     })
   })
 
