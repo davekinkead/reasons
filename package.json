@@ -1,6 +1,6 @@
 {
   "name": "reasons",
-  "version": "0.0.1",
+  "version": "1.0.1",
   "description": "Argument Mapping in your browser",
   "main": "reasons.js",
   "dependencies": {
