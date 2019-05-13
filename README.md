@@ -6,6 +6,7 @@ Argument mapping is the process of visually representating the logical structure
 
 Argument mapping forms the middle of the three stages of informal logical analysis - identification of truth claims within arguments, the analysis of logical structure, and synthesis of logcial structure into writen form. `Reasons` is designed to seemlessly integrate these stages into existing teaching pedagogies. 
 
+[![DOI](http://joss.theoj.org/papers/10.21105/joss.01044/status.svg)](https://doi.org/10.21105/joss.01044)
 
 ## Embedding Reasons
 
@@ -104,3 +105,9 @@ Then:
 We gladly accept feature requests and bug fixes.  If you have questions or problems, please [open an issue](https://github.com/davekinkead/reasons/issues).
 
 Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests to us.
+
+## How to Cite
+
+If you are using this software in an academic capacity, please cite as:
+
+> Kinkead et al., (2019). Reasons: A digital argument mapping library for modern browsers. Journal of Open Source Software, 4(37), 1044, https://doi.org/10.21105/joss.01044
