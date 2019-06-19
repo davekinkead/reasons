@@ -21,6 +21,8 @@
   - [] UX: Automatic layout options
   - [] UX: Automatically assign layout
 
+  - [] UX: Curved edges when overlap is present??
+
   - [] Compatibility: Touch UI for iOS
   - [] Compatibility: Touch UI for Android
 

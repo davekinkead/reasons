@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "browserify": "^16.2.3",
+    "canvas": "2.5.0",
     "canvas-prebuilt": "^2.0.0-alpha.14",
     "jsdom": "^11.0.0",
     "mocha": "^5.2.0",
