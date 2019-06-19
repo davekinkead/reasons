@@ -3,18 +3,23 @@
 ## Future / Maybe
 
   - [] UX: Improve sharpness of canvas elements
-  - [] UX: Increase edge text target area
   - [] UX: Fix resolution of text
-  - [] UX: Fix text padding within node
-  - [] UX: Automatically scale to view port
+  - [] UX: Fix text variable padding bug within node
+  - [] UX: Increase edge text target area
+
   - [] UX: Add zoom in/out functionality map
-  - [] UX: Autoscale for PNG
-  - [] UX: Add automatic padding when dropping node
-  - [] UX: Automatic layout options
-  - [] UX: Automatically assign layout
+  - [] UX: Drag map when zoomed in
+  
+  - [] UX: Automatically scale to view port
+  - [] UX: Automatically scale for PNG export  
+
   - [] UX: Add multiple node selection for dragging  
   - [] UX: Node line type selector (solid/dotted) 
   - [] UX: Add params option for line, overlay, background colour etc
+  
+  - [] UX: Add automatic padding when dropping node
+  - [] UX: Automatic layout options
+  - [] UX: Automatically assign layout
 
   - [] Compatibility: Touch UI for iOS
   - [] Compatibility: Touch UI for Android
@@ -25,7 +30,7 @@
   - [] Highlighter: Delete selections
   - [] Highlighter: Remember selections between sessions
 
-  - [] Scaffolder: Export graph structure to docx/rtf
+  - [] Scaffolder: Export graph structure to text/html for copy & paste into word
 
 ## 1.0.1
 
