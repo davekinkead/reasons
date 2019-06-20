@@ -933,63 +933,64 @@ let graph = {}
  * Singleton View module to render a canvas.
  */
 module.exports = (function () {
-  
+
   /**
-   * Initialise the view for this argument map instance 
+   * Initialise the view for this mapper map instance
    *  by appending a HTML canvas element.
    *
-   *  @params mapper  The argument map to provide a view for
+   *  @params mapper  The mapper map to provide a view for
    */
-  function init (argument) {
-    dpr = window.devicePixelRatio || 1
+  function init (mapper) {
+    dpr = 2 // window.devicePixelRatio || 1
 
-    let domBB = argument.DOM.getBoundingClientRect()
+    let domBB = mapper.DOM.getBoundingClientRect()
     let canvas = Utils.buildNode(
-      'canvas', 
-      {id: 'reasons-'+argument.DOM.id}, 
+      'canvas',
+      {id: 'reasons-'+mapper.DOM.id},
       {width: domBB.width, height: domBB.height || window.innerHeight }
     )
 
-    argument.DOM.appendChild(canvas)
-    argument.context = canvas.getContext('2d', {alpha: true})
-    // argument.context.scale(dpr ,dpr)
+    mapper.DOM.appendChild(canvas)
+    mapper.context = canvas.getContext('2d', {alpha: true})
+    mapper.DOM.classList
+    // mapper.DOM.style.transform = `scale(${1 / dpr})`
   }
 
 
   /**
-   * Render an argument map instance
+   * Render an mapper map instance
    */
-  function draw (argument) {
-    clear(argument)
+  function draw (mapper) {
+    clear(mapper)
 
     //  draw edges before nodes
-    graph = argument.graph
-    graph.edges().forEach(el => draw_edge(el, argument.context))
-    graph.nodes().forEach(el => draw_node(el, argument.context))
+    graph = mapper.graph
+    graph.edges().forEach(el => draw_edge(el, mapper.context))
+    graph.nodes().forEach(el => draw_node(el, mapper.context))
   }
 
-  function zero (argument) {
+  function zero (mapper) {
     //  find bb of nodes and DOM
-    let nodeBB = argument.graph.nodes().map((node) => {
+    let nodeBB = mapper.graph.nodes().map((node) => {
       return { x1: node.x1, x2: node.x2, y1: node.y1, y2: node.y2 }
     }).reduce( (acc, cur) => {
       return {
-        x1: Math.min(acc.x1, cur.x1), 
-        x2: Math.max(acc.x2, cur.x2), 
-        y1: Math.min(acc.y1, cur.y1), 
-        y2: Math.max(acc.y2, cur.y2), 
+        x1: Math.min(acc.x1, cur.x1),
+        x2: Math.max(acc.x2, cur.x2),
+        y1: Math.min(acc.y1, cur.y1),
+        y2: Math.max(acc.y2, cur.y2),
       }
     })
 
     let mid = {
-        x: ((argument.DOM.clientWidth-argument.DOM.clientLeft)/2 + argument.DOM.clientLeft) 
+        x: ((mapper.DOM.clientWidth-mapper.DOM.clientLeft)/2 + mapper.DOM.clientLeft)
           - ((nodeBB.x2-nodeBB.x1)/2 + nodeBB.x1),
-        y: ((argument.DOM.clientHeight-argument.DOM.clientTop)/2 + argument.DOM.clientTop) 
+        y: ((mapper.DOM.clientHeight-mapper.DOM.clientTop)/2 + mapper.DOM.clientTop)
           - ((nodeBB.y2-nodeBB.y1)/2 + nodeBB.y1)
       }
 
     //  translate node position to centre of DOM
-    argument.graph.nodes().forEach((node) => {
+    mapper.graph.nodes().forEach((node) => {
       node.x1 += mid.x
       node.x2 += mid.x
       node.y1 += mid.y
@@ -997,9 +998,14 @@ module.exports = (function () {
     })
   }
 
-  function resize (argument) {
-    argument.DOM.children[1].width = (argument.DOM.clientWidth - argument.DOM.clientLeft) 
-    argument.DOM.children[1].height = (argument.DOM.clientHeight - argument.DOM.clientTop) 
+  function resize (mapper) {
+    mapper.DOM.width = (mapper.DOM.clientWidth - mapper.DOM.clientLeft) * dpr
+    mapper.DOM.height = (mapper.DOM.clientHeight - mapper.DOM.clientTop) * dpr
+    const canvas = mapper.DOM.querySelector('canvas');
+    canvas.width = mapper.DOM.width
+    canvas.height = mapper.DOM.height
+
+    console.log(mapper.DOM);
   }
 
   return {
@@ -1014,10 +1020,10 @@ module.exports = (function () {
 /**
  *  Private: Clear the canvas before drawing
  */
-function clear (argument) {
-  let domBB = argument.DOM.getBoundingClientRect()
-  argument.context.clearRect(0, 0, domBB.width, domBB.height)
-} 
+function clear (mapper) {
+  let domBB = mapper.DOM.getBoundingClientRect()
+  mapper.context.clearRect(0, 0, domBB.width, domBB.height)
+}
 
 
 /**
@@ -1025,22 +1031,22 @@ function clear (argument) {
  */
 function draw_node (node, context) {
 
-  //  word wrap the text 
+  //  word wrap the text
   const text = wordWrap(node.text, context)
   const rgb = (node.hovering) ? rgbFocused : rgbDefault
   const opacity = (node.focused) ? 0.9 : (node.hovering) ? 0.75 : 0.5
 
   //  recalculate the height
-  node.height = (text.length * fontSize + fontSize * 2.5) 
-  resize(node)
+  node.height = (text.length * fontSize + fontSize * 2.5)
+  resizeNode(node)
 
   //  clear a white rectangle for background
-  context.clearRect(node.x1, node.y1, node.width, node.height)  
+  context.clearRect(node.x1, node.y1, node.width, node.height)
   context.strokeStyle = 'rgba('+rgb+','+opacity+')'
   context.lineJoin = "round"
   context.lineWidth = cornerRadius
   context.strokeRect(
-    node.x1+cornerRadius/2, node.y1+cornerRadius/2, 
+    node.x1+cornerRadius/2, node.y1+cornerRadius/2,
     node.width-cornerRadius, node.height-cornerRadius
   )
 
@@ -1052,7 +1058,7 @@ function draw_node (node, context) {
   //  add the text content
   text.forEach((line, i) => {
     context.fillText(line, node.x1 + node.width/2, node.y1  + (i+2) * fontSize)
-  })  
+  })
 }
 
 
@@ -1072,7 +1078,7 @@ function draw_edge (edge, context) {
   context.beginPath()
   edge.paths.forEach((path) => {
     context.moveTo(path.x1, path.y1)
-    context.lineTo(path.x2, path.y2)    
+    context.lineTo(path.x2, path.y2)
   })
 
   //  arrow tip
@@ -1091,7 +1097,7 @@ function draw_edge (edge, context) {
   context.fillStyle = 'rgba('+rgb+',0.8)'
   context.font = '14px sans-serif'
   context.textAlign = 'center'
-  context.fillText(edge.type, edge.center.x, edge.center.y) 
+  context.fillText(edge.type, edge.center.x, edge.center.y)
 
   if (edge.intersection)
     context.fillRect(edge.intersection.x, edge.intersection.y, 10, 10)
@@ -1149,12 +1155,12 @@ function locate (edge) {
     x1: parseInt(edge.center.x),
     y1: parseInt(edge.center.y),
     x2: parseInt(to.x1 + (to.x2 - to.x1)/2) - offset.x,
-    y2: parseInt(to.y1 + (to.y2 - to.y1)/2) + offset.y 
+    y2: parseInt(to.y1 + (to.y2 - to.y1)/2) + offset.y
   })
 }
 
 
-function resize (node) {
+function resizeNode (node) {
   node.x2 = node.x1 + node.width
   node.y2 = node.y1 + node.height
 }
@@ -1170,7 +1176,7 @@ function wordWrap(text, context) {
 
     if (width < (maxWidth - padding * 2) ) {
       line += ' ' + word
-    } else { 
+    } else {
       lines.push(line)
       line = word
     }
@@ -1187,7 +1193,7 @@ function arrowify(path) {
     x1: path.x2 + 10*Math.cos(angle+0.5),
     y1: path.y2 + 10*Math.sin(angle+0.5),
     x2: path.x2 + 10*Math.cos(angle-0.5),
-    y2: path.y2 + 10*Math.sin(angle-0.5)    
+    y2: path.y2 + 10*Math.sin(angle-0.5)
   }
 }
 
@@ -1198,7 +1204,7 @@ function pointOfIntersection (from, rect, buffer) {
   //  determine the angle of the path
   let angle = Math.atan2(from.y - center.y, center.x - from.x)
   let absCos = Math.abs(Math.cos(angle))
-  let absSin = Math.abs(Math.sin(angle))  
+  let absSin = Math.abs(Math.sin(angle))
 
   let distance = (rect.width/2*absSin <= rect.height/2*absCos) ? rect.width/2/absCos : rect.height/2/absSin
   distance += buffer || 0
