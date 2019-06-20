@@ -928,6 +928,13 @@ const rgbDefault   = '0,0,0'
 let dpr = 1
 let graph = {}
 
+function getLocal(point) {
+  return point //* dpr
+}
+
+function getGlobal(point) {
+  return point / dpr
+}
 
 /**
  * Singleton View module to render a canvas.
@@ -941,7 +948,7 @@ module.exports = (function () {
    *  @params mapper  The mapper map to provide a view for
    */
   function init (mapper) {
-    dpr = 2 // window.devicePixelRatio || 1
+    dpr = window.devicePixelRatio || 1
 
     let domBB = mapper.DOM.getBoundingClientRect()
     let canvas = Utils.buildNode(
@@ -949,11 +956,13 @@ module.exports = (function () {
       {id: 'reasons-'+mapper.DOM.id},
       {width: domBB.width, height: domBB.height || window.innerHeight }
     )
-
-    mapper.DOM.appendChild(canvas)
     mapper.context = canvas.getContext('2d', {alpha: true})
-    mapper.DOM.classList
-    // mapper.DOM.style.transform = `scale(${1 / dpr})`
+
+    mapper.DOM.style['min-height'] = "100px";
+    mapper.DOM.style['min-width'] = "100px";
+    mapper.DOM.appendChild(canvas)
+
+    resize(mapper)
   }
 
 
@@ -999,13 +1008,16 @@ module.exports = (function () {
   }
 
   function resize (mapper) {
-    mapper.DOM.width = (mapper.DOM.clientWidth - mapper.DOM.clientLeft) * dpr
-    mapper.DOM.height = (mapper.DOM.clientHeight - mapper.DOM.clientTop) * dpr
-    const canvas = mapper.DOM.querySelector('canvas');
-    canvas.width = mapper.DOM.width
-    canvas.height = mapper.DOM.height
+    mapper.DOM.width = (mapper.DOM.clientWidth - mapper.DOM.clientLeft)
+    mapper.DOM.height = (mapper.DOM.clientHeight - mapper.DOM.clientTop)
+    const canvas = mapper.DOM.querySelector('canvas')
+    canvas.width = mapper.DOM.width * dpr
+    canvas.height = mapper.DOM.height * dpr
 
-    console.log(mapper.DOM);
+    mapper.DOM.style.overflow = 'hidden'
+    canvas.style['transform-origin'] = "top left"
+    canvas.style.transform = 'scale(' + 1/dpr + ')'
+    mapper.context.scale(dpr, dpr)
   }
 
   return {
@@ -1022,7 +1034,7 @@ module.exports = (function () {
  */
 function clear (mapper) {
   let domBB = mapper.DOM.getBoundingClientRect()
-  mapper.context.clearRect(0, 0, domBB.width, domBB.height)
+  mapper.context.clearRect(0, 0, getLocal(domBB.width), getLocal(domBB.height))
 }
 
 
@@ -1041,13 +1053,13 @@ function draw_node (node, context) {
   resizeNode(node)
 
   //  clear a white rectangle for background
-  context.clearRect(node.x1, node.y1, node.width, node.height)
+  context.clearRect(getLocal(node.x1), getLocal(node.y1), getLocal(node.width), getLocal(node.height))
   context.strokeStyle = 'rgba('+rgb+','+opacity+')'
   context.lineJoin = "round"
   context.lineWidth = cornerRadius
   context.strokeRect(
-    node.x1+cornerRadius/2, node.y1+cornerRadius/2,
-    node.width-cornerRadius, node.height-cornerRadius
+    getLocal(node.x1+cornerRadius/2), getLocal(node.y1+cornerRadius/2),
+    getLocal(node.width-cornerRadius), getLocal(node.height-cornerRadius)
   )
 
   //  set text box styles
@@ -1057,7 +1069,7 @@ function draw_node (node, context) {
 
   //  add the text content
   text.forEach((line, i) => {
-    context.fillText(line, node.x1 + node.width/2, node.y1  + (i+2) * fontSize)
+    context.fillText(line, getLocal(node.x1) + getLocal(node.width)/2, getLocal(node.y1)  + getLocal(i+2) * getLocal(fontSize))
   })
 }
 
@@ -1077,30 +1089,30 @@ function draw_edge (edge, context) {
   //  stroke position
   context.beginPath()
   edge.paths.forEach((path) => {
-    context.moveTo(path.x1, path.y1)
-    context.lineTo(path.x2, path.y2)
+    context.moveTo(getLocal(path.x1), getLocal(path.y1))
+    context.lineTo(getLocal(path.x2), getLocal(path.y2))
   })
 
   //  arrow tip
   let last = edge.paths[edge.paths.length-1]
   let arrow = arrowify(last)
-  context.lineTo(arrow.x1, arrow.y1)
-  context.moveTo(last.x2, last.y2)
-  context.lineTo(arrow.x2, arrow.y2)
+  context.lineTo(getLocal(arrow.x1), getLocal(arrow.y1))
+  context.moveTo(getLocal(last.x2), getLocal(last.y2))
+  context.lineTo(getLocal(arrow.x2), getLocal(arrow.y2))
   context.stroke()
 
   //  text stroke
   let textWidth = context.measureText(edge.type).width + padding
-  context.clearRect(edge.center.x-textWidth/2, edge.center.y-15, textWidth, 25)
+  context.clearRect(getLocal(edge.center.x-textWidth/2), getLocal(edge.center.y-15), getLocal(textWidth), getLocal(25))
 
   //  label
   context.fillStyle = 'rgba('+rgb+',0.8)'
-  context.font = '14px sans-serif'
+  context.font = getLocal(14) + 'px sans-serif'
   context.textAlign = 'center'
-  context.fillText(edge.type, edge.center.x, edge.center.y)
+  context.fillText(edge.type, getLocal(edge.center.x), getLocal(edge.center.y))
 
   if (edge.intersection)
-    context.fillRect(edge.intersection.x, edge.intersection.y, 10, 10)
+    context.fillRect(getLocal(edge.intersection.x), getLocal(edge.intersection.y), getLocal(10), getLocal(10))
 }
 
 
@@ -1118,12 +1130,14 @@ function locate (edge) {
 
   //  find the mid point between the connected nodes
   let coords = elements.map((el) => {
-    return {x: (el.x1+(el.width)/2), y: (el.y1+(el.height )/2)}
+    return {x: getLocal((el.x1+(el.width)/2)), y: getLocal((el.y1+(el.height )/2))}
   })
 
+  let xs = coords.map(el => el.x)
+  let ys = coords.map(el => el.y)
   edge.center = {
-    x: Math.max(...coords.map(el => el.x)) - (Math.max(...coords.map(el => el.x)) - Math.min(...coords.map(el => el.x)))/2,
-    y: Math.max(...coords.map(el => el.y)) - (Math.max(...coords.map(el => el.y)) - Math.min(...coords.map(el => el.y)))/2
+    x: getLocal(Math.max(...xs) - (Math.max(...xs) - Math.min(...xs)) / 2),
+    y: getLocal(Math.max(...ys) - (Math.max(...ys) - Math.min(...ys)) / 2)
   }
 
   //  find the weighted center point of those nodes
