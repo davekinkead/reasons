@@ -44,18 +44,17 @@ Saving an argument map is left as an implementation detail.  `Mapper.export()` w
 
 Reasons relies on a few simple commands to edit an argument map:
 
-  - Double clicking on an empty canvas will create a new reason node.  
+  - Double clicking/touching on an empty canvas will create a new reason node.  
+
+  - Double clicking/touching on an element will open the edit dialog.  `Return` or `Esc` will close the dialog.
 
   - Dragging one reason onto another creates an inferential connection.  Dragging reasons that share an inferential connection onto one another will create a conjoined reason.
 
-  - Double clicking on an element will open the edit dialog.  `Return` or `Esc` will close the 
-dialog.
-
   - A single click or `Tab` will select an element.  `Delete` or `Backspace` will remove that element.
 
-  - `Ctrl z` or `⌘ z` will undo an action.  `Ctrl y` or `⌘ y` will redo it.
+  - `Ctrl z` or `⌘ z` or device shake will undo an action.  `Ctrl y` or `⌘ y` will redo it.
 
-  - `Ctrl +` or `⌘ +` will zoom in. `Ctrl -` or `⌘ -` will zoom out. 
+  - `Ctrl +` or `⌘ +` or wheel or expand will zoom in. `Ctrl -` or `⌘ -` or wheel or pinch will zoom out. 
 
 
 [Click for a demonstration](http://reasons.io/) 

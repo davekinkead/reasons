@@ -2,29 +2,32 @@
 
 ## Future / Maybe
 
-  - [] UX: Improve sharpness of canvas elements
-  - [] UX: Fix resolution of text
+  - [X] UX: Improve sharpness of canvas elements
+  - [X] UX: Fix resolution of text
+
   - [] UX: Fix text variable padding bug within node
-  - [] UX: Increase edge text target area
 
   - [] UX: Add zoom in/out functionality map
-  - [] UX: Drag map when zoomed in
+  - [] UX: Add pan from single click & drag
   
+  - [] Compatibility: Touch UI for iOS
+  - [] Compatibility: Touch UI for Android
+  - [] UX: Add delete & save icons to the edit dialog
+  - [] UX: Merge with delete, escape, & return key events
+  - [] UX: Add params option for line, overlay, background colour etc
+
   - [] UX: Automatically scale to view port
   - [] UX: Automatically scale for PNG export  
 
-  - [] UX: Add multiple node selection for dragging  
   - [] UX: Node line type selector (solid/dotted) 
-  - [] UX: Add params option for line, overlay, background colour etc
+  - [] UX: Increase edge text target area
   
   - [] UX: Add automatic padding when dropping node
   - [] UX: Automatic layout options
   - [] UX: Automatically assign layout
 
+  - [] UX: Add multiple node selection for dragging?? 
   - [] UX: Curved edges when overlap is present??
-
-  - [] Compatibility: Touch UI for iOS
-  - [] Compatibility: Touch UI for Android
 
   - [] Highlighter: Specifiy target URL
   - [] Highlighter: Better icons
