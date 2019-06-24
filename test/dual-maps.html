@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf8">
+  <style>
+    #a, #b {
+      height: 50vh;
+      border: 1px solid #CCC;
+    }
+  </style>
+
+</head>
+<body>
+  <div id="a"></div>
+  <div id="b"></div>
+
+  <script src="../reasons.js"></script>
+  <script>
+    let graphA = [
+        {id: 'p1', text: "Circular arguments work", x: 150, y: 200},
+        {id: 'c1', text: "Circular arguments work"},
+        // {from: 'p1', to: 'c1', type: "because"},
+        {from: 'c1', to: 'p1', type: "because"}
+      ]
+    let graphB = [
+      {id: 'p3', text: 'Click me Geoff!'}
+    ]
+    Reasons.mapper('#a').render(graphA)
+    Reasons.mapper('#b').render(graphB)
+  </script>
+</body>
+</html>
