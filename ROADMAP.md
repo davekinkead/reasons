@@ -7,9 +7,9 @@
 
   - [] UX: Fix text variable padding bug within node
 
-  - [] UX: Add zoom in/out functionality map
-  - [] UX: Add pan from single click & drag
-  
+  - [x] UX: Add zoom in/out functionality map
+  - [x] UX: Add pan from single click & drag
+
   - [] Compatibility: Touch UI for iOS
   - [] Compatibility: Touch UI for Android
   - [] UX: Add delete & save icons to the edit dialog
@@ -17,16 +17,16 @@
   - [] UX: Add params option for line, overlay, background colour etc
 
   - [] UX: Automatically scale to view port
-  - [] UX: Automatically scale for PNG export  
+  - [] UX: Automatically scale for PNG export
 
-  - [] UX: Node line type selector (solid/dotted) 
+  - [] UX: Node line type selector (solid/dotted)
   - [] UX: Increase edge text target area
-  
+
   - [] UX: Add automatic padding when dropping node
   - [] UX: Automatic layout options
   - [] UX: Automatically assign layout
 
-  - [] UX: Add multiple node selection for dragging?? 
+  - [] UX: Add multiple node selection for dragging??
   - [] UX: Curved edges when overlap is present??
 
   - [] Highlighter: Specifiy target URL
@@ -73,10 +73,10 @@
   - [X] Edges: Add independent conjoined argument chains
   - [X] Edges: Permit multiple relations between nodes
 
-  - [X] Compatibility: Chrome on OSX 
-  - [X] Compatibility: Firefox on OSX  
+  - [X] Compatibility: Chrome on OSX
+  - [X] Compatibility: Firefox on OSX
   - [X] Compatibility: Safari on OSX
-  - [X] Compatibility: Firefox on Windows  
+  - [X] Compatibility: Firefox on Windows
   - [X] Compatibility: Chrome on Windows
 
   - [X] Data: Changes to canvas events should update graph object

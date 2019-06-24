@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="utf8">
+  <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
   <style>
     #element {
       height: 100vh;
@@ -17,10 +18,16 @@
     let graph = [
         {id: 'p1', text: "Circular arguments work", x: 150, y: 200},
         {id: 'c1', text: "Circular arguments work"},
-        {from: 'p1', to: 'c1', type: "because"},
+        // {from: 'p1', to: 'c1', type: "because"},
         {from: 'c1', to: 'p1', type: "because"}
       ]
-    Reasons.mapper('#element').render(graph)
+    let m = Reasons.mapper('#element').render(graph)
+
+    window.addEventListener('keypress', (event) => {
+      if (event.key == 's') {
+        console.log(m.export())
+      }
+    })
   </script>
 </body>
 </html>

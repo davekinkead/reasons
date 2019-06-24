@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf8">
+  <style>
+    #element {
+      height: 100vh;
+    }
+  </style>
+
+</head>
+<body>
+  <div id="element"></div>
+
+  <script src="../reasons.js"></script>
+  <script>
+    let graph = [
+{
+  "id": "p1",
+  "text": "Circular arguments work",
+  "x": 941,
+  "y": 268
+},
+{
+  "id": "c1",
+  "text": "Circular arguments work",
+  "x": 791,
+  "y": 68
+},
+{
+  "id": "p6xd5",
+  "type": "because",
+  "from": [
+    "c1"
+  ],
+  "to": "p1"
+},
+{
+  "id": "b4qih",
+  "text": "A reason",
+  "x": 583,
+  "y": 530
+},
+{
+  "id": "en31u",
+  "text": "A reason",
+  "x": 388,
+  "y": 562
+},
+{
+  "id": "m8ick",
+  "type": "supports",
+  "from": [
+    "xjdp6",
+    "en31u"
+  ],
+  "to": "b4qih"
+},
+{
+  "id": "xjdp6",
+  "text": "A reason",
+  "x": 348,
+  "y": 395
+},
+{
+  "id": "djhjt",
+  "type": "supports",
+  "from": [
+    "xjdp6"
+  ],
+  "to": "4wlbv"
+},
+{
+  "id": "r5khs",
+  "text": "A reason",
+  "x": 558,
+  "y": 298
+},
+{
+  "id": "qssf5",
+  "type": "supports",
+  "from": [
+    "r5khs"
+  ],
+  "to": "4wlbv"
+},
+{
+  "id": "4wlbv",
+  "text": "A reason",
+  "x": 475,
+  "y": 250
+},
+{
+  "id": "38hv7",
+  "type": "supports",
+  "from": [
+    "4wlbv"
+  ],
+  "to": "vb6ak"
+},
+{
+  "id": "vb6ak",
+  "text": "A reason",
+  "x": 325,
+  "y": 121
+},
+{
+  "id": "vlvhf",
+  "type": "supports",
+  "from": [
+    "vb6ak"
+  ],
+  "to": "c1"
+},
+{
+  "id": "50ch4",
+  "text": "A reason",
+  "x": 638,
+  "y": -72
+},
+{
+  "id": "62obt",
+  "type": "supports",
+  "from": [
+    "50ch4"
+  ],
+  "to": "c1"
+},
+{
+  "id": "868jm",
+  "text": "A reason",
+  "x": 860,
+  "y": -148
+},
+{
+  "id": "jtof7",
+  "type": "supports",
+  "from": [
+    "868jm"
+  ],
+  "to": "khl3k"
+},
+{
+  "id": "jfk1m",
+  "text": "A reason",
+  "x": 1066,
+  "y": -52
+},
+{
+  "id": "dwli5",
+  "type": "supports",
+  "from": [
+    "jfk1m"
+  ],
+  "to": "23ww9"
+},
+{
+  "id": "23ww9",
+  "text": "A reason",
+  "x": 1126,
+  "y": 141
+},
+{
+  "id": "i0tbh",
+  "type": "supports",
+  "from": [
+    "23ww9"
+  ],
+  "to": "khl3k"
+},
+{
+  "id": "4ja0r",
+  "type": "supports",
+  "from": [
+    "khl3k"
+  ],
+  "to": "jfk1m"
+},
+{
+  "id": "khl3k",
+  "text": "A reason",
+  "x": 874,
+  "y": -61
+},
+{
+  "id": "3m7cx",
+  "type": "supports",
+  "from": [
+    "khl3k"
+  ],
+  "to": "c1"
+},
+{
+  "id": "umqlh",
+  "text": "A reason",
+  "x": 1206,
+  "y": 278
+},
+{
+  "id": "6yu0g",
+  "text": "A reason",
+  "x": 1027,
+  "y": 409
+},
+{
+  "id": "fiu85",
+  "type": "supports",
+  "from": [
+    "umqlh",
+    "6yu0g"
+  ],
+  "to": "p1"
+},
+{
+  "id": "k4uir",
+  "text": "A reason",
+  "x": 414,
+  "y": -95
+},
+{
+  "id": "otfel",
+  "type": "supports",
+  "from": [
+    "k4uir"
+  ],
+  "to": "2s79j"
+},
+{
+  "id": "wxngj",
+  "type": "supports",
+  "from": [
+    "2s79j"
+  ],
+  "to": "vb6ak"
+},
+{
+  "id": "2s79j",
+  "text": "A reason",
+  "x": 478,
+  "y": 20
+},
+{
+  "id": "v1ylg",
+  "type": "supports",
+  "from": [
+    "2s79j"
+  ],
+  "to": "c1"
+}
+]
+    let m = Reasons.mapper('#element').render(graph)
+
+    window.addEventListener('keypress', (event) => {
+      if (event.key == 's') {
+        console.log(m.export())
+      }
+    })
+  </script>
+</body>
+</html>
