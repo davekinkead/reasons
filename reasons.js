@@ -583,7 +583,6 @@ const View    = require('./view')
 const Utils   = require('./utils')
 const Graph   = require('./graph')
 const Keycode = require('keycode')
-// const hammer  = require('hammerjs')
 const History = []
 let   Future  = []
 
@@ -814,20 +813,33 @@ function addEventListeners (mapper) {
   }, { passive: false })
 }
 
+let timeout;
+
+function redraw(mapper) {
+	// If there's a timer, cancel it
+	if (timeout) {
+		window.cancelAnimationFrame(timeout);
+	}
+
+    // Setup the new requestAnimationFrame()
+	timeout = window.requestAnimationFrame(function () {
+    _redraw(mapper)
+	});
+}
 
 /**
  * Private: Redraws the canvas if changes have occured
  */
-function redraw (argumentMap) {
-  if (argumentMap.altered || argumentMap.dirty) {
-    if (argumentMap.altered) {
-      save(History, argumentMap)
+function _redraw (mapper) {
+  if (mapper.altered || mapper.dirty) {
+    if (mapper.altered) {
+      save(History, mapper)
       Future = [] //  Reset the redo buffer
     }
 
-    View.draw(argumentMap)
-    argumentMap.altered = false
-    argumentMap.dirty = false
+    View.draw(mapper)
+    mapper.altered = false
+    mapper.dirty = false
   }
 }
 
@@ -1010,9 +1022,9 @@ module.exports = (function () {
     })
 
     let mid = {
-        x: ((mapper.DOM.clientWidth-mapper.DOM.clientLeft)/2 + mapper.DOM.clientLeft)
+        x: ((mapper.DOM.clientWidth-mapper.DOM.clientLeft)/2/mapper.scale + mapper.DOM.clientLeft)
           - ((nodeBB.x2-nodeBB.x1)/2 + nodeBB.x1),
-        y: ((mapper.DOM.clientHeight-mapper.DOM.clientTop)/2 + mapper.DOM.clientTop)
+        y: ((mapper.DOM.clientHeight-mapper.DOM.clientTop)/2/mapper.scale + mapper.DOM.clientTop)
           - ((nodeBB.y2-nodeBB.y1)/2 + nodeBB.y1)
       }
 
@@ -1039,12 +1051,8 @@ module.exports = (function () {
   }
 
   function setScale(mapper, newScale) {
-    console.log(newScale)
-    // scale = (newScale > 0) ? scale++ : scale
     const relativeScale = (1+ newScale/1000)
     mapper.scale = mapper.scale * relativeScale
-    // scale *= newScale/100
-    console.log(mapper.scale)
     mapper.context.scale(relativeScale, relativeScale)
   }
 
@@ -1175,17 +1183,17 @@ function locate (edge) {
   //   }).reduce((acc, el) => {
   //     return {x: acc.x + el.x, y: acc.y + el.y}
   //   })
-  // edge.center.x = parseInt(edge.center.x/(elements.length))
-  // edge.center.y = parseInt(edge.center.y/(elements.length))
+  // edge.center.x = edge.center.x/(elements.length)
+  // edge.center.y = edge.center.y/(elements.length)
 
   //  create pairs from from-points to center to to-point
   edge.paths = edge.from.map((node) => {
     let el = elements.find(e => e.id == node)
     return {
-      x1: parseInt(el.x1+(el.x2-el.x1)/2),
-      y1: parseInt(el.y1+(el.y2-el.y1)/2),
-      x2: parseInt(edge.center.x),
-      y2: parseInt(edge.center.y)
+      x1: el.x1+(el.x2-el.x1)/2,
+      y1: el.y1+(el.y2-el.y1)/2,
+      x2: edge.center.x,
+      y2: edge.center.y
     }
   })
 
@@ -1195,10 +1203,10 @@ function locate (edge) {
 
   // get offset x,y from rectangle intersect
   edge.paths.push({
-    x1: parseInt(edge.center.x),
-    y1: parseInt(edge.center.y),
-    x2: parseInt(to.x1 + (to.x2 - to.x1)/2) - offset.x,
-    y2: parseInt(to.y1 + (to.y2 - to.y1)/2) + offset.y
+    x1: edge.center.x,
+    y1: edge.center.y,
+    x2: (to.x1 + (to.x2 - to.x1)/2) - offset.x,
+    y2: (to.y1 + (to.y2 - to.y1)/2) + offset.y
   })
 }
 
