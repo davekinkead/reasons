@@ -1135,11 +1135,10 @@ function draw_node (node, context) {
 
   //  add the text content
   text.forEach((line, i) => {
-    const x = getLocal(node.x1) + getLocal(node.width)/2
-    const y = getLocal(node.y1)  + getLocal(i+2) * getLocal(fontSize)
-    context.fillText(line, x, y)
+    context.fillText(line, getLocal(node.x1) + getLocal(node.width)/2, getLocal(node.y1)  + getLocal(i+2) * getLocal(fontSize))
   })
 }
+
 
 /**
  * Private: Draws an edge on the canvas
@@ -1150,7 +1149,6 @@ function draw_edge (edge, context) {
   //  stroke style
   const rgb = (edge.hovering) ? rgbFocused : rgbDefault
   const opacity = (edge.focused) ? 0.9 : (edge.hovering) ? 0.75 : 0.5
-  // context.setLineDash([8,4])
   context.strokeStyle = 'rgba('+rgb+','+opacity+')'
   context.lineWidth = 4
 
