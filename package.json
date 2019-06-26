@@ -24,7 +24,7 @@
   },
   "scripts": {
     "build": "browserify lib/reasons.js -s Reasons -o reasons.js",
-    "minify": "uglifyjs reasons.js -o reasons.min.js",
+    "minify": "npm run build && uglifyjs reasons.js -o reasons.min.js",
     "test": "npm run build && mocha"
   },
   "repository": {
