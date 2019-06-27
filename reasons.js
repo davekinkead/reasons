@@ -39,9 +39,9 @@ function init (element) {
 
   if (element.isEdge()) {
 
-    /** 
+    /**
      * Default Edge values:
-     *  From should return ['node_id', 'node_id'] 
+     *  From should return ['node_id', 'node_id']
      *  To should return 'node_id'
      *  Path should be an empty array to be set in the View/UI
      */
@@ -90,9 +90,11 @@ function collides (el) {
         hit = true
     })
 
+    if (!this.center) return false
+
     //  Estimate collision of the label box
     let width = this.type.length * 5
-    hit = (el.x < this.center.x - width || el.x > this.center.x + width || 
+    hit = (el.x < this.center.x - width || el.x > this.center.x + width ||
             el.y < this.center.y - 10 ||  el.y > this.center.y +  10) ? false : true
 
     //  otherwise
@@ -103,7 +105,7 @@ function collides (el) {
     if (el.isNode && el.isNode())
       return (this.x2 < el.x1 || this.x1 > el.x2 || this.y1 > el.y2 || this.y2 < el.y1) ? false : true
     else
-      return (el.x > this.x1 && el.x < this.x2 && el.y > this.y1 && el.y < this.y2) ? true : false      
+      return (el.x > this.x1 && el.x < this.x2 && el.y > this.y1 && el.y < this.y2) ? true : false
   }
 }
 
@@ -122,7 +124,7 @@ function move (position) {
 /**
  * Exports an element's data
  */
-function save () {
+function save (offset={x:0,y:0}) {
   if (this.isEdge()) {
 
     //  Export an Edge
@@ -136,11 +138,11 @@ function save () {
 
     //  Export a Node
     return {
-      id: this.id, 
+      id: this.id,
       text: this.text,
-      x: parseInt(this.x1 + this.width/2),
-      y: parseInt(this.y1 + this.height/2)
-    }    
+      x: parseInt(this.x1 + this.width/2) - offset.x,
+      y: parseInt(this.y1 + this.height/2) - offset.y
+    }
   }
 }
 
@@ -165,8 +167,8 @@ function locate (element, position) {
   if (obj instanceof Array) {
     return obj.map(el => el.id || el)
   } else {
-    return obj.id || obj    
-  }  
+    return obj.id || obj
+  }
 }
 
 /**
@@ -594,10 +596,14 @@ module.exports = {
 
 
 function addEventListeners (mapper) {
+  console.log("Adding event listeners");
 
-  const hammer = new Hammer(mapper.DOM, {});
+  const hammer = new Hammer(mapper.DOM, {})
+  hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL })
+  hammer.get('pinch').set({ enable: true })
 
-  hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL });
+  const swipeGesture = new Hammer.Swipe({ pointers: 3 })
+  hammer.add(swipeGesture)
 
   //  encapuslate event state in the argumentMap
   mapper.altered = true
@@ -645,10 +651,51 @@ function addEventListeners (mapper) {
     redraw(mapper)
   })
 
+
+  function triggerRedo() {
+    //  Store for undo
+    save(History, mapper)
+    const next = Future.pop()
+    if (next) {
+      mapper.graph = new Graph(JSON.parse(next))
+      mapper.dirty = true
+    }
+  }
+
+  function triggerUndo() {
+    //  Store for redo
+    save(Future, mapper)
+    const last = History.pop()
+    if (last) {
+      mapper.graph = new Graph(JSON.parse(last))
+      mapper.dirty = true
+    }
+  }
+
+  hammer.on('swipe', (hammerEvent) => {
+    if (hammerEvent.direction & Hammer.DIRECTION_HORIZONTAL) {
+      console.log("swipe",event)
+      mapper._isSwipping = true;
+      if (hammerEvent.direction === Hammer.DIRECTION_LEFT) {
+        triggerUndo()
+      } else {
+        triggerRedo()
+      }
+      setTimeout(() => {
+        mapper._isSwipping = false
+        console.log("ending swipe");
+      }, 250)
+    }
+  })
+
   hammer.on('panstart', function(hammerEvent) {
     const event = hammerEvent.srcEvent
     const {collision} = detect(event)
-    if (!collision) {
+    if (mapper._isSwipping) { return }
+    if (collision) {
+      console.log("PanStart");
+      dragStart(event);
+    } else {
       mapper._startPan = { ...mapper.offset }
     }
   })
@@ -656,7 +703,8 @@ function addEventListeners (mapper) {
   hammer.on('panmove', function (hammerEvent) {
     const event = hammerEvent.srcEvent;
     const {collision} = detect(event)
-    if (collision || dragging) { return }
+    if (collision || dragging || mapper._isSwipping) { return }
+    console.log("Pan", hammerEvent);
 
     mapper.offset = {
       x: mapper._startPan.x + (hammerEvent.deltaX / mapper.scale),
@@ -669,8 +717,9 @@ function addEventListeners (mapper) {
 
   //  Draging an element selects and moves it
   //  Selecting nothing unfocuses the graph
-  mapper.DOM.addEventListener('mousedown', (event) => {
+  const dragStart = (event) => {
 
+    console.log("Drag STart!!");
     const {position, collision} = detect(event)
 
     if (collision) {
@@ -682,11 +731,13 @@ function addEventListeners (mapper) {
     }
 
     redraw(mapper)
-  })
+  }
+  mapper.DOM.addEventListener('mousedown', dragStart)
+  // mapper.DOM.addEventListener('touchstart', dragStart)
 
   //  Move a selected element on drag
   //  Highlight a hovered element
-  mapper.DOM.addEventListener('mousemove', (event) => {
+  const dragMove = (event) => {
 
     // Set element hover flag on mouseover
     const mouse = localPosition(event)
@@ -708,11 +759,13 @@ function addEventListeners (mapper) {
     }
 
     redraw(mapper)
-  })
+  }
+  mapper.DOM.addEventListener('mousemove', dragMove)
+  mapper.DOM.addEventListener('touchmove', dragMove)
 
 
   //  Release a drag action and add an edge if needed
-  mapper.DOM.addEventListener('mouseup', (event) => {
+  const dragEnd = (event) => {
 
     const {collision} = detect(event)
 
@@ -733,7 +786,9 @@ function addEventListeners (mapper) {
     }
 
     redraw(mapper)
-  })
+  }
+  mapper.DOM.addEventListener('mouseup', dragEnd)
+  mapper.DOM.addEventListener('touchend', dragEnd)
 
 
   //  Close modal if click occurs outside text box
@@ -771,29 +826,13 @@ function addEventListeners (mapper) {
       //  Undo `⌘-z`
       if (metaKeyPressed && Keycode.isEventKey(event, 'z')) {
         event.preventDefault()
-
-        //  Store for redo
-        save(Future, mapper)
-
-        const last = History.pop()
-        if (last) {
-          mapper.graph = new Graph(JSON.parse(last))
-          mapper.dirty = true
-        }
+        triggerUndo();
       }
 
       //  Redo `⌘-y`
       if (metaKeyPressed && Keycode.isEventKey(event, 'y')) {
         event.preventDefault()
-
-        //  Store for undo
-        save(History, mapper)
-
-        const next = Future.pop()
-        if (next) {
-          mapper.graph = new Graph(JSON.parse(next))
-          mapper.dirty = true
-        }
+        triggerRedo();
       }
 
       //  Edit selected element on `enter`
@@ -829,14 +868,35 @@ function addEventListeners (mapper) {
     redraw(mapper)
   })
 
-  window.addEventListener('wheel', (event) => {
+  const zoomAction = (event) => {
+
     event.preventDefault();
-    // console.log(event);
+    console.log(event.deltaY);
     mapper.dirty = true
     View.setScale(mapper, event.deltaY)
     View.zero(mapper)
     redraw(mapper)
-  }, { passive: false })
+  }
+  window.addEventListener('wheel', zoomAction, { passive: false })
+
+  //  Use _lastScale to help calculate the diff of the event's movement
+  let _lastScale = 1
+
+  hammer.on('pinch', (hammerEvent) => {
+    if (mapper._isSwipping) { return }
+    let tmpScale = hammerEvent.scale - _lastScale
+
+    mapper.dirty = true
+    View.setScale(mapper, tmpScale * 1000, true)
+    View.zero(mapper)
+    redraw(mapper)
+    _lastScale = hammerEvent.scale
+  })
+
+  hammer.on('pinchend', () => {
+    _lastScale = 1
+  })
+
 }
 
 let timeout;
@@ -875,11 +935,11 @@ function _redraw (mapper) {
 /**
  * Private: Saves a serialized copy of the graph
  */
-function save (store, argumentMap) {
+function save (store, mapper) {
   const last = (store.length == 0) ? JSON.stringify([]) : store[store.length-1]
   const current = JSON.stringify(
-      argumentMap.graph.map(function (element) {
-        return element.export()
+      mapper.graph.map(function (element) {
+        return element.export(mapper.offset)
       })
     )
 
@@ -1079,10 +1139,14 @@ module.exports = (function () {
     mapper.context.scale(dpr * mapper.scale, dpr * mapper.scale)
   }
 
-  function setScale(mapper, newScale) {
-    const relativeScale = (1+ newScale/1000)
-    mapper.scale = mapper.scale * relativeScale
-    mapper.context.scale(relativeScale, relativeScale)
+  function setScale(mapper, newScale, transform=true) {
+    const relativeScale = transform ? (1+ newScale/1000) : (newScale)
+    // mapper.scale = Math.max(mapper.scale * relativeScale, 3)
+    const updatedScale = mapper.scale * relativeScale
+    if (updatedScale < 10 && updatedScale > 0.4) {
+      mapper.scale = mapper.scale * relativeScale
+      mapper.context.scale(relativeScale, relativeScale)
+    }
   }
 
   return {
