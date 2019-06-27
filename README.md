@@ -1,10 +1,10 @@
 # Reasons
 
-`Reasons` is a digital argument mapping library designed for modern web browsers. 
+`Reasons` is a digital argument mapping library designed for modern web browsers.
 
 Argument mapping is the process of visually representating the logical structure of arguments.  Argument maps are an important pedagogical tool in the analysis of argumentation and have been [associated with substantial increases in student cognative gains](https://www.pdcnet.org/teachphil/content/teachphil_2004_0027_0002_0095_0116).
 
-Argument mapping forms the middle of the three stages of informal logical analysis - identification of truth claims within arguments, the analysis of logical structure, and synthesis of logcial structure into writen form. `Reasons` is designed to seemlessly integrate these stages into existing teaching pedagogies. 
+Argument mapping forms the middle of the three stages of informal logical analysis - identification of truth claims within arguments, the analysis of logical structure, and synthesis of logcial structure into writen form. `Reasons` is designed to seemlessly integrate these stages into existing teaching pedagogies.
 
 [![DOI](http://joss.theoj.org/papers/10.21105/joss.01044/status.svg)](https://doi.org/10.21105/joss.01044)
 
@@ -44,7 +44,7 @@ Saving an argument map is left as an implementation detail.  `Mapper.export()` w
 
 Reasons relies on a few simple commands to edit an argument map:
 
-  - Double clicking/touching on an empty canvas will create a new reason node.  
+  - Double clicking/touching on an empty canvas will create a new reason node.
 
   - Double clicking/touching on an element will open the edit dialog.  `Return` or `Esc` will close the dialog.
 
@@ -54,10 +54,10 @@ Reasons relies on a few simple commands to edit an argument map:
 
   - `Ctrl z` or `⌘ z` or device shake will undo an action.  `Ctrl y` or `⌘ y` will redo it.
 
-  - `Ctrl +` or `⌘ +` or wheel or expand will zoom in. `Ctrl -` or `⌘ -` or wheel or pinch will zoom out. 
+  - `Ctrl +` or `⌘ +` or wheel or expand will zoom in. `Ctrl -` or `⌘ -` or wheel or pinch will zoom out.
 
 
-[Click for a demonstration](http://reasons.io/) 
+[Click for a demonstration](http://reasons.io/)
 
 
 ## Development & Testing
@@ -73,7 +73,7 @@ Clone the repo and install the dependencies.
 Running the tests requires additional dev dependencies listed in the [package.json](/package.json) file under dev-dependencies including [JSDOM](https://github.com/jsdom/jsdom) and [Canvas](https://github.com/node-gfx/node-canvas-prebuilt).
 .  You will need to install all these using the command:
 
-  
+
     $ npm install mocha --save-dev
     $ npm install jsdom --save-dev
       ...
@@ -81,6 +81,10 @@ Running the tests requires additional dev dependencies listed in the [package.js
 Then:
 
     $ npm test
+
+To get autobuilding to work, install [workman](https://facebook.github.io/watchman/)
+
+    $ watchman-make --make "npm run" -p "lib/*.js" -t build
 
 
 ## Browser Compatibility
@@ -91,11 +95,11 @@ Then:
   - [X] Chrome on OSX (60+)
   - [X] Firefox on OSX (54+)
   - [X] Safari on OSX (11+)
-  - [X] Chrome on Windows 
-  - [X] Firefox on Windows 
+  - [X] Chrome on Windows
+  - [X] Firefox on Windows
   - [X] Safari iOS (View only)
   - [ ] Safari iOS (Touch)
-  - [ ] Internet Explorer on Windows  
+  - [ ] Internet Explorer on Windows
   - [ ] Chrome on Android
 
 
