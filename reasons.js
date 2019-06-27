@@ -120,11 +120,10 @@ function move (position) {
   }
 }
 
-
 /**
  * Exports an element's data
  */
-function save (offset={x:0,y:0}) {
+function save () {
   if (this.isEdge()) {
 
     //  Export an Edge
@@ -140,8 +139,8 @@ function save (offset={x:0,y:0}) {
     return {
       id: this.id,
       text: this.text,
-      x: parseInt(this.x1 + this.width/2) - offset.x,
-      y: parseInt(this.y1 + this.height/2) - offset.y
+      x: parseInt(this.x1 + this.width/2),
+      y: parseInt(this.y1 + this.height/2)
     }
   }
 }
@@ -616,9 +615,10 @@ function addEventListeners (mapper) {
   let metaKeyPressed = false
 
   const localPosition = (event) => {
+    const {x,y} = mapper.offset;
     return {
-      x: parseInt(event.x || event.pageX) / mapper.scale,
-      y: parseInt(event.y || event.pageY) / mapper.scale
+      x: (parseInt(event.x || event.pageX) - x) / mapper.scale,
+      y: (parseInt(event.y || event.pageY) - y) / mapper.scale
     }
   }
 
@@ -1093,8 +1093,8 @@ module.exports = (function () {
 
     //  draw edges before nodes
     graph = mapper.graph
-    graph.edges().forEach(el => draw_edge(el, mapper.context))
-    graph.nodes().forEach(el => draw_node(el, mapper.context))
+    graph.edges().forEach(el => draw_edge(el, mapper))
+    graph.nodes().forEach(el => draw_node(el, mapper))
   }
 
   function zero (mapper) {
@@ -1112,9 +1112,9 @@ module.exports = (function () {
 
     let mid = {
         x: ((mapper.DOM.clientWidth-mapper.DOM.clientLeft)/2/mapper.scale + mapper.DOM.clientLeft)
-          - ((nodeBB.x2-nodeBB.x1)/2 + nodeBB.x1) + mapper.offset.x,
+          - ((nodeBB.x2-nodeBB.x1)/2 + nodeBB.x1),
         y: ((mapper.DOM.clientHeight-mapper.DOM.clientTop)/2/mapper.scale + mapper.DOM.clientTop)
-          - ((nodeBB.y2-nodeBB.y1)/2 + nodeBB.y1) + mapper.offset.y
+          - ((nodeBB.y2-nodeBB.y1)/2 + nodeBB.y1)
       }
 
     //  translate node position to centre of DOM
@@ -1171,25 +1171,27 @@ function clear (mapper) {
 /**
  * Private: Draws a node on the canvas
  */
-function draw_node (node, context) {
+function draw_node (node, {context, offset}) {
 
   //  word wrap the text
   const text = wordWrap(node.text, context)
   const rgb = (node.hovering) ? rgbFocused : rgbDefault
   const opacity = (node.focused) ? 0.9 : (node.hovering) ? 0.75 : 0.5
+  const ox = offset.x
+  const oy = offset.y
 
   //  recalculate the height
   node.height = (text.length * fontSize + fontSize * 2.5)
   resizeNode(node)
 
   //  clear a white rectangle for background
-  context.clearRect(getLocal(node.x1), getLocal(node.y1), getLocal(node.width), getLocal(node.height))
+  context.clearRect(node.x1+ox, node.y1+oy, node.width, node.height)
   context.strokeStyle = 'rgba('+rgb+','+opacity+')'
   context.lineJoin = "round"
   context.lineWidth = cornerRadius
   context.strokeRect(
-    getLocal(node.x1+cornerRadius/2), getLocal(node.y1+cornerRadius/2),
-    getLocal(node.width-cornerRadius), getLocal(node.height-cornerRadius)
+    node.x1+cornerRadius/2+ox, node.y1+cornerRadius/2+oy,
+    node.width-cornerRadius, node.height-cornerRadius
   )
 
   //  set text box styles
@@ -1199,7 +1201,7 @@ function draw_node (node, context) {
 
   //  add the text content
   text.forEach((line, i) => {
-    context.fillText(line, getLocal(node.x1) + getLocal(node.width)/2, getLocal(node.y1)  + getLocal(i+2) * getLocal(fontSize))
+    context.fillText(line, node.x1 + ox + node.width/2, node.y1 + oy + i+2 * fontSize)
   })
 }
 
@@ -1207,8 +1209,10 @@ function draw_node (node, context) {
 /**
  * Private: Draws an edge on the canvas
  */
-function draw_edge (edge, context) {
+function draw_edge (edge, {context, offset}) {
   locate(edge)
+  const ox = offset.x
+  const oy = offset.y
 
   //  stroke style
   const rgb = (edge.hovering) ? rgbFocused : rgbDefault
@@ -1219,30 +1223,30 @@ function draw_edge (edge, context) {
   //  stroke position
   context.beginPath()
   edge.paths.forEach((path) => {
-    context.moveTo(getLocal(path.x1), getLocal(path.y1))
-    context.lineTo(getLocal(path.x2), getLocal(path.y2))
+    context.moveTo(path.x1+ox, path.y1+oy)
+    context.lineTo(path.x2+ox, path.y2+oy)
   })
 
   //  arrow tip
   let last = edge.paths[edge.paths.length-1]
   let arrow = arrowify(last)
-  context.lineTo(getLocal(arrow.x1), getLocal(arrow.y1))
-  context.moveTo(getLocal(last.x2), getLocal(last.y2))
-  context.lineTo(getLocal(arrow.x2), getLocal(arrow.y2))
+  context.lineTo(arrow.x1+ox, arrow.y1+oy)
+  context.moveTo(last.x2+ox, last.y2+oy)
+  context.lineTo(arrow.x2+ox, arrow.y2+oy)
   context.stroke()
 
   //  text stroke
   let textWidth = context.measureText(edge.type).width + padding
-  context.clearRect(getLocal(edge.center.x-textWidth/2), getLocal(edge.center.y-15), getLocal(textWidth), getLocal(25))
+  context.clearRect(edge.center.x+ox-textWidth/2, edge.center.y+oy-15, textWidth, 25)
 
   //  label
   context.fillStyle = 'rgba('+rgb+',0.8)'
-  context.font = getLocal(14) + 'px sans-serif'
+  context.font = 14 + 'px sans-serif'
   context.textAlign = 'center'
-  context.fillText(edge.type, getLocal(edge.center.x), getLocal(edge.center.y))
+  context.fillText(edge.type, edge.center.x+ox, edge.center.y+oy)
 
   if (edge.intersection)
-    context.fillRect(getLocal(edge.intersection.x), getLocal(edge.intersection.y), getLocal(10), getLocal(10))
+    context.fillRect(edge.intersection.x+ox, edge.intersection.y+oy, 10, 10)
 }
 
 
