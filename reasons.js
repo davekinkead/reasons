@@ -674,7 +674,6 @@ function addEventListeners (mapper) {
 
   hammer.on('swipe', (hammerEvent) => {
     if (hammerEvent.direction & Hammer.DIRECTION_HORIZONTAL) {
-      console.log("swipe",event)
       mapper._isSwipping = true;
       if (hammerEvent.direction === Hammer.DIRECTION_LEFT) {
         triggerUndo()
@@ -683,7 +682,6 @@ function addEventListeners (mapper) {
       }
       setTimeout(() => {
         mapper._isSwipping = false
-        console.log("ending swipe");
       }, 250)
     }
   })
@@ -693,7 +691,6 @@ function addEventListeners (mapper) {
     const {collision} = detect(event)
     if (mapper._isSwipping) { return }
     if (collision) {
-      console.log("PanStart");
       dragStart(event);
     } else {
       mapper._startPan = { ...mapper.offset }
@@ -704,7 +701,6 @@ function addEventListeners (mapper) {
     const event = hammerEvent.srcEvent;
     const {collision} = detect(event)
     if (collision || dragging || mapper._isSwipping) { return }
-    console.log("Pan", hammerEvent);
 
     mapper.offset = {
       x: mapper._startPan.x + (hammerEvent.deltaX / mapper.scale),
@@ -719,7 +715,6 @@ function addEventListeners (mapper) {
   //  Selecting nothing unfocuses the graph
   const dragStart = (event) => {
 
-    console.log("Drag STart!!");
     const {position, collision} = detect(event)
 
     if (collision) {
@@ -871,7 +866,6 @@ function addEventListeners (mapper) {
   const zoomAction = (event) => {
 
     event.preventDefault();
-    console.log(event.deltaY);
     mapper.dirty = true
     View.setScale(mapper, event.deltaY)
     View.zero(mapper)
@@ -1199,9 +1193,12 @@ function draw_node (node, {context, offset}) {
   context.font = fontSize + 'px sans-serif'
   context.textAlign = 'center'
 
-  //  add the text content
+  const lineHeight = fontSize * 1.25;
+  const textX = node.x1 + ox + node.width/2
+  const textY = node.y1 + oy + cornerRadius * 2
+
   text.forEach((line, i) => {
-    context.fillText(line, node.x1 + ox + node.width/2, node.y1 + oy + i+2 * fontSize)
+    context.fillText(line, textX, textY + ((i+1) * lineHeight), node.width)
   })
 }
 
