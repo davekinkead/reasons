@@ -595,7 +595,6 @@ module.exports = {
 
 
 function addEventListeners (mapper) {
-  console.log("Adding event listeners");
 
   const hammer = new Hammer(mapper.DOM, {})
   hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL })
@@ -1174,8 +1173,8 @@ function draw_node (node, {context, offset}) {
   const ox = offset.x
   const oy = offset.y
 
-  //  recalculate the height
-  node.height = (text.length * fontSize + fontSize * 2.5)
+  //  recalculate the height with extra padding when multi-line
+  node.height = (text.length * fontSize) + fontSize * ((text.length > 1 ) ? 2.25 : 2)
   resizeNode(node)
 
   //  clear a white rectangle for background
