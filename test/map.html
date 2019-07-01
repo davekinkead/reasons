@@ -23,16 +23,16 @@
       ]
     let m = Reasons.mapper('#element').render(graph)
 
-    window.addEventListener('keypress', (event) => {
-      if (event.key == 's') {
-        console.log(m.export())
-      }
+    // window.addEventListener('keypress', (event) => {
+    //   if (event.key == 's') {
+    //     console.log(m.export())
+    //   }
 
-      if (event.key == 'p') {
-        const canvas = document.querySelector('canvas')
-        window.open().document.body.innerHTML = '<img src="'+canvas.toDataURL('image/png')+'">'
-      }
-    })
+      // if (event.key == 'p') {
+      //   const canvas = document.querySelector('canvas')
+      //   window.open().document.body.innerHTML = '<img src="'+canvas.toDataURL('image/png')+'">'
+      // }
+    // })
   </script>
 </body>
 </html>
