@@ -600,8 +600,8 @@ function addEventListeners (mapper) {
   hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL })
   hammer.get('pinch').set({ enable: true })
 
-  const swipeGesture = new Hammer.Swipe({ pointers: 3 })
-  hammer.add(swipeGesture)
+  // 3 finger swipes for undo/redo
+  hammer.add(new Hammer.Swipe({ pointers: 3 }))
 
   //  encapuslate event state in the argumentMap
   mapper.altered = true
@@ -632,7 +632,7 @@ function addEventListeners (mapper) {
   }
 
   //  Double click creates or edits element
-  mapper.DOM.addEventListener('dblclick', (event) => {
+  const doubleClick = (event) => {
 
     const {position, collision} = detect(event)
 
@@ -648,8 +648,13 @@ function addEventListeners (mapper) {
     }
 
     redraw(mapper)
+  };
+  mapper.DOM.addEventListener('dblclick', doubleClick)
+  hammer.on('doubletap', (hammerEvent) => {
+    // console.log("Rule 2: The Double Tap", hammerEvent)
+    const event = hammerEvent.srcEvent
+    doubleClick(event)
   })
-
 
   function triggerRedo() {
     //  Store for undo
@@ -699,7 +704,8 @@ function addEventListeners (mapper) {
   hammer.on('panmove', function (hammerEvent) {
     const event = hammerEvent.srcEvent;
     const {collision} = detect(event)
-    if (collision || dragging || mapper._isSwipping) { return }
+    if (collision) { return dragMove(event) }
+    if (dragging || mapper._isSwipping) { return }
 
     mapper.offset = {
       x: mapper._startPan.x + (hammerEvent.deltaX / mapper.scale),
@@ -755,7 +761,6 @@ function addEventListeners (mapper) {
     redraw(mapper)
   }
   mapper.DOM.addEventListener('mousemove', dragMove)
-  mapper.DOM.addEventListener('touchmove', dragMove)
 
 
   //  Release a drag action and add an edge if needed
