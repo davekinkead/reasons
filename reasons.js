@@ -844,8 +844,7 @@ function addEventListeners (mapper) {
         if (!mapper.editMode) event.preventDefault()
 
         if (selected) {
-          mapper.graph.remove(selected)
-          mapper.dirty = true
+          deleteElement(mapper, selected);
         }
       }
     }
@@ -882,6 +881,7 @@ function addEventListeners (mapper) {
 
   hammer.on('pinch', (hammerEvent) => {
     if (mapper._isSwipping) { return }
+    hammerEvent.preventDefault();
     let tmpScale = hammerEvent.scale - _lastScale
 
     mapper.dirty = true
@@ -898,6 +898,11 @@ function addEventListeners (mapper) {
 }
 
 let timeout;
+
+function deleteElement(mapper, selected) {
+  mapper.graph.remove(selected);
+  mapper.dirty = true;
+}
 
 function redraw(mapper) {
   if (mapper.altered || mapper.dirty) {
@@ -956,46 +961,98 @@ function save (store, mapper) {
 //   }
 // }
 
+/**
+ * Private: Creates the html for the overlaytoolbar
+ */
+function toolbarNode(mapper, element) {
+  const node = Utils.buildNode('div', {id: 'reasons-overlay-toolbar'})
+  node.setAttribute('style', 'display: flex; flex-direction: row;')
+  node.appendChild(toolButton({
+    name: 'Delete',
+    onclick: () => {
+      if (confirm("Really remove this?")) {
+        deleteElement(mapper, element)
+        removeOverlay(mapper)
+        redraw(mapper)
+      }
+    }
+  }))
+  node.appendChild(Utils.buildNode('div', { style: 'flex-grow: 1;' }))
+  node.appendChild(toolButton({
+    name: 'OK',
+    onclick: () => {
+      submitOverlay(mapper)
+    }
+  }))
+  return node
+}
+
+function toolButton(opts) {
+  const {name} = opts
+  delete opts.name
+  const button = Utils.buildNode('button', opts)
+  button.setAttribute('style', `
+    background-color: white;
+    padding: 0.5rem 1rem;
+    border: 1px solid grey;
+    border-radius: 4px;
+  `)
+  button.innerText = name
+  return button
+}
 
 /**
  * Private: Overlays a text box to edit a node or edge
  */
-function addOverlay (argumentMap, element) {
+function addOverlay (mapper, element) {
 
   //  set the
-  argumentMap.editMode = true
+  mapper.editMode = true
 
   //  Create background layer
   let overlay = Utils.buildNode('div', {id: 'reason-overlay'})
-  overlay.setAttribute('style', 'position:absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75);')
+  overlay.setAttribute('style', 'position:absolute; top: 0; left: 0; right: 0; height: 100vh; background: rgba(0,0,0,0.75);')
 
+  // create modal content wrapper
+  const wrapper = Utils.buildNode('div')
+  wrapper.setAttribute('style', `
+    margin: auto;
+    margin-top: 40vh;
+    width:50%;
+    padding: 1rem;
+    flex-direction: column;
+    display: flex;`
+  )
   // Create text input field
   let input = Utils.buildNode('input', {id: 'edit-reason-input'}, {value: element.text || element.type})
-  input.setAttribute('style', 'position:absolute; top: 45%; bottom: 50%; left: 25%; right: 50%; width:50%; padding: 1rem;')
   input.setAttribute('data-element', element.id)
+  input.setAttribute('style', 'margin-top: 10vh')
 
   //  Append to the DOM
-  overlay.appendChild(input)
+  overlay.appendChild(wrapper)
+  wrapper.appendChild(input)
+  wrapper.appendChild(toolbarNode(mapper, element))
   document.body.appendChild(overlay)
 
   //  Highlight text on element creation
   input.select()
+  wrapper.scrollIntoView()
 }
 
 
 /**
  * Private: Updates the graph from the overlay and removes it
  */
-function submitOverlay (argumentMap) {
+function submitOverlay (mapper) {
   let input = document.querySelector('#edit-reason-input')
-  let el = argumentMap.graph.elements().find(el => el.id == input.getAttribute('data-element') )
+  let el = mapper.graph.elements().find(el => el.id == input.getAttribute('data-element') )
 
   if (el.isNode()) {
     el.text = input.value
   } else {
     el.type = input.value
   }
-  removeOverlay(argumentMap)
+  removeOverlay(mapper)
 }
 
 
