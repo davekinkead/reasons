@@ -622,7 +622,7 @@ function setup(mapper) {
       display: flex;
     }
     #reasons-overlay-toolbar {
-      margin-top: 0.75rem;
+      margin: 0.75rem -0.5rem;
     }
     .reason-overlay__button {
       font-size: inherit;
@@ -630,6 +630,7 @@ function setup(mapper) {
       padding: 0.5rem 1rem;
       border: 1px solid grey;
       border-radius: 4px;
+      margin: 0 0.5rem;
     }
   `
   document.head.appendChild(styleTag)
@@ -656,7 +657,7 @@ function addEventListeners (mapper) {
   let metaKeyPressed = false
 
   const localPosition = (event) => {
-    const {x,y} = mapper.offset;
+    const {x,y} = mapper.offset
     return {
       x: (parseInt(event.x || event.pageX) / mapper.scale) - x,
       y: (parseInt(event.y || event.pageY) / mapper.scale) - y
@@ -691,10 +692,8 @@ function addEventListeners (mapper) {
     }
 
     redraw(mapper)
-  };
-  mapper.DOM.addEventListener('dblclick', doubleClick)
+  }
   hammer.on('doubletap', (hammerEvent) => {
-    // console.log("Rule 2: The Double Tap", hammerEvent)
     const event = hammerEvent.srcEvent
     doubleClick(event)
   })
@@ -721,7 +720,7 @@ function addEventListeners (mapper) {
 
   hammer.on('swipe', (hammerEvent) => {
     if (hammerEvent.direction & Hammer.DIRECTION_HORIZONTAL) {
-      mapper._isSwipping = true;
+      mapper._isSwipping = true
       if (hammerEvent.direction === Hammer.DIRECTION_LEFT) {
         triggerUndo()
       } else {
@@ -738,14 +737,14 @@ function addEventListeners (mapper) {
     const {collision} = detect(event)
     if (mapper._isSwipping) { return }
     if (collision) {
-      dragStart(event);
+      dragStart(event)
     } else {
       mapper._startPan = { ...mapper.offset }
     }
   })
 
   hammer.on('panmove', function (hammerEvent) {
-    const event = hammerEvent.srcEvent;
+    const event = hammerEvent.srcEvent
     const {collision} = detect(event)
     if (collision) { return dragMove(event) }
     if (dragging || mapper._isSwipping) { return }
@@ -868,13 +867,13 @@ function addEventListeners (mapper) {
       //  Undo `⌘-z`
       if (metaKeyPressed && Keycode.isEventKey(event, 'z')) {
         event.preventDefault()
-        triggerUndo();
+        triggerUndo()
       }
 
       //  Redo `⌘-y`
       if (metaKeyPressed && Keycode.isEventKey(event, 'y')) {
         event.preventDefault()
-        triggerRedo();
+        triggerRedo()
       }
 
       //  Edit selected element on `enter`
@@ -887,7 +886,7 @@ function addEventListeners (mapper) {
         if (!mapper.editMode) event.preventDefault()
 
         if (selected) {
-          deleteElement(mapper, selected);
+          deleteElement(mapper, selected)
         }
       }
     }
@@ -911,7 +910,7 @@ function addEventListeners (mapper) {
 
   const zoomAction = (event) => {
 
-    event.preventDefault();
+    event.preventDefault()
     mapper.dirty = true
     View.setScale(mapper, event.deltaY)
     View.zero(mapper)
@@ -924,7 +923,7 @@ function addEventListeners (mapper) {
 
   hammer.on('pinch', (hammerEvent) => {
     if (mapper._isSwipping) { return }
-    hammerEvent.preventDefault();
+    hammerEvent.preventDefault()
     let tmpScale = hammerEvent.scale - _lastScale
 
     mapper.dirty = true
@@ -940,24 +939,24 @@ function addEventListeners (mapper) {
 
 }
 
-let timeout;
+let timeout
 
 function deleteElement(mapper, selected) {
-  mapper.graph.remove(selected);
-  mapper.dirty = true;
+  mapper.graph.remove(selected)
+  mapper.dirty = true
 }
 
 function redraw(mapper) {
   if (mapper.altered || mapper.dirty) {
     // If there's a timer, cancel it
     if (timeout) {
-      window.cancelAnimationFrame(timeout);
+      window.cancelAnimationFrame(timeout)
     }
 
       // Setup the new requestAnimationFrame()
     timeout = window.requestAnimationFrame(function () {
       _redraw(mapper)
-    });
+    })
   }
 }
 
@@ -1010,6 +1009,7 @@ function save (store, mapper) {
 function toolbarNode(mapper, element) {
   const node = Utils.buildNode('div', {id: 'reasons-overlay-toolbar'})
   node.setAttribute('style', 'display: flex; flex-direction: row;')
+  node.appendChild(Utils.buildNode('div', { style: 'flex-grow: 1;' }))
   node.appendChild(toolButton({
     name: 'Delete',
     onclick: () => {
@@ -1020,7 +1020,6 @@ function toolbarNode(mapper, element) {
       }
     }
   }))
-  node.appendChild(Utils.buildNode('div', { style: 'flex-grow: 1;' }))
   node.appendChild(toolButton({
     name: 'OK',
     onclick: () => {
@@ -1065,9 +1064,8 @@ function addOverlay (mapper, element, highlightAll = false) {
 
   //  Highlight text on element creation
   if (highlightAll) {
+    input.select()
     input.setSelectionRange(0, input.value.length)
-  } else {
-    input.select();
   }
   wrapper.scrollIntoView()
 }
