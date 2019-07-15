@@ -533,6 +533,7 @@ function Mapper (elementID) {
   //  attach the canvas and event listeners to the HTML if the reference was valid
   if (this.DOM) {
     View.init(this)
+    UI.setup(this)
     UI.addEventListeners(this)
   }
 }
@@ -590,9 +591,51 @@ let   Future  = []
 
 
 module.exports = {
-  addEventListeners
+  addEventListeners,
+  setup
 }
 
+function setup(mapper) {
+  const styleTag = Utils.buildNode('style')
+  styleTag.innerHTML = `
+    #${mapper.DOM.id} {
+      height: 100vh;
+      border: 1px solid grey;
+    }
+    #reason-overlay {
+      font-size: 18px;
+      position:absolute;
+      top: 0; left: 0; right: 0;
+      height: 100vh;
+      background: rgba(0,0,0,0.75);
+    }
+    #edit-reason-input {
+      font-size: 18px;
+      margin-top: 10vh;
+    }
+    #reason-overlay__wrapper {
+      margin: auto;
+      margin-top: 40vh;
+      width:50%;
+      padding: 1rem;
+      flex-direction: column;
+      display: flex;
+    }
+    #reasons-overlay-toolbar {
+      margin: 0.75rem -0.5rem;
+    }
+    .reason-overlay__button {
+      font-size: inherit;
+      background-color: white;
+      padding: 0.5rem 1rem;
+      border: 1px solid grey;
+      border-radius: 4px;
+      margin: 0 0.5rem;
+    }
+  `
+  document.head.appendChild(styleTag)
+  View.resize(mapper)
+}
 
 function addEventListeners (mapper) {
 
@@ -600,8 +643,8 @@ function addEventListeners (mapper) {
   hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL })
   hammer.get('pinch').set({ enable: true })
 
-  const swipeGesture = new Hammer.Swipe({ pointers: 3 })
-  hammer.add(swipeGesture)
+  // 3 finger swipes for undo/redo
+  hammer.add(new Hammer.Swipe({ pointers: 3 }))
 
   //  encapuslate event state in the argumentMap
   mapper.altered = true
@@ -614,7 +657,7 @@ function addEventListeners (mapper) {
   let metaKeyPressed = false
 
   const localPosition = (event) => {
-    const {x,y} = mapper.offset;
+    const {x,y} = mapper.offset
     return {
       x: (parseInt(event.x || event.pageX) / mapper.scale) - x,
       y: (parseInt(event.y || event.pageY) / mapper.scale) - y
@@ -632,7 +675,7 @@ function addEventListeners (mapper) {
   }
 
   //  Double click creates or edits element
-  mapper.DOM.addEventListener('dblclick', (event) => {
+  const doubleClick = (event) => {
 
     const {position, collision} = detect(event)
 
@@ -645,11 +688,15 @@ function addEventListeners (mapper) {
       selected = mapper.graph.last()
       mapper.graph.focus(selected)
       mapper.altered = true
+      addOverlay(mapper, selected, true)
     }
 
     redraw(mapper)
+  }
+  hammer.on('doubletap', (hammerEvent) => {
+    const event = hammerEvent.srcEvent
+    doubleClick(event)
   })
-
 
   function triggerRedo() {
     //  Store for undo
@@ -673,7 +720,7 @@ function addEventListeners (mapper) {
 
   hammer.on('swipe', (hammerEvent) => {
     if (hammerEvent.direction & Hammer.DIRECTION_HORIZONTAL) {
-      mapper._isSwipping = true;
+      mapper._isSwipping = true
       if (hammerEvent.direction === Hammer.DIRECTION_LEFT) {
         triggerUndo()
       } else {
@@ -690,16 +737,17 @@ function addEventListeners (mapper) {
     const {collision} = detect(event)
     if (mapper._isSwipping) { return }
     if (collision) {
-      dragStart(event);
+      dragStart(event)
     } else {
       mapper._startPan = { ...mapper.offset }
     }
   })
 
   hammer.on('panmove', function (hammerEvent) {
-    const event = hammerEvent.srcEvent;
+    const event = hammerEvent.srcEvent
     const {collision} = detect(event)
-    if (collision || dragging || mapper._isSwipping) { return }
+    if (collision) { return dragMove(event) }
+    if (dragging || mapper._isSwipping) { return }
 
     mapper.offset = {
       x: mapper._startPan.x + (hammerEvent.deltaX / mapper.scale),
@@ -755,7 +803,6 @@ function addEventListeners (mapper) {
     redraw(mapper)
   }
   mapper.DOM.addEventListener('mousemove', dragMove)
-  mapper.DOM.addEventListener('touchmove', dragMove)
 
 
   //  Release a drag action and add an edge if needed
@@ -820,13 +867,13 @@ function addEventListeners (mapper) {
       //  Undo `⌘-z`
       if (metaKeyPressed && Keycode.isEventKey(event, 'z')) {
         event.preventDefault()
-        triggerUndo();
+        triggerUndo()
       }
 
       //  Redo `⌘-y`
       if (metaKeyPressed && Keycode.isEventKey(event, 'y')) {
         event.preventDefault()
-        triggerRedo();
+        triggerRedo()
       }
 
       //  Edit selected element on `enter`
@@ -839,8 +886,7 @@ function addEventListeners (mapper) {
         if (!mapper.editMode) event.preventDefault()
 
         if (selected) {
-          mapper.graph.remove(selected)
-          mapper.dirty = true
+          deleteElement(mapper, selected)
         }
       }
     }
@@ -864,7 +910,7 @@ function addEventListeners (mapper) {
 
   const zoomAction = (event) => {
 
-    event.preventDefault();
+    event.preventDefault()
     mapper.dirty = true
     View.setScale(mapper, event.deltaY)
     View.zero(mapper)
@@ -877,6 +923,7 @@ function addEventListeners (mapper) {
 
   hammer.on('pinch', (hammerEvent) => {
     if (mapper._isSwipping) { return }
+    hammerEvent.preventDefault()
     let tmpScale = hammerEvent.scale - _lastScale
 
     mapper.dirty = true
@@ -892,19 +939,24 @@ function addEventListeners (mapper) {
 
 }
 
-let timeout;
+let timeout
+
+function deleteElement(mapper, selected) {
+  mapper.graph.remove(selected)
+  mapper.dirty = true
+}
 
 function redraw(mapper) {
   if (mapper.altered || mapper.dirty) {
     // If there's a timer, cancel it
     if (timeout) {
-      window.cancelAnimationFrame(timeout);
+      window.cancelAnimationFrame(timeout)
     }
 
       // Setup the new requestAnimationFrame()
     timeout = window.requestAnimationFrame(function () {
       _redraw(mapper)
-    });
+    })
   }
 }
 
@@ -951,46 +1003,87 @@ function save (store, mapper) {
 //   }
 // }
 
+/**
+ * Private: Creates the html for the overlaytoolbar
+ */
+function toolbarNode(mapper, element) {
+  const node = Utils.buildNode('div', {id: 'reasons-overlay-toolbar'})
+  node.setAttribute('style', 'display: flex; flex-direction: row;')
+  node.appendChild(Utils.buildNode('div', { style: 'flex-grow: 1;' }))
+  node.appendChild(toolButton({
+    name: 'Delete',
+    onclick: () => {
+      if (confirm("Really remove this?")) {
+        deleteElement(mapper, element)
+        removeOverlay(mapper)
+        redraw(mapper)
+      }
+    }
+  }))
+  node.appendChild(toolButton({
+    name: 'OK',
+    onclick: () => {
+      submitOverlay(mapper)
+      redraw(mapper)
+    }
+  }))
+  return node
+}
+
+function toolButton(opts) {
+  const {name} = opts
+  delete opts.name
+  const button = Utils.buildNode('button', opts, {class: 'reason-overlay__button'})
+  button.innerText = name
+  return button
+}
 
 /**
  * Private: Overlays a text box to edit a node or edge
  */
-function addOverlay (argumentMap, element) {
+function addOverlay (mapper, element, highlightAll = false) {
 
   //  set the
-  argumentMap.editMode = true
+  mapper.editMode = true
 
   //  Create background layer
   let overlay = Utils.buildNode('div', {id: 'reason-overlay'})
-  overlay.setAttribute('style', 'position:absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75);')
+
+  // create modal content wrapper
+  const wrapper = Utils.buildNode('div', {id: 'reason-overlay__wrapper'})
 
   // Create text input field
-  let input = Utils.buildNode('input', {id: 'edit-reason-input'}, {value: element.text || element.type})
-  input.setAttribute('style', 'position:absolute; top: 45%; bottom: 50%; left: 25%; right: 50%; width:50%; padding: 1rem;')
+  let input = Utils.buildNode('textarea', {id: 'edit-reason-input', value: element.text || element.type})
   input.setAttribute('data-element', element.id)
 
   //  Append to the DOM
-  overlay.appendChild(input)
+  overlay.appendChild(wrapper)
+  wrapper.appendChild(input)
+  wrapper.appendChild(toolbarNode(mapper, element))
   document.body.appendChild(overlay)
 
   //  Highlight text on element creation
-  input.select()
+  if (highlightAll) {
+    input.select()
+    input.setSelectionRange(0, input.value.length)
+  }
+  wrapper.scrollIntoView()
 }
 
 
 /**
  * Private: Updates the graph from the overlay and removes it
  */
-function submitOverlay (argumentMap) {
+function submitOverlay (mapper) {
   let input = document.querySelector('#edit-reason-input')
-  let el = argumentMap.graph.elements().find(el => el.id == input.getAttribute('data-element') )
+  let el = mapper.graph.elements().find(el => el.id == input.getAttribute('data-element') )
 
   if (el.isNode()) {
     el.text = input.value
   } else {
     el.type = input.value
   }
-  removeOverlay(argumentMap)
+  removeOverlay(mapper)
 }
 
 
