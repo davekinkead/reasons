@@ -600,7 +600,6 @@ function setup(mapper) {
   styleTag.innerHTML = `
     #${mapper.DOM.id} {
       height: 100vh;
-      border: 1px solid grey;
     }
     #reason-overlay {
       font-size: 18px;
