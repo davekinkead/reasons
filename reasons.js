@@ -1259,6 +1259,8 @@ function clear (mapper) {
  * Private: Draws a node on the canvas
  */
 function draw_node (node, {context, offset}) {
+  // Set font size before calculating text widths
+  context.font = fontSize + 'px sans-serif'
 
   //  word wrap the text
   const text = wordWrap(node.text, context)
@@ -1283,7 +1285,6 @@ function draw_node (node, {context, offset}) {
 
   //  set text box styles
   context.fillStyle = 'rgba('+rgb+',0.8)'
-  context.font = fontSize + 'px sans-serif'
   context.textAlign = 'center'
 
   const lineHeight = fontSize * 1.25;
