@@ -1263,10 +1263,6 @@ function clear (mapper) {
 
 /**
  * Private: Draws a node on the canvas
- *
- * @param {any} node
- * @param {Object} opts
- * @param {CanvasRenderingContext2D} opts.context
  */
 function draw_node (node, {context, offset}) {
 
