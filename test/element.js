@@ -5,7 +5,7 @@ const Element = require('./../lib/element')
 
 const reasons = {
   a: {id: 'a', text: 'blah blah A', x: 0, y: 0},
-  b: {id: 'b', text: 'blah blah B', x: 100, y: 50},
+  b: {id: 'b', text: 'blah blah B', x: 100, y: 50, lineType: 'dashed'},
   c: {id: 'c', text: 'blah blah C', x: 500, y: 500},
   ab: {from: 'a', to: 'b', type: 'a relation'}  
 }
@@ -76,6 +76,13 @@ describe('Element', () => {
       json.text.should.equal(reasons.b.text)
       json.x.should.equal(reasons.b.x)
       json.y.should.equal(reasons.b.y)
+      json.lineType.should.equal('dashed')
+    })
+
+    it('should default linetypes to solid', () => {
+      const el = Element.mixin(reasons.c)
+      const json = JSON.parse(JSON.stringify(el.export()))
+      json.lineType.should.equal('solid')
     })
 
     it('should export an edge as {id:, type:, from:, to:} in JSON', () => {
