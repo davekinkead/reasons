@@ -910,8 +910,11 @@ function addEventListeners (mapper) {
   })
 
   const zoomAction = (event) => {
-
     event.preventDefault()
+    if (event.target.id != 'reasons-element') {
+      return
+    }
+
     mapper.dirty = true
     View.setScale(mapper, event.deltaY)
     View.zero(mapper)
@@ -992,17 +995,11 @@ function save (store, mapper) {
   if (current !== last) store.push(current)
 }
 
-
-
-/**
- * Private: Returns the x,y position of an event
- */
-// function getPosition (event) {
-//   return {
-//     x: parseInt(event.x || event.clientX),
-//     y: parseInt(event.y || event.clientY)
-//   }
-// }
+function changeLine(mapper, element, type) {
+  element.lineType = type
+  mapper.altered = true
+  redraw(mapper)
+}
 
 /**
  * Private: Creates the html for the overlaytoolbar
@@ -1011,6 +1008,15 @@ function toolbarNode(mapper, element) {
   const node = Utils.buildNode('div', {id: 'reasons-overlay-toolbar'})
   node.setAttribute('style', 'display: flex; flex-direction: row;')
   node.appendChild(Utils.buildNode('div', { style: 'flex-grow: 1;' }))
+
+  node.appendChild(toolButton({
+    name: '<b>—</b>',
+    onclick:() => changeLine(mapper, element, 'solid')
+  }))
+  node.appendChild(toolButton({
+    name: '<b>- -</b>',
+    onclick:() => changeLine(mapper, element, 'dashed')
+  }))
   node.appendChild(toolButton({
     name: 'Delete',
     onclick: () => {
@@ -1035,7 +1041,7 @@ function toolButton(opts) {
   const {name} = opts
   delete opts.name
   const button = Utils.buildNode('button', opts, {class: 'reason-overlay__button'})
-  button.innerText = name
+  button.innerHTML = name
   return button
 }
 
@@ -1273,13 +1279,19 @@ function draw_node (node, {context, offset}) {
 
   //  clear a white rectangle for background
   context.clearRect(node.x1+ox, node.y1+oy, node.width, node.height)
+
   context.strokeStyle = 'rgba('+rgb+','+opacity+')'
   context.lineJoin = "round"
   context.lineWidth = cornerRadius
+  if (node.lineType == 'dashed') {
+    context.setLineDash([10, 10])
+    context.lineWidth *= 0.75
+  }
   context.strokeRect(
     node.x1+cornerRadius/2+ox, node.y1+cornerRadius/2+oy,
     node.width-cornerRadius, node.height-cornerRadius
   )
+  context.setLineDash([])
 
   //  set text box styles
   context.fillStyle = 'rgba('+rgb+',0.8)'
