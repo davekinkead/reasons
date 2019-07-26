@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf8">
+  <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+  <style>
+    #element {
+      height: 100vh;
+    }
+  </style>
+
+</head>
+<body>
+  <div id="element"></div>
+
+  <script src="../reasons.js"></script>
+  <script>
+    let graph = [
+        {id: "p1", text: "Airedale cheesy grin mascarpone. Ricotta mozzarella cheesecake croque monsieur cheese on toast boursin when the cheese comes out everybody's happy cheese triangles. Camembert de normandie halloumi boursin say cheese cut the cheese macaroni cheese smelly cheese cut the cheese. Cheesy feet dolcelatte jarlsberg who moved my cheese halloumi.  Queso babybel danish fontina. Danish fontina cheeseburger port-salut caerphilly cow paneer caerphilly cream cheese. Cheesy grin when the cheese comes out everybody's happy stinking bishop gouda blue castello halloumi blue castello cauliflower cheese. Jarlsberg cheese slices roquefort babybel.", x: 50, y: 50},
+        {id: "c1", text: "Camembert de normandie when the cheese comes out everybody's happy cheeseburger. Dolcelatte stinking bishop dolcelatte cheese on toast mascarpone brie halloumi cheese triangles. Port-salut airedale the big cheese edam emmental rubber cheese parmesan parmesan. Jarlsberg cheese strings edam roquefort stinking bishop cheeseburger edam blue castello. Manchego.", lineType: 'dashed', x: 400, y: 50},
+        {from: "c1", to: "p1", type: "because"}
+      ]
+    let m = Reasons.mapper('#element').render(graph)
+
+    window.addEventListener('keypress', (event) => {
+      if (event.key == 's') {
+        console.log(m.export())
+      }
+
+      if (event.key == 'p') {
+        const canvas = document.querySelector('canvas')
+        window.open().document.body.innerHTML = '<img src="'+canvas.toDataURL('image/png')+'" style="width:100%;">'
+      }
+    })
+  </script>
+</body>
+</html>
