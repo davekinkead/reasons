@@ -1,5 +1,6 @@
 #!/bin/bash
 
+git push development
 git checkout master
 git pull github master
 git merge development
