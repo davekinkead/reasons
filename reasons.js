@@ -140,7 +140,8 @@ function save () {
       id: this.id,
       text: this.text,
       x: parseInt(this.x1 + this.width/2),
-      y: parseInt(this.y1 + this.height/2)
+      y: parseInt(this.y1 + this.height/2),
+      lineType: (this.lineType) ? this.lineType : 'solid'
     }
   }
 }
@@ -1280,10 +1281,6 @@ function clear (mapper) {
 
 /**
  * Private: Draws a node on the canvas
- *
- * @param {any} node
- * @param {Object} opts
- * @param {CanvasRenderingContext2D} opts.context
  */
 function draw_node (node, {context, offset}) {
   // Set font size before calculating text widths

@@ -2,6 +2,7 @@
 
 git checkout master
 git pull github master
+git merge development
 npm run minify
 git commit -am "Autobuild and minify"
 git push github master

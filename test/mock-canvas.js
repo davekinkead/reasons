@@ -31,6 +31,7 @@ module.exports = function() {
     fill: function(){},
     measureText: function (){ return {width: 5} },
     strokeRect: function () {},
+    setLineDash: function () {},
     class: 'HTMLDivElement'
   }
 }
