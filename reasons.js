@@ -233,13 +233,13 @@ function Graph(elements) {
   //  sort the elements so nodes are added before edges
   if (elements instanceof Array) {
     elements.sort((a,b) => {
-      return a.to ? 1: -1 
+      return a.to ? 1: -1
     }).forEach(el => this.add(el))
   }
 }
 
 
-/**  
+/**
  * Use Array as the prototype
  */
 Graph.prototype = Object.create(Array.prototype)
@@ -265,13 +265,13 @@ Graph.prototype.add = function (element) {
       return false
     }
 
-    //  Edges can connect independent or conjoined reasons. 
+    //  Edges can connect independent or conjoined reasons.
     //  If A B & C both already support D
     //  and a new edge is added from A to B or vice versa
     //  then the relationships should be merged [A,B] -> D
-    //  and C -> D kept unchanged      
+    //  and C -> D kept unchanged
     let commonChildren = Utils.intersection(
-      Utils.flatten(element.from.map(e => this.children(e))), 
+      Utils.flatten(element.from.map(e => this.children(e))),
       this.children(element.to)
     ).map(el => el.id)
 
@@ -293,7 +293,7 @@ Graph.prototype.add = function (element) {
         }
       })
     } else {
-      this.push(element)  
+      this.push(element)
     }
   }
 }
@@ -334,9 +334,9 @@ Graph.prototype.add = function (element) {
 
       //  also remove node from any complex relations
       edgesFrom.filter(e => e.from instanceof Array).map((e) => {
-        if (e.from.indexOf(el) > -1) 
+        if (e.from.indexOf(el) > -1)
           e.from.splice(e.from.indexOf(el), 1)
-        if (e.from.length === 1) 
+        if (e.from.length === 1)
           e.from = e.from[0]
       })
 
@@ -347,7 +347,7 @@ Graph.prototype.add = function (element) {
       })
     } else {
       this.splice(i, 1)
-    }  
+    }
   }
 
   //  permit chaining during tests
@@ -374,6 +374,18 @@ Graph.prototype.add = function (element) {
 
   //  permit chaining during tests
   return el
+}
+
+ Graph.prototype.undoFocus = function () {
+  const last = this.pop();
+  this.unshift(last);
+
+  this.forEach(function (e) {
+    e.focused = (e === last) ? true : false
+  })
+
+  //  permit chaining during tests
+  return last
 }
 
 
@@ -656,6 +668,7 @@ function addEventListeners (mapper) {
   let selected = null
   let dragging = null
   let clickPos = null
+  let clickOffset = null
   let metaKeyPressed = false
 
   const localPosition = (event) => {
@@ -765,19 +778,23 @@ function addEventListeners (mapper) {
   const dragStart = (event) => {
 
     const {position, collision} = detect(event)
+    if (dragging) { return }
 
     if (collision) {
       selected = collision
       mapper.graph.focus(selected)
       mapper.dirty = true
       clickPos = position
+      clickOffset = {
+        x: (selected.x1 + (selected.width / 2)) - position.x,
+        y: (selected.y1 + (selected.height /2)) - position.y
+      }
       dragging = selected
     }
 
     redraw(mapper)
   }
   mapper.DOM.addEventListener('mousedown', dragStart)
-  // mapper.DOM.addEventListener('touchstart', dragStart)
 
   //  Move a selected element on drag
   //  Highlight a hovered element
@@ -798,7 +815,12 @@ function addEventListeners (mapper) {
 
     //  Specify a node as the drag target when clicked
     if (dragging) {
-      dragging.move(localPosition(event))
+      const localPos = localPosition(event)
+      console.log('drag', localPos, clickOffset)
+      dragging.move({
+        x: localPos.x + clickOffset.x,
+        y: localPos.y + clickOffset.y
+      })
       mapper.dirty = true
     }
 
@@ -860,8 +882,13 @@ function addEventListeners (mapper) {
       //  Focus on `Tab`
       if (!isMetaKey(event) && Keycode.isEventKey(event, 'tab')) {
         event.preventDefault()
-        selected = mapper.graph[0]
-        mapper.graph.focus(selected)
+        if (event.shiftKey) {
+          mapper.graph.undoFocus()
+        } else {
+          selected = mapper.graph[0]
+          mapper.graph.focus(selected)
+        }
+        console.log(mapper.graph.map(g => g.id))
         mapper.dirty = true
       }
 
@@ -1266,6 +1293,8 @@ function clear (mapper) {
  * Private: Draws a node on the canvas
  */
 function draw_node (node, {context, offset}) {
+  // Set font size before calculating text widths
+  context.font = fontSize + 'px sans-serif'
 
   //  word wrap the text
   const text = wordWrap(node.text, context)
@@ -1296,7 +1325,6 @@ function draw_node (node, {context, offset}) {
 
   //  set text box styles
   context.fillStyle = 'rgba('+rgb+',0.8)'
-  context.font = fontSize + 'px sans-serif'
   context.textAlign = 'center'
 
   const lineHeight = fontSize * 1.25;
