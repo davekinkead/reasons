@@ -816,7 +816,7 @@ function addEventListeners (mapper) {
     //  Specify a node as the drag target when clicked
     if (dragging) {
       const localPos = localPosition(event)
-      console.log('drag', localPos, clickOffset)
+      // console.log('drag', localPos, clickOffset)
       dragging.move({
         x: localPos.x + clickOffset.x,
         y: localPos.y + clickOffset.y
