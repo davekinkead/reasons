@@ -939,7 +939,7 @@ function addEventListeners (mapper) {
 
   const zoomAction = (event) => {
     event.preventDefault()
-    if (event.target.id != 'reasons-element') {
+    if (event.target.id != 'reasons-'+mapper.DOM.id) {
       return
     }
 
