@@ -609,52 +609,74 @@ module.exports = {
 }
 
 function setup(mapper) {
+  setupSharedStyles()
   const styleTag = Utils.buildNode('style')
   styleTag.innerHTML = `
     #${mapper.DOM.id} {
-      height: 100vh;
-    }
-    #reason-overlay {
-      font-size: 18px;
-      position:absolute;
-      top: 0; left: 0; right: 0;
-      height: 100vh;
-      background: rgba(0,0,0,0.75);
-    }
-    #edit-reason-input {
-      font-size: 18px;
-      padding: 1rem 1rem 0 1rem;
-      margin-top: 10vh;
-      box-sizing: border-box;
-    }
-    #reason-overlay__wrapper {
-      margin: auto;
-      margin-top: 40vh;
-      width:50%;
-      padding: 1rem;
-      flex-direction: column;
-      display: flex;
-    }
-    #reasons-overlay-toolbar {
-      margin: 0.75rem -0.5rem;
-    }
-    .reason-overlay__button {
-      font-size: inherit;
-      background-color: white;
-      padding: 0.5rem 1rem;
-      border: 1px solid grey;
-      border-radius: 4px;
-      margin: 0 0.5rem;
+      min-height: 100px;
     }
   `
   document.head.appendChild(styleTag)
   View.resize(mapper)
 }
 
+function setupSharedStyles() {
+  if (!document.head.querySelector('style[data-reasons-shared]')) {
+    const sharedStyles = Utils.buildNode('style', undefined, { 'data-reasons-shared': true })
+    sharedStyles.innerHTML = `
+      body.modal {
+        overflow-y: hidden;
+      }
+      #reason-overlay {
+        font-size: 18px;
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 100vh;
+        background: rgba(0,0,0,0.75);
+        touch-action: none;
+      }
+      #edit-reason-input {
+        font-size: 18px;
+        padding: 1rem 1rem 0 1rem;
+        margin-top: 10vh;
+        box-sizing: border-box;
+      }
+      #reason-overlay__wrapper {
+        margin: auto;
+        margin-top: 10vh;
+        width:50%;
+        padding: 1rem;
+        flex-direction: column;
+        display: flex;
+      }
+      #reasons-overlay-toolbar {
+        margin: 0.75rem -0.5rem;
+      }
+      .reason-overlay__button {
+        font-size: inherit;
+        background-color: white;
+        padding: 0.5rem 1rem;
+        border: 1px solid grey;
+        border-radius: 4px;
+        margin: 0 0.5rem;
+      }
+      [data-reasons-layout="inline"] {
+        touch-action: pinch-zoom;
+      }
+      .show-touch, .show-pointer {
+        display: none;
+      }
+    `
+    document.head.appendChild(sharedStyles)
+  }
+}
+
 function addEventListeners (mapper) {
 
   const hammer = new Hammer(mapper.DOM, {})
-  hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL })
+  if (!mapper.inline) {
+    hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL })
+  }
   hammer.get('pinch').set({ enable: true })
 
   // 3 finger swipes for undo/redo
@@ -671,11 +693,41 @@ function addEventListeners (mapper) {
   let clickOffset = null
   let metaKeyPressed = false
 
+  const elPosition = function( _el ) {
+    var target = _el,
+    target_width = target.offsetWidth,
+    target_height = target.offsetHeight,
+    target_left = target.offsetLeft,
+    target_top = target.offsetTop,
+    gleft = 0,
+    gtop = 0,
+    rect = {};
+
+    var moonwalk = function( _parent ) {
+    if (!!_parent) {
+        gleft += _parent.offsetLeft;
+        gtop += _parent.offsetTop;
+        moonwalk( _parent.offsetParent );
+    } else {
+        return rect = {
+        top: target.offsetTop + gtop,
+        left: target.offsetLeft + gleft,
+        bottom: (target.offsetTop + gtop) + target_height,
+        right: (target.offsetLeft + gleft) + target_width
+        };
+    }
+    };
+    moonwalk( target.offsetParent );
+    return rect;
+  }
+
   const localPosition = (event) => {
+    const pos = elPosition(event.target)
     const {x,y} = mapper.offset
+
     return {
-      x: (parseInt(event.x || event.pageX) / mapper.scale) - x,
-      y: (parseInt(event.y || event.pageY) / mapper.scale) - y
+      x: ((parseInt(event.offsetX)) / mapper.scale) - x,
+      y: ((parseInt(event.offsetY)) / mapper.scale) - y
     }
   }
 
@@ -683,9 +735,10 @@ function addEventListeners (mapper) {
    * Private: Returns mouse event and hovered element
    */
   function detect (event) {
+    const local = localPosition(event)
     return {
-      position: localPosition(event),
-      collision: mapper.graph.elements().find(el => el.collides(localPosition(event)))
+      position: local,
+      collision: mapper.graph.elements().find(el => el.collides(local))
     }
   }
 
@@ -710,6 +763,7 @@ function addEventListeners (mapper) {
   }
   hammer.on('doubletap', (hammerEvent) => {
     const event = hammerEvent.srcEvent
+    event.preventDefault()
     doubleClick(event)
   })
 
@@ -758,7 +812,7 @@ function addEventListeners (mapper) {
     }
   })
 
-  hammer.on('panmove', function (hammerEvent) {
+  const panMove = function (hammerEvent) {
     const event = hammerEvent.srcEvent
     const {collision} = detect(event)
     if (collision) { return dragMove(event) }
@@ -771,7 +825,8 @@ function addEventListeners (mapper) {
     mapper.dirty = true
     View.zero(mapper)
     redraw(mapper)
-  })
+  };
+  hammer.on('panmove', panMove)
 
   //  Draging an element selects and moves it
   //  Selecting nothing unfocuses the graph
@@ -858,7 +913,9 @@ function addEventListeners (mapper) {
 
   //  Close modal if click occurs outside text box
   window.addEventListener('click', (event) => {
-
+    // if (mapper.inline) {
+    //   event.preventDefault();
+    // }
     if (mapper.editMode && event.target.id === 'reason-overlay') {
       removeOverlay(mapper)
     }
@@ -938,10 +995,14 @@ function addEventListeners (mapper) {
   })
 
   const zoomAction = (event) => {
-    event.preventDefault()
-    if (event.target.id != mapper.DOM.id) {
+    if (event.target.id != mapper.DOM.firstElementChild.id) {
       return
     }
+    if (mapper.inline && !event.metaKey) {
+      metaWarning()
+      return;
+    }
+    event.preventDefault()
 
     mapper.dirty = true
     View.setScale(mapper, event.deltaY)
@@ -955,6 +1016,9 @@ function addEventListeners (mapper) {
 
   hammer.on('pinch', (hammerEvent) => {
     if (mapper._isSwipping) { return }
+    if (mapper.inline) {
+      panMove(hammerEvent)
+    }
     hammerEvent.preventDefault()
     let tmpScale = hammerEvent.scale - _lastScale
 
@@ -976,6 +1040,11 @@ let timeout
 function deleteElement(mapper, selected) {
   mapper.graph.remove(selected)
   mapper.dirty = true
+}
+
+function metaWarning() {
+  mapper.DOM.querySelector('')
+  console.log("Please hold CMD while scrolling to zoom");
 }
 
 function redraw(mapper) {
@@ -1096,13 +1165,14 @@ function addOverlay (mapper, element, highlightAll = false) {
   wrapper.appendChild(input)
   wrapper.appendChild(toolbarNode(mapper, element))
   document.body.appendChild(overlay)
+  document.body.classList.add('modal')
 
   //  Highlight text on element creation
   if (highlightAll) {
     input.select()
     input.setSelectionRange(0, input.value.length)
   }
-  wrapper.scrollIntoView()
+  input.scrollIntoView()
 }
 
 
@@ -1129,6 +1199,7 @@ function removeOverlay (argumentMap) {
   argumentMap.editMode = false
   argumentMap.altered = true
   document.querySelector('#reason-overlay').remove()
+  document.body.classList.remove('modal')
 }
 
 function isMetaKey (event) {
@@ -1189,6 +1260,8 @@ module.exports = (function () {
     dpr = window.devicePixelRatio || 1
     mapper.scale = 1
     mapper.offset = { x: 0, y: 0 }
+
+    mapper.inline = mapper.DOM.getAttribute('data-reasons-layout') == 'inline'
 
     let domBB = mapper.DOM.getBoundingClientRect()
     let canvas = Utils.buildNode(
