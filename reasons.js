@@ -999,7 +999,7 @@ function addEventListeners (mapper) {
       return
     }
     if (mapper.inline && !event.metaKey) {
-      metaWarning()
+      metaWarning(mapper)
       return;
     }
     event.preventDefault()
@@ -1042,8 +1042,8 @@ function deleteElement(mapper, selected) {
   mapper.dirty = true
 }
 
-function metaWarning() {
-  mapper.DOM.querySelector('')
+function metaWarning(mapper) {
+  // mapper.DOM.querySelector('')
   console.log("Please hold CMD while scrolling to zoom");
 }
 
