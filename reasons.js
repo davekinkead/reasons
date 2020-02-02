@@ -694,6 +694,7 @@ function addEventListeners (mapper) {
   let metaKeyPressed = false
 
   const elPosition = function( _el ) {
+
     var target = _el,
     target_width = target.offsetWidth,
     target_height = target.offsetHeight,
@@ -703,6 +704,7 @@ function addEventListeners (mapper) {
     gtop = 0,
     rect = {};
 
+    //  what does moonwalk do here?
     var moonwalk = function( _parent ) {
     if (!!_parent) {
         gleft += _parent.offsetLeft;
@@ -726,8 +728,10 @@ function addEventListeners (mapper) {
     const {x,y} = mapper.offset
 
     return {
-      x: ((parseInt(event.offsetX)) / mapper.scale) - x,
-      y: ((parseInt(event.offsetY)) / mapper.scale) - y
+      // x: ((parseInt(event.offsetX)) / mapper.scale) - x,
+      // y: ((parseInt(event.offsetY)) / mapper.scale) - y
+      x: (parseInt(event.x || event.pageX) / mapper.scale) - x,
+      y: (parseInt(event.y || event.pageY) / mapper.scale) - y      
     }
   }
 
@@ -741,6 +745,14 @@ function addEventListeners (mapper) {
       collision: mapper.graph.elements().find(el => el.collides(local))
     }
   }
+
+  // For testing
+  // const click = (event) => {
+  //   console.log(`${event.clientX}, ${event.clientY}`)
+  //   console.log(mapper.offset)
+  //   console.log(mapper.graph)
+  // }
+  // mapper.DOM.addEventListener('click', click)
 
   //  Double click creates or edits element
   const doubleClick = (event) => {
@@ -871,7 +883,6 @@ function addEventListeners (mapper) {
     //  Specify a node as the drag target when clicked
     if (dragging) {
       const localPos = localPosition(event)
-      // console.log('drag', localPos, clickOffset)
       dragging.move({
         x: localPos.x + clickOffset.x,
         y: localPos.y + clickOffset.y
@@ -1043,7 +1054,7 @@ function deleteElement(mapper, selected) {
 }
 
 function metaWarning() {
-  mapper.DOM.querySelector('')
+  // mapper.DOM.querySelector('')
   console.log("Please hold CMD while scrolling to zoom");
 }
 
@@ -1292,7 +1303,7 @@ module.exports = (function () {
   }
 
   function zero (mapper) {
-    //  find bb of nodes and DOM
+    //  find a bounded box of nodes and DOM
     let nodeBB = mapper.graph.nodes().map((node) => {
       return { x1: node.x1, x2: node.x2, y1: node.y1, y2: node.y2 }
     }).reduce( (acc, cur) => {
@@ -1321,6 +1332,7 @@ module.exports = (function () {
   }
 
   function resize (mapper) {
+
     mapper.DOM.width = (mapper.DOM.clientWidth - mapper.DOM.clientLeft)
     mapper.DOM.height = (mapper.DOM.clientHeight - mapper.DOM.clientTop)
     const canvas = mapper.DOM.querySelector('canvas')
@@ -1377,7 +1389,7 @@ function draw_node (node, {context, offset}) {
   const oy = offset.y
 
   //  recalculate the height with extra padding when multi-line
-  node.height = (text.length * fontSize) + fontSize * ((text.length > 1 ) ? 2.25 : 2)
+  node.height = (text.length * fontSize * 1.2) + fontSize * ((text.length > 1 ) ? 2 : 1.75)
   resizeNode(node)
 
   //  clear a white rectangle for background

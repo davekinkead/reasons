@@ -2,6 +2,11 @@
 <html>
 <head>
   <meta charset="utf8">
+  <style>
+    #element {
+      height: 100vh;
+    }
+  </style>  
 </head>
 <body>
   <div id="element"></div>
@@ -244,11 +249,11 @@
 ]
     let m = Reasons.mapper('#element').render(graph)
 
-    window.addEventListener('keypress', (event) => {
-      if (event.key == 's') {
-        console.log(m.export())
-      }
-    })
+    // window.addEventListener('keypress', (event) => {
+    //   if (event.key == 's') {
+    //     console.log(m.export())
+    //   }
+    // })
   </script>
 </body>
 </html>
