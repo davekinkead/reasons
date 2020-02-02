@@ -558,8 +558,9 @@ function Mapper (elementID) {
  * @params elements   the elements to render
  */
 Mapper.prototype.render = function (elements) {
-  // console.log(elements)
   this.graph = new Graph(elements)
+  View.draw(this)   //  this is repeated to generate node heights
+  View.resize(this)
   View.zero(this)
   View.draw(this)
   return this
@@ -1389,7 +1390,7 @@ function draw_node (node, {context, offset}) {
   const oy = offset.y
 
   //  recalculate the height with extra padding when multi-line
-  node.height = (text.length * fontSize * 1.2) + fontSize * ((text.length > 1 ) ? 2 : 1.75)
+  node.height = (text.length * fontSize * 1.22) + fontSize * ((text.length > 1 ) ? 2 : 1.75)
   resizeNode(node)
 
   //  clear a white rectangle for background
