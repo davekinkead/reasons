@@ -694,45 +694,43 @@ function addEventListeners (mapper) {
   let clickOffset = null
   let metaKeyPressed = false
 
-  const elPosition = function( _el ) {
+  // const elPosition = function( _el ) {
 
-    var target = _el,
-    target_width = target.offsetWidth,
-    target_height = target.offsetHeight,
-    target_left = target.offsetLeft,
-    target_top = target.offsetTop,
-    gleft = 0,
-    gtop = 0,
-    rect = {};
+  //   var target = _el,
+  //   target_width = target.offsetWidth,
+  //   target_height = target.offsetHeight,
+  //   target_left = target.offsetLeft,
+  //   target_top = target.offsetTop,
+  //   gleft = 0,
+  //   gtop = 0,
+  //   rect = {};
 
-    //  what does moonwalk do here?
-    var moonwalk = function( _parent ) {
-    if (!!_parent) {
-        gleft += _parent.offsetLeft;
-        gtop += _parent.offsetTop;
-        moonwalk( _parent.offsetParent );
-    } else {
-        return rect = {
-        top: target.offsetTop + gtop,
-        left: target.offsetLeft + gleft,
-        bottom: (target.offsetTop + gtop) + target_height,
-        right: (target.offsetLeft + gleft) + target_width
-        };
-    }
-    };
-    moonwalk( target.offsetParent );
-    return rect;
-  }
+  //   //  what does moonwalk do here?
+  //   var moonwalk = function( _parent ) {
+  //   if (!!_parent) {
+  //       gleft += _parent.offsetLeft;
+  //       gtop += _parent.offsetTop;
+  //       moonwalk( _parent.offsetParent );
+  //   } else {
+  //       return rect = {
+  //       top: target.offsetTop + gtop,
+  //       left: target.offsetLeft + gleft,
+  //       bottom: (target.offsetTop + gtop) + target_height,
+  //       right: (target.offsetLeft + gleft) + target_width
+  //       };
+  //   }
+  //   };
+  //   moonwalk( target.offsetParent );
+  //   return rect;
+  // }
 
   const localPosition = (event) => {
-    const pos = elPosition(event.target)
     const {x,y} = mapper.offset
+    const parent = event.target.getClientRects()[0]
 
     return {
-      // x: ((parseInt(event.offsetX)) / mapper.scale) - x,
-      // y: ((parseInt(event.offsetY)) / mapper.scale) - y
-      x: (parseInt(event.x || event.pageX) / mapper.scale) - x,
-      y: (parseInt(event.y || event.pageY) / mapper.scale) - y      
+      x: (parseInt((event.x || event.pageX) - parseInt(parent.left)) / mapper.scale) - x,
+      y: (parseInt((event.y || event.pageY) - parseInt(parent.top)) / mapper.scale) - y     
     }
   }
 
@@ -748,12 +746,11 @@ function addEventListeners (mapper) {
   }
 
   // For testing
-  // const click = (event) => {
-  //   console.log(`${event.clientX}, ${event.clientY}`)
-  //   console.log(mapper.offset)
-  //   console.log(mapper.graph)
-  // }
-  // mapper.DOM.addEventListener('click', click)
+  const click = (event) => {
+    console.log(mapper.scale)
+    // console.log(mapper.graph)
+  }
+  mapper.DOM.addEventListener('click', click)
 
   //  Double click creates or edits element
   const doubleClick = (event) => {
