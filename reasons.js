@@ -746,11 +746,11 @@ function addEventListeners (mapper) {
   }
 
   // For testing
-  const click = (event) => {
-    console.log(mapper.scale)
-    // console.log(mapper.graph)
-  }
-  mapper.DOM.addEventListener('click', click)
+  // const click = (event) => {
+  //   console.log(mapper.scale)
+  //   // console.log(mapper.graph)
+  // }
+  // mapper.DOM.addEventListener('click', click)
 
   //  Double click creates or edits element
   const doubleClick = (event) => {
