@@ -599,8 +599,6 @@ const Utils   = require('./utils')
 const Graph   = require('./graph')
 const Keycode = require('keycode')
 const Hammer  = require('hammerjs')
-const History = []
-let   Future  = []
 
 
 module.exports = {
@@ -618,6 +616,9 @@ function setup(mapper) {
   `
   document.head.appendChild(styleTag)
   View.resize(mapper)
+
+  mapper.History = []
+  mapper.Future = []
 }
 
 function setupSharedStyles() {
@@ -769,8 +770,8 @@ function addEventListeners (mapper) {
 
   function triggerRedo() {
     //  Store for undo
-    save(History, mapper)
-    const next = Future.pop()
+    save(mapper.History, mapper)
+    const next = mapper.Future.pop()
     if (next) {
       mapper.graph = new Graph(JSON.parse(next))
       mapper.dirty = true
@@ -779,8 +780,8 @@ function addEventListeners (mapper) {
 
   function triggerUndo() {
     //  Store for redo
-    save(Future, mapper)
-    const last = History.pop()
+    save(mapper.Future, mapper)
+    const last = mapper.History.pop()
     if (last) {
       mapper.graph = new Graph(JSON.parse(last))
       mapper.dirty = true
@@ -855,6 +856,8 @@ function addEventListeners (mapper) {
   //  Highlight a hovered element
   const dragMove = (event) => {
 
+    window.currentMapper = mapper;
+
     // Set element hover flag on mouseover
     const mouse = localPosition(event)
 
@@ -923,6 +926,10 @@ function addEventListeners (mapper) {
 
 
   window.addEventListener('keydown', (event) => {
+
+    if (window.currentMapper !== mapper) {
+      return; // Only respond if we are the last mapper to have a mouse move event.
+    }
 
     if (mapper.editMode) {
       //  Escape key
@@ -999,8 +1006,8 @@ function addEventListeners (mapper) {
       return
     }
     if (mapper.inline && !event.metaKey) {
-      metaWarning()
-      return;
+      metaWarning(mapper)
+      return
     }
     event.preventDefault()
 
@@ -1042,8 +1049,8 @@ function deleteElement(mapper, selected) {
   mapper.dirty = true
 }
 
-function metaWarning() {
-  mapper.DOM.querySelector('')
+function metaWarning(mapper) {
+  // mapper.DOM.querySelector('')
   console.log("Please hold CMD while scrolling to zoom");
 }
 
@@ -1067,8 +1074,8 @@ function redraw(mapper) {
 function _redraw (mapper) {
   if (mapper.altered || mapper.dirty) {
     if (mapper.altered) {
-      save(History, mapper)
-      Future = [] //  Reset the redo buffer
+      save(mapper.History, mapper)
+      mapper.Future.length = 0 //  Reset the redo buffer
     }
 
     View.draw(mapper)
