@@ -558,8 +558,9 @@ function Mapper (elementID) {
  * @params elements   the elements to render
  */
 Mapper.prototype.render = function (elements) {
-  // console.log(elements)
   this.graph = new Graph(elements)
+  View.draw(this)   //  this is repeated to generate node heights
+  View.resize(this)
   View.zero(this)
   View.draw(this)
   return this
@@ -694,41 +695,43 @@ function addEventListeners (mapper) {
   let clickOffset = null
   let metaKeyPressed = false
 
-  const elPosition = function( _el ) {
-    var target = _el,
-    target_width = target.offsetWidth,
-    target_height = target.offsetHeight,
-    target_left = target.offsetLeft,
-    target_top = target.offsetTop,
-    gleft = 0,
-    gtop = 0,
-    rect = {};
+  // const elPosition = function( _el ) {
 
-    var moonwalk = function( _parent ) {
-    if (!!_parent) {
-        gleft += _parent.offsetLeft;
-        gtop += _parent.offsetTop;
-        moonwalk( _parent.offsetParent );
-    } else {
-        return rect = {
-        top: target.offsetTop + gtop,
-        left: target.offsetLeft + gleft,
-        bottom: (target.offsetTop + gtop) + target_height,
-        right: (target.offsetLeft + gleft) + target_width
-        };
-    }
-    };
-    moonwalk( target.offsetParent );
-    return rect;
-  }
+  //   var target = _el,
+  //   target_width = target.offsetWidth,
+  //   target_height = target.offsetHeight,
+  //   target_left = target.offsetLeft,
+  //   target_top = target.offsetTop,
+  //   gleft = 0,
+  //   gtop = 0,
+  //   rect = {};
+
+  //   //  what does moonwalk do here?
+  //   var moonwalk = function( _parent ) {
+  //   if (!!_parent) {
+  //       gleft += _parent.offsetLeft;
+  //       gtop += _parent.offsetTop;
+  //       moonwalk( _parent.offsetParent );
+  //   } else {
+  //       return rect = {
+  //       top: target.offsetTop + gtop,
+  //       left: target.offsetLeft + gleft,
+  //       bottom: (target.offsetTop + gtop) + target_height,
+  //       right: (target.offsetLeft + gleft) + target_width
+  //       };
+  //   }
+  //   };
+  //   moonwalk( target.offsetParent );
+  //   return rect;
+  // }
 
   const localPosition = (event) => {
-    const pos = elPosition(event.target)
     const {x,y} = mapper.offset
+    const parent = event.target.getClientRects()[0]
 
     return {
-      x: ((parseInt(event.offsetX)) / mapper.scale) - x,
-      y: ((parseInt(event.offsetY)) / mapper.scale) - y
+      x: (parseInt((event.x || event.pageX) - parseInt(parent.left)) / mapper.scale) - x,
+      y: (parseInt((event.y || event.pageY) - parseInt(parent.top)) / mapper.scale) - y     
     }
   }
 
@@ -742,6 +745,13 @@ function addEventListeners (mapper) {
       collision: mapper.graph.elements().find(el => el.collides(local))
     }
   }
+
+  // For testing
+  // const click = (event) => {
+  //   console.log(mapper.scale)
+  //   // console.log(mapper.graph)
+  // }
+  // mapper.DOM.addEventListener('click', click)
 
   //  Double click creates or edits element
   const doubleClick = (event) => {
@@ -874,7 +884,6 @@ function addEventListeners (mapper) {
     //  Specify a node as the drag target when clicked
     if (dragging) {
       const localPos = localPosition(event)
-      // console.log('drag', localPos, clickOffset)
       dragging.move({
         x: localPos.x + clickOffset.x,
         y: localPos.y + clickOffset.y
@@ -1299,7 +1308,7 @@ module.exports = (function () {
   }
 
   function zero (mapper) {
-    //  find bb of nodes and DOM
+    //  find a bounded box of nodes and DOM
     let nodeBB = mapper.graph.nodes().map((node) => {
       return { x1: node.x1, x2: node.x2, y1: node.y1, y2: node.y2 }
     }).reduce( (acc, cur) => {
@@ -1328,6 +1337,7 @@ module.exports = (function () {
   }
 
   function resize (mapper) {
+
     mapper.DOM.width = (mapper.DOM.clientWidth - mapper.DOM.clientLeft)
     mapper.DOM.height = (mapper.DOM.clientHeight - mapper.DOM.clientTop)
     const canvas = mapper.DOM.querySelector('canvas')
@@ -1384,7 +1394,7 @@ function draw_node (node, {context, offset}) {
   const oy = offset.y
 
   //  recalculate the height with extra padding when multi-line
-  node.height = (text.length * fontSize) + fontSize * ((text.length > 1 ) ? 2.25 : 2)
+  node.height = (text.length * fontSize * 1.22) + fontSize * ((text.length > 1 ) ? 2 : 1.75)
   resizeNode(node)
 
   //  clear a white rectangle for background

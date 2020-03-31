@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf8">
+  <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+  <style>
+    #element {
+      height: 100vh;
+    }
+  </style>
+
+</head>
+<body>
+  <div id="element"></div>
+
+  <script src="../reasons.js"></script>
+  <script>
+    let graph = [
+        {id: "p1", text: "The move from a structuralist account in which capital is understood to structure social relations in relatively homologous ways to a view of hegemony in which power relations are subject to repetition, convergence, and rearticulation brought the question of temporality into the thinking of structure, and marked a shift from a form of Althusserian theory that takes structural totalities as theoretical objects to one in which the insights into the contingent possibility of structure inaugurate a renewed conception of hegemony as bound up with the contingent sites and strategies of the rearticulation of power.", x: 50, y: 50},
+        {id: "c1", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis posuere, enim eu mattis laoreet, purus nisi aliquet diam, non dignissim felis lorem et dui. Vestibulum quis dui congue, condimentum mi eu, suscipit mi.", lineType: 'dashed', x: 400},
+        {from: "c1", to: "p1", type: "because"},
+        {text: "Nullam ac rutrum ipsum."}
+      ]
+    let m = Reasons.mapper('#element').render(graph)
+
+    window.addEventListener('keypress', (event) => {
+      if (event.key == 's') {
+        console.log(m.export())
+      }
+
+      if (event.key == 'p') {
+        const canvas = document.querySelector('canvas')
+        window.open().document.body.innerHTML = '<img src="'+canvas.toDataURL('image/png')+'" style="width:100%;">'
+      }
+    })
+  </script>
+</body>
+</html>
