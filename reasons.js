@@ -1012,6 +1012,7 @@ function addEventListeners (mapper) {
 
   const zoomAction = (event) => {
     //  need a hack for firefox event mismatch
+    console.log(event.target)
     if ((event.target.id === mapper.DOM.firstElementChild.id) ||
         (event.type === 'wheel' && event.target.id === mapper.DOM.id)) {
 
