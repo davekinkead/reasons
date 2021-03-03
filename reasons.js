@@ -985,10 +985,12 @@ function addEventListeners (mapper) {
 
       //  Delete a selected element on `backspace` or `delete`
       if (Keycode.isEventKey(event, 'Delete') || Keycode.isEventKey(event, 'Backspace')) {
-        if (!mapper.editMode) event.preventDefault()
-
-        if (selected) {
+        if (mapper.editMode || document.activeElement.tagName === 'INPUT') {
+          // javascript really needs an unless
+        } else if (selected) {
           deleteElement(mapper, selected)
+        } else {
+          event.preventDefault()
         }
       }
     }
@@ -1012,7 +1014,6 @@ function addEventListeners (mapper) {
 
   const zoomAction = (event) => {
     //  need a hack for firefox event mismatch
-    console.log(event.target)
     if ((event.target.id === mapper.DOM.firstElementChild.id) ||
         (event.type === 'wheel' && event.target.id === mapper.DOM.id)) {
 
