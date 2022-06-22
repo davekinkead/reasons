@@ -14,7 +14,7 @@
   "devDependencies": {
     "browserify": "16.5.1",
     "canvas": "2.8.0",
-    "jsdom": "11.0.0",
+    "jsdom": "16.5.0",
     "mocha": "8.3.0",
     "npm": "7.20.6",
     "request": "2.88.2",
