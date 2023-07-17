@@ -114,3 +114,5 @@ Please read CONTRIBUTING.md for details on our code of conduct, and the process 
 If you are using this software in an academic capacity, please cite as:
 
 > Kinkead et al., (2019). Reasons: A digital argument mapping library for modern browsers. Journal of Open Source Software, 4(37), 1044, https://doi.org/10.21105/joss.01044
+
+[![DOI](http://joss.theoj.org/papers/10.21105/joss.01044/status.svg)](https://doi.org/10.21105/joss.01044)
